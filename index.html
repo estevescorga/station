@@ -586,7 +586,7 @@ function isFolga(d){
 }
 const $=i=>document.getElementById(i);
 const hoje=()=>new Date().toISOString().slice(0,10);
-const esc=s=>{const d=document.createElement("div");d.textContent=s||"";return d.innerHTML;};
+const esc=s=>{const d=document.createElement("div");d.textContent=fixEnc(String(s==null?"":s));return d.innerHTML;};
 const min=q=>{const m=(q||"").match(/^(\d{1,2}):(\d{2})/);return m?+m[1]*60+ +m[2]:null;};
 function ask(t){if(typeof sendPrompt==="function"){sendPrompt(t);}else{chatOpen();$("chatIn").value=t;chatSend();}}
 /* ============ chat embebido ============ */
@@ -703,6 +703,24 @@ function syncOut(){
 }
 function setSt(m){$("status").textContent=m;setTimeout(()=>$("status").textContent="",3000);}
 
+// corrige mojibake (UTF-8 lido como Latin-1), aplicado a todo o texto renderizado
+function fixEnc(s){
+ if(typeof s!=="string"||s.indexOf("Ã")<0&&s.indexOf("Â")<0)return s;
+ try{
+  // reinterpreta os bytes: cada char -> byte latin1 -> descodifica utf-8
+  const bytes=new Uint8Array([...s].map(c=>c.charCodeAt(0)&0xff));
+  const dec=new TextDecoder("utf-8",{fatal:false}).decode(bytes);
+  // só aceita se reduziu os Ã (evita estragar texto já correto)
+  if(dec&&(dec.match(/Ã/g)||[]).length<(s.match(/Ã/g)||[]).length)return dec;
+ }catch(e){}
+ return s;
+}
+function deepFix(o){
+ if(typeof o==="string")return fixEnc(o);
+ if(Array.isArray(o))return o.map(deepFix);
+ if(o&&typeof o==="object"){for(const k in o)o[k]=deepFix(o[k]);return o;}
+ return o;
+}
 const WORKER="https://station.estevescorga.workers.dev/";
 const SENHA="Rimmmmmma1";
 let cloudSha=null,saveTimer=null,cloudOn=true;
@@ -721,6 +739,7 @@ async function cloudPut(obj){
 function snapshot(){return {versao:D.versao,D,rot,docs,news,agenda,mail,pausas,trk,ts:Date.now()};}
 function applySnapshot(s){
  if(!s||!s.D)return false;
+ s=deepFix(s);
  D=s.D;rot=(s.rot&&s.rot.data===hoje())?s.rot:null;docs=s.docs||[];news=s.news||[];
  agenda=s.agenda||null;mail=s.mail||null;pausas=s.pausas||null;trk=s.trk||{};
  return true;
@@ -742,7 +761,7 @@ async function load(){
   }
  }catch(e){cloudOn=false;setSt("offline — cache local");}
  D=D||null;
- if(!D||(D.versao||0)<5){D=JSON.parse(JSON.stringify(SEED));await save();}
+ if(!D||(D.versao||0)<5){D=deepFix(JSON.parse(JSON.stringify(SEED)));await save();}
  else if((D.versao||0)<SEED.versao){
   D.rotinaBase=SEED.rotinaBase;D.tracker=D.tracker||{};
   if(!D.conta)D.conta=SEED.conta;
@@ -843,6 +862,7 @@ function rHoje(){
  const el=$("rotList");el.innerHTML="";
  const its=rot?rot.itens:null;
  if(!its){
+  D.rotinaBase=deepFix(D.rotinaBase);
   const base=isFolga()?D.rotinaBase.filter(x=>!/Bloco|Comercial|Fecho do dia|Abertura|Reunião|Estúdio|escola/i.test(x.t)):D.rotinaBase;
   base.forEach(x=>el.insertAdjacentHTML("beforeend",
    `<div class="rrow" style="opacity:.6"><span class="q">${x.q}</span><span><span class="t">${esc(x.t)} *</span>${x.n?`<span class="n">${esc(x.n)}</span>`:""}</span><span></span></div>`));
