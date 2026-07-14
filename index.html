@@ -219,13 +219,22 @@ body.paused #pauseTint{opacity:1;}
 .pbar.seg i.f{box-shadow:none;}
 
 /* ================= SEMANA / MÊS ================= */
-.week{display:grid;grid-template-columns:repeat(7,1fr);gap:14px;}
-@media(max-width:700px){.week{grid-template-columns:1fr;}}
-.wday{padding:12px;min-height:110px;font-size:11.5px;}
-.wday h4{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;color:var(--soft);letter-spacing:.07em;margin-bottom:8px;}
-.wday.weekend{opacity:.65;}
-.wday.today h4{color:var(--acc);font-weight:700;}
-.wt{padding:2px 0;margin-bottom:3px;line-height:1.35;display:flex;gap:5px;align-items:baseline;}
+.week{display:flex;flex-direction:column;gap:10px;}
+.wkrow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+.wcell{background:var(--bg);border-radius:12px;padding:8px 9px;min-height:96px;font-size:11px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);transition:box-shadow .15s;}
+.wcell.folga{background:color-mix(in srgb, var(--acc) 6%, var(--bg));}
+.wcell.today{box-shadow:inset 0 0 0 2px var(--acc), inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
+.wcell.dragover{box-shadow:inset 0 0 0 2px var(--acc2);}
+.wch{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.wcn{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;color:var(--soft);letter-spacing:.06em;}
+.wcell.today .wcn{color:var(--acc);font-weight:700;}
+.wcm{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--acc2);text-transform:uppercase;}
+.wev{font-size:9.5px;color:var(--acc2);padding:2px 0;line-height:1.3;border-left:2px solid var(--acc2);padding-left:5px;margin-bottom:3px;}
+@media(max-width:800px){.wkrow{grid-template-columns:1fr;} .wcell{min-height:auto;}}
+.wt{padding:2px 4px;margin-bottom:2px;line-height:1.3;display:flex;gap:4px;align-items:baseline;cursor:pointer;border-radius:5px;font-size:10px;}
+.wt:hover{background:color-mix(in srgb, var(--acc) 8%, transparent);}
+.wt.dragging{opacity:.4;}
+.wt.prazo{opacity:.7;font-style:italic;}
 .wt.late{color:var(--acc);}
 .wt .wm{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);display:block;}
 .grow{display:grid;grid-template-columns:170px 1fr;gap:12px;align-items:center;margin-bottom:10px;}
@@ -1332,24 +1341,57 @@ function rCal(){
 /* ============ semana / mês ============ */
 function rSemana(){
  const g=$("wGrid");g.innerHTML="";
- const n=new Date(),mon=new Date(n);mon.setDate(n.getDate()-1);
+ const start=new Date();start.setDate(start.getDate()-1);start.setHours(0,0,0,0);
  const nm=["seg","ter","qua","qui","sex","sáb","dom"];
- for(let i=0;i<7;i++){
-  const d=new Date(mon);d.setDate(mon.getDate()+i);
-  const iso=d.toISOString().slice(0,10);
-  const dow=d.getDay();
-  const ts=D.tarefas.filter(t=>(t.data===iso||t.prazo===iso)&&!["arquivada","concluída"].includes(t.estado));
-  const col=document.createElement("div");
-  col.className="wday card"+(iso===hoje()?" today":"")+(dow===0||dow===6?" weekend":"");
-  col.innerHTML=`<h4>${nm[dow]} ${d.getDate()}</h4>`+ts.map(t=>{
-   const isPrazo=t.prazo===iso;
-   const late=t.prazo&&t.prazo<hoje();
-   return `<div class="wt${late||isPrazo?" late":""}"><i class="pdot" style="width:6px;height:6px;background:${pcor(t)}"></i><span>${esc(t.titulo)}<span class="wm">${isPrazo?"prazo":""}${t.data===iso&&isPrazo?" + trabalho":""}</span></span></div>`;
-  }).join("");
-  g.appendChild(col);
+ const ev=(agenda&&agenda.eventos)?agenda.eventos:[];
+ for(let w=0;w<4;w++){
+  const row=document.createElement("div");row.className="wkrow";
+  for(let i=0;i<7;i++){
+   const d=new Date(start);d.setDate(start.getDate()+w*7+i);
+   const iso=d.toISOString().slice(0,10);
+   const dow=d.getDay(),folga=isFolga(d);
+   const ts=D.tarefas.filter(t=>t.data===iso&&!["arquivada","concluída"].includes(t.estado));
+   const prazos=D.tarefas.filter(t=>t.prazo===iso&&t.data!==iso&&!["arquivada","concluída"].includes(t.estado));
+   const evs=ev.filter(e=>(e.data||"").slice(0,10)===iso);
+   const cell=document.createElement("div");
+   cell.className="wcell"+(iso===hoje()?" today":"")+(folga?" folga":"");
+   cell.dataset.day=iso;
+   cell.innerHTML=`<div class="wch"><span class="wcn">${nm[dow]} ${d.getDate()}</span>${d.getDate()===1||i===0&&w===0?`<span class="wcm">${d.toLocaleDateString("pt-PT",{month:"short"})}</span>`:""}</div>`+
+    evs.map(e=>`<div class="wev">${e.h?`<b>${esc(e.h)}</b> `:""}${esc(e.t||"")}</div>`).join("")+
+    ts.map(t=>taskChip(t,iso)).join("")+
+    prazos.map(t=>taskChip(t,iso,true)).join("");
+   row.appendChild(cell);
+  }
+  g.appendChild(row);
  }
+ bindAgendaDnD();
 }
-function estN(p){return estadoP(p);}
+function taskChip(t,iso,isPrazo){
+ const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
+ const late=t.prazo&&t.prazo<hoje();
+ return `<div class="wt${late?" late":""}${isPrazo?" prazo":""}" draggable="true" data-tid="${t.id}" data-pid="${pid}"><i class="pdot" style="background:${pcor(t)}"></i><span>${esc(t.titulo)}${isPrazo?' <span class="wm">prazo</span>':""}</span></div>`;
+}
+let dragTid=null;
+function bindAgendaDnD(){
+ const g=$("wGrid");
+ g.querySelectorAll(".wt").forEach(el=>{
+  el.addEventListener("click",e=>{ if(dragMoved)return; const pid=el.dataset.pid; if(pid)openP(pid); });
+  el.addEventListener("dragstart",e=>{dragTid=el.dataset.tid;dragMoved=false;el.classList.add("dragging");});
+  el.addEventListener("dragend",e=>{el.classList.remove("dragging");});
+ });
+ g.querySelectorAll(".wcell").forEach(c=>{
+  c.addEventListener("dragover",e=>{e.preventDefault();c.classList.add("dragover");});
+  c.addEventListener("dragleave",e=>c.classList.remove("dragover"));
+  c.addEventListener("drop",async e=>{
+   e.preventDefault();c.classList.remove("dragover");
+   if(!dragTid)return;
+   const t=D.tarefas.find(x=>x.id===dragTid);
+   if(t){t.data=c.dataset.day;await save();rSemana();}
+   dragTid=null;dragMoved=true;
+  });
+ });
+}
+let dragMoved=false;
 let agMode="s",gSpan="m",mcY,mcM;
 function rAgenda(){
  $("wGrid").style.display=agMode==="s"?"grid":"none";
