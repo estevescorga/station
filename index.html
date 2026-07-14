@@ -637,11 +637,12 @@ ROTINA: manhã=trabalho profundo de cliente; tarefas administrativas/leves à ta
 let D=null,rot=null,docs=[],sel=null,cat=null,editP=null,news=[],agenda=null,mail=null,trk={};
 const FERIADOS=new Set(["2026-01-01","2026-02-17","2026-04-03","2026-04-05","2026-04-25","2026-05-01","2026-06-04","2026-06-10","2026-08-15","2026-10-05","2026-12-01","2026-12-08","2026-12-25","2027-01-01","2027-02-09","2027-03-26","2027-03-28","2027-04-25","2027-05-01","2027-05-27","2027-06-10","2027-08-15","2027-10-05","2027-12-01","2027-12-08","2027-12-25"]);
 function isFolga(d){
- const dt=d||new Date(),iso=dt.toISOString().slice(0,10),wd=dt.getDay();
+ const dt=d||new Date(),iso=isoLocal(dt),wd=dt.getDay();
  return wd===0||wd===6||FERIADOS.has(iso)||((D&&D.folgas)||[]).includes(iso);
 }
 const $=i=>document.getElementById(i);
-const hoje=()=>new Date().toISOString().slice(0,10);
+function isoLocal(d){const x=d||new Date();return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
+const hoje=()=>isoLocal();
 const esc=s=>{const d=document.createElement("div");d.textContent=fixEnc(String(s==null?"":s));return d.innerHTML;};
 const min=q=>{const m=(q||"").match(/^(\d{1,2}):(\d{2})/);return m?+m[1]*60+ +m[2]:null;};
 function ask(t){if(typeof sendPrompt==="function"){sendPrompt(t);}else{chatOpen();$("chatIn").value=t;chatSend();}}
@@ -1081,7 +1082,7 @@ function rTracker(){
     <span style="font-size:11px">${hs||"—"}${r.notas?`<span class="sub2">${esc(r.notas)}</span>`:""}</span></div>`;
   }).join("")||`<div class="empty">sem registos ainda — o fecho do dia (⏻) alimenta esta tabela</div>`);
  // somatório 7 dias
- const corte=new Date(Date.now()-6*864e5).toISOString().slice(0,10);
+ const corte=isoLocal(new Date(Date.now()-6*864e5));
  const tot={};
  Object.entries(trk).filter(([d])=>d>=corte).forEach(([,r])=>{Object.entries(r.horas||{}).forEach(([k,v])=>tot[k]=(tot[k]||0)+v);});
  const ent=Object.entries(tot).sort((a,b)=>b[1]-a[1]);
@@ -1348,7 +1349,7 @@ function rSemana(){
   const row=document.createElement("div");row.className="wkrow";
   for(let i=0;i<7;i++){
    const d=new Date(start);d.setDate(start.getDate()+w*7+i);
-   const iso=d.toISOString().slice(0,10);
+   const iso=isoLocal(d);
    const dow=d.getDay(),folga=isFolga(d);
    const ts=D.tarefas.filter(t=>t.data===iso&&!["arquivada","concluída"].includes(t.estado));
    const prazos=D.tarefas.filter(t=>t.prazo===iso&&t.data!==iso&&!["arquivada","concluída"].includes(t.estado));
