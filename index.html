@@ -98,6 +98,8 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 /* edição de projecto */
 .msec{margin-bottom:22px;}
 .msech{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--soft);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+.frow{display:flex;gap:8px;align-items:center;margin-bottom:7px;}
+#fMesD{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:6px 10px;border:none;border-radius:9px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .pedit{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
 .pedit label{white-space:nowrap;}
 .pedit select,.pedit input[type=date]{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:4px 6px;border:none;border-radius:8px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
@@ -442,6 +444,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="pipe" id="pipeC"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Contabilidade<span style="display:flex;gap:8px;align-items:center"><select id="fEstC"><option value="">todos</option><option>ATIVO</option><option>AGUARDA</option><option>FEITO</option></select><button class="ico" style="width:28px;height:28px" title="Novo projecto" onclick="novoProj()">＋</button></span></h2>
   <div class="card" style="padding:6px 0" id="contaList"></div>
+
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Despesas<span style="display:flex;gap:8px;align-items:center"><select id="fMesD"></select></span></h2>
+  <div class="fin" id="finD"></div>
+  <div class="card" style="padding:16px 18px;margin-bottom:18px">
+   <div class="msech" style="display:flex;justify-content:space-between;align-items:center">fixos mensais<button class="ico" style="width:24px;height:24px;font-size:13px" title="Adicionar fixo" onclick="addFixo()">+</button></div>
+   <div id="fixosList"></div>
+  </div>
+  <div class="card" style="padding:6px 0" id="despList"></div>
 </div>
 
 <!-- ============ MODAL DE PROJECTO ============ -->
@@ -506,8 +516,21 @@ let _i=0;
 const T=(c,p,a)=>a.map(x=>({id:"g"+(_i++),categoria:c,projecto:p,titulo:x[0],estado:"ativa",data:x[1]||null,prazo:null,hora:null,responsavel:"Ricardo"}));
 const P=(id,c,n,o={})=>({id,categoria:c,nome:n,estado:o.e||"em curso",cliente:!!o.cl,marca:o.m||null,prioridade:o.p||2,inicio:"2026-07-10",prazo:o.pz||null,horasPrevistas:o.hp||null,horasGastas:o.hg||0,orcamento:o.orc||null});
 const SEED={
- versao:12,
+ versao:13,
  folgas:[],
+ despesas:{
+  fixos:[
+   {nome:"Comissão bancária",cat:"banco"},
+   {nome:"Imposto de selo",cat:"impostos"},
+   {nome:"TSU",cat:"impostos"},
+   {nome:"Xeconxira",cat:"software"},
+   {nome:"Subsídio alimentação",cat:"pessoal"},
+   {nome:"Ordenado Marta",cat:"pessoal"},
+   {nome:"Ordenado Ricardo",cat:"pessoal"},
+   {nome:"Contabilista",cat:"servicos"}
+  ],
+  meses:{}
+ },
  kb:`HIERARQUIA DE PRIORIDADES (para rotinas e decisões):
 1. Trabalho de cliente com prazo ou pago: Grünenthal (7 retratos, 26_037, 1176€, modelo de negócio a replicar), Quinta Foz do Sabor (website Shopify, 26_008, 2ª tranche pendente), Unlisted (brand+site, 26_036, 1500€), Katerina (livro composições, 26_038, 2550€ em 3 fases).
 2. Comercial (13:35 diário, inegociável): reativação CTT (contacto: Susana Guerra, email enviado, aguarda resposta), follow-up MBF LEGAL (proposta 1600/2600€ enviada, sem resposta), proposta corporate RP/RH modelo Grünenthal (retratos ilustrados como prémios a colaboradores; identificar 5 empresas). Em cada orçamento perguntar SEMPRE o budget do cliente antes de dar valor.
@@ -819,10 +842,12 @@ async function load(){
   if(!D.folgas)D.folgas=[];
   if(!D.kb||(D.versao||0)<11)D.kb=SEED.kb;
   if(!D.financeiro.meses||!Object.keys(D.financeiro.meses).length)D.financeiro.meses=SEED.financeiro.meses;
+  if(!D.despesas)D.despesas=SEED.despesas;
   D.versao=SEED.versao;await save();
  }
  if(!D.tracker)D.tracker={};
  if(!D.conta)D.conta=[];
+ if(!D.despesas)D.despesas={fixos:SEED.despesas.fixos,meses:{}};
  D.conta.forEach(r=>{while(r.length<14)r.push(null);});
  (D.tarefas||[]).forEach(t=>{if(t.estado==="pendente")t.estado="ativa";});
  if(!D.precario)D.precario={niveis:{baixo:3500,medio:7000,alto:13000},horasDia:5,diasSemana:5};
@@ -1200,6 +1225,61 @@ function novoProj(){
  ask(`Novo projecto — próximo número: ${nx}. Faz-me as perguntas necessárias (responsável M/R, tipo, cliente, data de entrada, descrição, valor s/IVA, e se JÁ ESTÁ ADJUDICADO ou é proposta). Depois: 1) cria a entrada na contabilidade, 2) cria o projecto na categoria certa e define comigo as tarefas base. SE AINDA NÃO ADJUDICADO: marca o projecto como "por adjudicar" e para aí (sem pastas nem ficheiros). SE/QUANDO ADJUDICADO: 3) cria a pasta Drive "${nx}_[cliente]_[descrição]" com WORK, RECEBIDO, PARTILHADO e PROPOSTAS AI, 4) gera o orçamento "${nx}_ORCAMENTO-RIMA_[cliente]_[descrição]" em PARTILHADO, 5) em PROPOSTAS AI cria documentos que impulsionem o projecto (perguntando-me o necessário) e adiciona-os também aos documentos do projecto no dashboard.`);
 }
 
+/* ============ despesas ============ */
+function mesesDisp(){
+ const ms=Object.keys((D.despesas&&D.despesas.meses)||{}).sort().reverse();
+ return ms.length?ms:[new Date().toISOString().slice(0,7)];
+}
+let mesDAtual=null;
+function rDespFin(mk){
+ const md=(D.despesas.meses||{})[mk]||{movimentos:[]};
+ const movs=md.movimentos||[];
+ const entradas=movs.filter(m=>m.tipo==="entrada").reduce((s,m)=>s+m.valor,0);
+ const saidas=movs.filter(m=>m.tipo==="saida").reduce((s,m)=>s+m.valor,0);
+ const semMatch=movs.filter(m=>!m.match).length;
+ const fixosEsperados=D.despesas.fixos.length;
+ const fixosBatidos=new Set(movs.filter(m=>m.match==="fixo").map(m=>m.categoria)).size;
+ $("finD").innerHTML=`
+  <div class="fcard card"><div class="fl">entradas</div><div class="fv" style="color:var(--ok)">€${entradas.toLocaleString("pt-PT",{minimumFractionDigits:2})}</div><div class="fs">${movs.filter(m=>m.tipo==="entrada").length} movimentos</div></div>
+  <div class="fcard card"><div class="fl">saídas</div><div class="fv" style="color:var(--acc)">€${saidas.toLocaleString("pt-PT",{minimumFractionDigits:2})}</div><div class="fs">${movs.filter(m=>m.tipo==="saida").length} movimentos</div></div>
+  <div class="fcard card"><div class="fl">a bater</div><div class="fv" style="${semMatch?'color:var(--acc)':''}">${semMatch}</div><div class="fs">${fixosBatidos}/${fixosEsperados} fixos confirmados</div></div>`;
+}
+function rFixos(){
+ const el=$("fixosList");if(!el)return;
+ el.innerHTML=(D.despesas.fixos||[]).map((f,i)=>`<div class="frow"><input class="pin" style="flex:1" data-fi="${i}" data-ff="nome" value="${esc(f.nome)}"/><input class="pin" style="width:120px" data-fi="${i}" data-ff="cat" value="${esc(f.cat||"")}" placeholder="categoria"/><button class="ico" style="width:24px;height:24px;font-size:11px" data-fdel="${i}">✕</button></div>`).join("")||`<div class="empty">sem fixos definidos</div>`;
+ el.querySelectorAll("[data-ff]").forEach(inp=>inp.addEventListener("change",async()=>{
+  const i=+inp.dataset.fi,f=inp.dataset.ff;D.despesas.fixos[i][f]=inp.value;await save();
+ }));
+ el.querySelectorAll("[data-fdel]").forEach(b=>b.addEventListener("click",async()=>{
+  D.despesas.fixos.splice(+b.dataset.fdel,1);await save();rFixos();
+ }));
+}
+function addFixo(){
+ D.despesas.fixos.push({nome:"novo fixo",cat:""});save().then(rFixos);
+}
+function rDesp(){
+ if(!D.despesas)return;
+ const sel=$("fMesD");
+ const ms=mesesDisp();
+ if(!mesDAtual||!ms.includes(mesDAtual))mesDAtual=ms[0];
+ sel.innerHTML=ms.map(m=>`<option value="${m}" ${m===mesDAtual?"selected":""}>${new Date(m+"-01T12:00").toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</option>`).join("");
+ rDespFin(mesDAtual);
+ rFixos();
+ const md=(D.despesas.meses||{})[mesDAtual]||{movimentos:[]};
+ const movs=md.movimentos||[];
+ const el=$("despList");
+ if(!movs.length){el.innerHTML=`<div class="empty">sem movimentos importados para este mês<br>pede no chat para processar o extrato</div>`;return;}
+ const chip=m=>m.match==="fixo"?`<span class="chip" style="color:var(--ok)">✓ fixo</span>`:m.match==="projeto"?`<span class="chip" style="color:var(--ok)">✓ ${esc(m.matchRef||"projecto")}</span>`:`<span class="chip" style="color:var(--acc)">⚠ a rever</span>`;
+ el.innerHTML=movs.map(m=>`<div class="crow" style="grid-template-columns:70px 1fr auto auto">
+   <span class="cid">${m.data||""}</span>
+   <span class="cnome"><span class="cli">${esc(m.desc)}</span><span class="cdesc">${esc(m.categoria||"")}</span></span>
+   <span class="cval" style="color:${m.tipo==='entrada'?'var(--ok)':'var(--txt)'}">${m.tipo==='entrada'?'+':'-'}€${m.valor.toLocaleString("pt-PT",{minimumFractionDigits:2})}</span>
+   ${chip(m)}
+  </div>`).join("");
+ if(md.nota)el.insertAdjacentHTML("beforeend",`<div class="hsub" style="padding:12px 16px">${esc(md.nota)}</div>`);
+}
+document.addEventListener("change",e=>{if(e.target.id==="fMesD"){mesDAtual=e.target.value;rDesp();}});
+
 /* ============ modal de projecto ============ */
 let mP=null;
 function openP(id){mP=id;sel=null;renderP();$("pOvl").classList.add("on");}
@@ -1567,12 +1647,12 @@ $("nav").addEventListener("click",e=>{
   $("v-"+v).classList.add("on");
   if(v==="TAREFAS"){rInbox();rGlobalTasks();rCal();}
   if(v==="AGENDA")rAgenda();
-  if(v==="GESTAO"){rCom();rConta();}
+  if(v==="GESTAO"){rCom();rConta();rDesp();}
   if(v==="PRECARIO")rPrec();
   if(v==="TRACKER")rTracker();
  }
 });
-function rAll(){rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rConta();}tick();}
+function rAll(){rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rConta();rDesp();}tick();}
 const PIN_OK="Rimmmmmma1";  // senha de entrada
 let _booted=false;
 async function boot(){
