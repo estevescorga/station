@@ -2,6 +2,7 @@
 <html lang="pt-PT">
 <head>
 <meta charset="UTF-8" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='%23F1EFE9' stroke='%23C74A3C' stroke-width='6'/%3E%3C/svg%3E"/>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
@@ -126,7 +127,11 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .cnome{display:flex;flex-direction:column;gap:2px;min-width:0;}
 .cnome .cli{font-weight:600;font-size:13px;}
 .cnome .cdesc{font-size:11px;color:var(--soft);}
-.cgrouph{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);padding:14px 16px 6px;}
+.cgroup{margin-bottom:6px;}
+.cgrouph{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);padding:16px 16px 8px;}
+.cgrouph.acc{cursor:pointer;user-select:none;display:flex;align-items:center;gap:7px;}
+.cgrouph.acc:hover{color:var(--txt);}
+.accarr{font-size:9px;width:10px;}
 .crow.pago{opacity:.62;}
 .crow.pago .cval{color:var(--ok);}
 .crow.anulado{opacity:.5;}
@@ -1147,17 +1152,24 @@ function bindConta(el){
   await save();rConta();
  }));
 }
+let contaOpen={ativos:true,"avenças":true,pagos:false,null:false};
 function rConta(){
  const el=$("contaList");if(!el)return;
  const fe=$("fEstC").value;
  let rows=(D.conta||[]).slice().reverse();
  if(fe)rows=rows.filter(r=>r[8]===fe);
- const anulados=rows.filter(contaNull);
- const avencas=rows.filter(r=>contaAvenca(r)&&!contaPago(r)&&!contaNull(r));
- const pagos=rows.filter(r=>contaPago(r));
- const ativos=rows.filter(r=>!contaAvenca(r)&&!contaPago(r)&&!contaNull(r));
- const bloco=(titulo,arr)=>arr.length?`<div class="cgrouph">${titulo} · ${arr.length}</div>`+arr.map(crow).join(""):"";
- el.innerHTML=(bloco("ativos",ativos)+bloco("avenças",avencas)+bloco("pagos",pagos)+bloco("anulados",anulados))||`<div class="empty">sem registos</div>`;
+ const grupos=[
+  ["ativos",rows.filter(r=>!contaAvenca(r)&&!contaPago(r)&&!contaNull(r))],
+  ["avenças",rows.filter(r=>contaAvenca(r)&&!contaPago(r)&&!contaNull(r))],
+  ["pagos",rows.filter(contaPago)],
+  ["null",rows.filter(contaNull)]
+ ];
+ el.innerHTML=grupos.map(([nome,arr])=>{
+  if(!arr.length)return "";
+  const aberto=contaOpen[nome]!==false;
+  return `<div class="cgroup"><div class="cgrouph acc" data-g="${nome}"><span class="accarr">${aberto?"▾":"▸"}</span>${nome} · ${arr.length}</div><div class="cgbody" style="display:${aberto?"block":"none"}">${arr.map(crow).join("")}</div></div>`;
+ }).join("")||`<div class="empty">sem registos</div>`;
+ el.querySelectorAll(".cgrouph.acc").forEach(g=>g.addEventListener("click",()=>{const k=g.dataset.g;contaOpen[k]=contaOpen[k]===false;rConta();}));
  bindConta(el);
 }
 function novoProj(){
