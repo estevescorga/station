@@ -123,7 +123,10 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 @media(max-width:700px){.trkrow{grid-template-columns:70px 44px 40px 64px 1fr;} .trkrow span:nth-child(5),.trkrow span:nth-child(6){display:none;}}
 
 /* contabilidade */
-.crow{display:grid;grid-template-columns:56px 1fr auto auto auto;gap:10px;padding:10px 16px;align-items:center;font-size:13px;border-bottom:1px solid var(--line);}
+.crow{display:grid;grid-template-columns:56px 1fr auto auto auto auto;gap:10px;padding:10px 16px;align-items:center;font-size:13px;border-bottom:1px solid var(--line);}
+.clink{display:flex;gap:6px;align-items:center;}
+.clink select{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:4px 6px;border:none;border-radius:8px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);max-width:130px;}
+@media(max-width:1300px){.crow{grid-template-columns:56px 1fr auto auto;}.clink{grid-column:1/-1;justify-content:flex-end;}}
 .cpag{display:flex;gap:10px;align-items:flex-end;}
 .cpf{display:flex;flex-direction:column;gap:2px;}
 .cpf .cpl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);padding-left:2px;}
@@ -373,6 +376,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <button data-v="AGENDA">Agenda</button>
   <button data-v="RIMA">Rima</button>
   <button data-v="GESTAO">Gestão</button>
+  <button data-v="REGISTOS">Registos</button>
   <button data-v="TAREFAS">Tarefas</button>
   <button data-v="PRECARIO">Preçário</button>
   <button data-v="TRACKER">Tracker</button>
@@ -442,8 +446,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <h2 class="sec">Comercial</h2>
   <div class="fin" id="finC"></div>
   <div class="pipe" id="pipeC"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Contabilidade<span style="display:flex;gap:8px;align-items:center"><select id="fEstC"><option value="">todos</option><option>ATIVO</option><option>AGUARDA</option><option>FEITO</option></select><button class="ico" style="width:28px;height:28px" title="Novo projecto" onclick="novoProj()">＋</button></span></h2>
-  <div class="card" style="padding:6px 0" id="contaList"></div>
 
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Despesas<span style="display:flex;gap:8px;align-items:center"><select id="fMesD"></select></span></h2>
   <div class="fin" id="finD"></div>
@@ -452,6 +454,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
    <div id="fixosList"></div>
   </div>
   <div class="card" style="padding:6px 0" id="despList"></div>
+</div>
+
+<!-- ============ REGISTOS ============ -->
+<div class="view" id="v-REGISTOS">
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Contabilidade<span style="display:flex;gap:8px;align-items:center"><select id="fEstC"><option value="">todos</option><option>ATIVO</option><option>AGUARDA</option><option>FEITO</option></select><button class="ico" style="width:28px;height:28px" title="Novo projecto" onclick="novoProj()">＋</button></span></h2>
+  <div class="card" style="padding:6px 0" id="contaList"></div>
 </div>
 
 <!-- ============ MODAL DE PROJECTO ============ -->
@@ -849,6 +857,20 @@ async function load(){
  if(!D.conta)D.conta=[];
  if(!D.despesas)D.despesas={fixos:SEED.despesas.fixos,meses:{}};
  D.conta.forEach(r=>{while(r.length<14)r.push(null);});
+ // link registo -> projecto (campo 15, índice 14): auto-liga na 1ª vez por nome/cliente
+ let mudouLink=false;
+ D.conta.forEach(r=>{
+  if(r.length<15)r.push(null);
+  if(!r[14]){
+   const cli=(r[3]||"").toLowerCase(),desc=(r[5]||"").toLowerCase();
+   const p=(D.projectos||[]).find(pj=>{
+    const nm=(pj.nome||"").toLowerCase();
+    return nm&&(desc.includes(nm)||nm.includes(cli)&&cli.length>3||cli.includes(nm));
+   });
+   if(p){r[14]=p.id;mudouLink=true;}
+  }
+ });
+ if(mudouLink)save();
  (D.tarefas||[]).forEach(t=>{if(t.estado==="pendente")t.estado="ativa";});
  if(!D.precario)D.precario={niveis:{baixo:3500,medio:7000,alto:13000},horasDia:5,diasSemana:5};
  (D.projectos||[]).forEach(p=>{if(p.cliente===undefined)p.cliente=false;if(p.marca===undefined)p.marca=null;if(p.prioridade===undefined)p.prioridade=2;if(p.horasPrevistas===undefined)p.horasPrevistas=null;if(p.horasGastas===undefined)p.horasGastas=0;if(p.orcamento===undefined)p.orcamento=null;if(p.adjudicado===undefined)p.adjudicado=true;});
@@ -1187,6 +1209,10 @@ function crow(r){
    <span class="cval">€${val.toLocaleString("pt-PT",{minimumFractionDigits:2})}<span class="sub2" style="display:block">€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})} c/IVA</span></span>
    <select data-cf="8" data-ix="${idx}">${["ATIVO","AGUARDA","FEITO","REJEITADO",""].map(s=>`<option value="${s}" ${(r[8]||"")===s?"selected":""}>${s||"—"}</option>`).join("")}</select>
    ${pags}
+   <span class="clink">
+    <select data-clink="${idx}" title="projecto ligado"><option value="">— sem projecto —</option>${(D.projectos||[]).filter(p=>p.categoria==="RIMA").map(p=>`<option value="${p.id}" ${r[14]===p.id?"selected":""}>${esc(p.nome)}</option>`).join("")}</select>
+    ${r[14]?`<button class="ico" style="width:24px;height:24px;font-size:11px" data-copen="${r[14]}" title="Abrir projecto">▸</button>`:""}
+   </span>
   </div>`;
 }
 function bindConta(el){
@@ -1196,6 +1222,10 @@ function bindConta(el){
   else r[f]=s.value||null;
   await save();rConta();
  }));
+ el.querySelectorAll("[data-clink]").forEach(s=>s.addEventListener("change",async()=>{
+  D.conta[+s.dataset.clink][14]=s.value||null;await save();rConta();
+ }));
+ el.querySelectorAll("[data-copen]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();openP(b.dataset.copen);}));
 }
 let contaOpen={ativos:true,"avenças":true,pagos:false,null:false,rejeitados:false};
 function rConta(){
@@ -1289,7 +1319,8 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&mP)closeP();});
 $("mNew").addEventListener("keydown",e=>{if(e.key==="Enter")mAdd();});
 function renderP(){
  const p=D.projectos.find(x=>x.id===mP);if(!p)return;
- $("mName").textContent=p.nome;
+ const nums=(D.conta||[]).filter(r=>r[14]===p.id).map(r=>r[0]);
+ $("mName").innerHTML=esc(p.nome)+(nums.length?` <span class="chip" style="display:inline-block;margin-left:8px;font-size:10px;vertical-align:middle">${nums.map(esc).join(" · ")}</span>`:"");
  const pr={1:"1 · baixa",2:"2 · média",3:"3 · alta"};
  $("mEdit").innerHTML=`
    <label><input type="checkbox" data-pf="cliente" ${p.cliente?"checked":""}/>cliente</label>
@@ -1647,12 +1678,13 @@ $("nav").addEventListener("click",e=>{
   $("v-"+v).classList.add("on");
   if(v==="TAREFAS"){rInbox();rGlobalTasks();rCal();}
   if(v==="AGENDA")rAgenda();
-  if(v==="GESTAO"){rCom();rConta();rDesp();}
+  if(v==="GESTAO"){rCom();rDesp();}
+  if(v==="REGISTOS")rConta();
   if(v==="PRECARIO")rPrec();
   if(v==="TRACKER")rTracker();
  }
 });
-function rAll(){rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rConta();rDesp();}tick();}
+function rAll(){rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
 const PIN_OK="Rimmmmmma1";  // senha de entrada
 let _booted=false;
 async function boot(){
