@@ -139,6 +139,8 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .crow.anulado .cval{color:var(--soft);}
 .crow.rejeitado{opacity:.4;}
 .crow.rejeitado .cli{text-decoration:line-through;}
+.crow.aviso{background:rgba(222,117,56,.12);}
+.crow.aviso .cli::after{content:" ⚠";color:#DE7538;font-size:11px;}
 .cpag input[type=date]{font-family:'IBM Plex Mono',monospace;font-size:9px;width:104px;padding:4px 5px;border:none;border-radius:8px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .cpag input[type=date]:not([value=""]):valid{color:var(--soft);}
 @media(max-width:1200px){.cpag{flex-wrap:wrap;gap:6px;}}
@@ -1111,11 +1113,15 @@ function rPrec(){
 
 /* ============ contabilidade ============ */
 function contaRej(r){ return (r[8]||"")==="REJEITADO"; }
-function contaNull(r){ return !!r[13]; } // TOTAL FORA: anulado, não conta
+function contaFeito(r){ return (r[8]||"")==="FEITO"; }
+function temPagamento(r){ return !!(r[12] || (r[10] && r[11])); }
+function contaNull(r){ return !!r[13] && contaFeito(r); } // só sai para null se FEITO
 function contaPago(r){
- if(contaNull(r))return false; // anulado nunca é "pago" para contabilidade
- return !!(r[12] || (r[10] && r[11]));
+ if(r[13])return false;
+ return temPagamento(r) && contaFeito(r); // só sai para pagos se FEITO
 }
+// pago/anulado mas ainda não FEITO -> incoerência (fica nos ativos, a laranja)
+function contaAviso(r){ return !contaFeito(r) && !contaRej(r) && (temPagamento(r) || !!r[13]); }
 function contaAvenca(r){
  return /aven[çc]a/i.test(r[5]||"");
 }
@@ -1139,7 +1145,7 @@ function crow(r){
     ${dateField(13,"null",r[13],"anulado — não conta para a contabilidade",nullBlock)}
    </span>`;
  }
- return `<div class="crow${contaRej(r)?" rejeitado":contaNull(r)?" anulado":contaPago(r)?" pago":""}">
+ return `<div class="crow${contaRej(r)?" rejeitado":contaNull(r)?" anulado":contaPago(r)?" pago":""}${contaAviso(r)?" aviso":""}">
    <span class="cid">${r[0]}</span>
    <span class="cnome"><span class="cli">${esc(r[3]||"—")}</span><span class="cdesc">${esc(r[5]||"")}${r[1]?" · "+r[1]:""}</span></span>
    <span class="cval">€${val.toLocaleString("pt-PT",{minimumFractionDigits:2})}<span class="sub2" style="display:block">€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})} c/IVA</span></span>
