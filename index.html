@@ -127,6 +127,16 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .pin{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 8px;border:none;border-radius:9px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 @media(max-width:640px){.crow{grid-template-columns:1fr auto;} .crow .cid,.crow .cval{display:none;}}
 
+/* gate */
+#gate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;}
+#gate.hidden{display:none;}
+.gatebox{display:flex;flex-direction:column;gap:14px;align-items:center;padding:40px;border-radius:24px;box-shadow:10px 10px 26px var(--sh-d),-10px -10px 26px var(--sh-l);min-width:260px;}
+.gatelogo{font-family:'IBM Plex Mono',monospace;font-size:18px;letter-spacing:.18em;color:var(--txt);margin-bottom:6px;}
+#gatePin{width:200px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:14px;padding:12px 14px;border:none;border-radius:12px;background:var(--bg);color:var(--txt);box-shadow:inset 3px 3px 8px var(--sh-d),inset -3px -3px 8px var(--sh-l);outline:none;}
+#gateBtn{width:200px;padding:11px;border:none;border-radius:12px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--acc);background:var(--bg);box-shadow:4px 4px 10px var(--sh-d),-4px -4px 10px var(--sh-l);}
+#gateBtn:active{box-shadow:inset 3px 3px 8px var(--sh-d),inset -3px -3px 8px var(--sh-l);}
+#gateErr{font-size:11px;color:var(--acc);height:14px;}
+
 /* chat */
 #chatFab{position:fixed;right:22px;bottom:22px;z-index:60;width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;font-size:19px;color:var(--acc);background:var(--bg);box-shadow:6px 6px 14px var(--sh-d),-6px -6px 14px var(--sh-l);}
 #chatFab:active{box-shadow:inset 4px 4px 9px var(--sh-d),inset -4px -4px 9px var(--sh-l);}
@@ -294,6 +304,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </style>
 </head>
 <body data-theme="HOJE">
+<div id="gate">
+ <div class="gatebox">
+  <div class="gatelogo">STATION</div>
+  <input type="password" id="gatePin" placeholder="senha" autocomplete="current-password"/>
+  <button id="gateBtn" onclick="gateTry()">entrar</button>
+  <div id="gateErr"></div>
+ </div>
+</div>
 <div class="wrap">
 
 <div id="pauseTint"></div>
@@ -1425,7 +1443,33 @@ $("nav").addEventListener("click",e=>{
  }
 });
 function rAll(){rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rConta();}tick();}
-(async()=>{await load();rAll();setInterval(tick,30000);})();
+const PIN_OK="Rimmmmmma1";  // senha de entrada
+let _booted=false;
+async function boot(){
+ if(_booted)return;_booted=true;
+ document.getElementById("gate").classList.add("hidden");
+ await load();rAll();setInterval(tick,30000);
+}
+function gateTry(){
+ const v=document.getElementById("gatePin").value;
+ if(v===PIN_OK){
+  try{localStorage.setItem("station_gate","1");}catch(e){}
+  boot();
+ }else{
+  document.getElementById("gateErr").textContent="senha errada";
+  document.getElementById("gatePin").value="";
+ }
+}
+document.addEventListener("keydown",e=>{
+ if(e.target&&e.target.id==="gatePin"&&e.key==="Enter")gateTry();
+});
+// se já entrou antes neste dispositivo, passa direto
+(function(){
+ let ok=false;
+ try{ok=localStorage.getItem("station_gate")==="1";}catch(e){}
+ if(ok){boot();}
+ else{const g=document.getElementById("gatePin");if(g)setTimeout(()=>g.focus(),200);}
+})();
 </script>
 </body>
 </html>
