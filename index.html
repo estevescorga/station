@@ -137,6 +137,8 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .crow.anulado{opacity:.5;}
 .crow.anulado .cli{text-decoration:line-through;}
 .crow.anulado .cval{color:var(--soft);}
+.crow.rejeitado{opacity:.4;}
+.crow.rejeitado .cli{text-decoration:line-through;}
 .cpag input[type=date]{font-family:'IBM Plex Mono',monospace;font-size:9px;width:104px;padding:4px 5px;border:none;border-radius:8px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .cpag input[type=date]:not([value=""]):valid{color:var(--soft);}
 @media(max-width:1200px){.cpag{flex-wrap:wrap;gap:6px;}}
@@ -1108,6 +1110,7 @@ function rPrec(){
 }
 
 /* ============ contabilidade ============ */
+function contaRej(r){ return (r[8]||"")==="REJEITADO"; }
 function contaNull(r){ return !!r[13]; } // TOTAL FORA: anulado, não conta
 function contaPago(r){
  if(contaNull(r))return false; // anulado nunca é "pago" para contabilidade
@@ -1136,7 +1139,7 @@ function crow(r){
     ${dateField(13,"null",r[13],"anulado — não conta para a contabilidade",nullBlock)}
    </span>`;
  }
- return `<div class="crow${contaNull(r)?" anulado":contaPago(r)?" pago":""}">
+ return `<div class="crow${contaRej(r)?" rejeitado":contaNull(r)?" anulado":contaPago(r)?" pago":""}">
    <span class="cid">${r[0]}</span>
    <span class="cnome"><span class="cli">${esc(r[3]||"—")}</span><span class="cdesc">${esc(r[5]||"")}${r[1]?" · "+r[1]:""}</span></span>
    <span class="cval">€${val.toLocaleString("pt-PT",{minimumFractionDigits:2})}<span class="sub2" style="display:block">€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})} c/IVA</span></span>
@@ -1147,22 +1150,23 @@ function crow(r){
 function bindConta(el){
  el.querySelectorAll("[data-cf]").forEach(s=>s.addEventListener("change",async()=>{
   const r=D.conta[+s.dataset.ix],f=+s.dataset.cf;
-  if(f===8)r[8]=s.value;
+  if(f===8){r[8]=s.value;if(s.value==="REJEITADO"){r[10]=r[11]=r[12]=r[13]=null;}}
   else r[f]=s.value||null;
   await save();rConta();
  }));
 }
-let contaOpen={ativos:true,"avenças":true,pagos:false,null:false};
+let contaOpen={ativos:true,"avenças":true,pagos:false,null:false,rejeitados:false};
 function rConta(){
  const el=$("contaList");if(!el)return;
  const fe=$("fEstC").value;
  let rows=(D.conta||[]).slice().reverse();
  if(fe)rows=rows.filter(r=>r[8]===fe);
  const grupos=[
-  ["ativos",rows.filter(r=>!contaAvenca(r)&&!contaPago(r)&&!contaNull(r))],
-  ["avenças",rows.filter(r=>contaAvenca(r)&&!contaPago(r)&&!contaNull(r))],
-  ["pagos",rows.filter(contaPago)],
-  ["null",rows.filter(contaNull)]
+  ["ativos",rows.filter(r=>!contaAvenca(r)&&!contaPago(r)&&!contaNull(r)&&!contaRej(r))],
+  ["avenças",rows.filter(r=>contaAvenca(r)&&!contaPago(r)&&!contaNull(r)&&!contaRej(r))],
+  ["pagos",rows.filter(r=>contaPago(r)&&!contaRej(r))],
+  ["null",rows.filter(r=>contaNull(r)&&!contaRej(r))],
+  ["rejeitados",rows.filter(contaRej)]
  ];
  el.innerHTML=grupos.map(([nome,arr])=>{
   if(!arr.length)return "";
