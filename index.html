@@ -88,6 +88,7 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .hitem .hm.urg{color:var(--acc);font-weight:700;}
 .hitem a{color:var(--txt);text-decoration:none;}
 .hitem a:hover{color:var(--acc);}
+.hgrouph{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);margin-bottom:4px;}
 .hbig{font-size:21px;font-weight:700;}
 .hbig.bad{color:var(--acc);}
 .hbig.good{color:var(--ok);}
@@ -116,7 +117,14 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 
 /* contabilidade */
 .crow{display:grid;grid-template-columns:56px 1fr auto auto auto;gap:10px;padding:10px 16px;align-items:center;font-size:13px;border-bottom:1px solid var(--line);}
-.cpag{display:flex;gap:6px;align-items:center;}
+.cpag{display:flex;gap:10px;align-items:flex-end;}
+.cpf{display:flex;flex-direction:column;gap:2px;}
+.cpf .cpl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);padding-left:2px;}
+.cpf.off{opacity:.32;}
+.cpf.off input{pointer-events:none;}
+.cgrouph{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);padding:14px 16px 6px;}
+.crow.pago{opacity:.62;}
+.crow.pago .cval{color:var(--ok);}
 .cpag input[type=date]{font-family:'IBM Plex Mono',monospace;font-size:9px;width:104px;padding:4px 5px;border:none;border-radius:8px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .cpag input[type=date]:not([value=""]):valid{color:var(--soft);}
 @media(max-width:900px){.cpag input[type=date]{display:none;}}
@@ -939,14 +947,17 @@ function rHome(){
  ].join("")||`<div class="hsub">nada pendente de adjudicação</div>`;
  $("hAdj").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
  $("hUrg").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
- // projectos
+ // projectos: clientes vs internos
  const act=D.projectos.filter(p=>p.estado==="em curso");
- const cli=act.filter(p=>p.cliente);
- $("hProj").innerHTML=`<div class="hbig">${act.length}</div><div class="hsub">${cli.length} de clientes · ${act.length-cli.length} internos</div>`+
-  cli.map(p=>{
-   const dl=p.prazo?Math.ceil((new Date(p.prazo)-n)/864e5):null;
-   return `<div class="hitem"><i class="pdot" style="background:${p.cor}"></i><span>${esc(p.nome)}</span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?dl+"d":""}</span></div>`;
-  }).join("");
+ const cli=act.filter(p=>p.cliente), int=act.filter(p=>!p.cliente);
+ const linha=p=>{
+  const dl=p.prazo?Math.ceil((new Date(p.prazo)-n)/864e5):null;
+  return `<div class="hitem" data-op="${p.id}" style="cursor:pointer"><i class="pdot" style="background:${p.cor}"></i><span>${esc(p.nome)}</span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?dl+"d":""}</span></div>`;
+ };
+ $("hProj").innerHTML=
+  `<div class="hgrouph">clientes · ${cli.length}</div>`+(cli.map(linha).join("")||`<div class="hsub">nenhum ativo</div>`)+
+  `<div class="hgrouph" style="margin-top:10px">internos · ${int.length}</div>`+(int.map(linha).join("")||`<div class="hsub">nenhum ativo</div>`);
+ $("hProj").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
  // financeiro
  const f=D.financeiro||{objetivoMinimo:5000,meses:{}};
  const mk=n.toISOString().slice(0,7);
@@ -1085,33 +1096,58 @@ function rPrec(){
 }
 
 /* ============ contabilidade ============ */
+function contaPago(r){
+ // pago total: tem data totalidade (12) OU adjudicação(10)+finalização(11)
+ return !!(r[12] || (r[10] && r[11]));
+}
+function contaAvenca(r){
+ return /aven[çc]a/i.test(r[5]||"");
+}
+function crow(r){
+ const idx=D.conta.indexOf(r);
+ const val=+r[6]||0, cIVA=val*1.23;
+ const av=contaAvenca(r);
+ const temTotal=!!r[12], temAdj=!!r[10], temFin=!!r[11];
+ // exclusividade: se total preenchido -> adj/fin bloqueados; se adj/fin -> total bloqueado
+ const totalOff=temAdj||temFin, parcOff=temTotal;
+ const dateField=(f,lbl,valor,tip,off)=>`<label class="cpf${off?" off":""}"><span class="cpl">${lbl}</span><input type="date" data-cf="${f}" data-ix="${idx}" value="${valor||""}" title="${tip}" ${off?"disabled":""}/></label>`;
+ let pags;
+ if(av){
+  pags=`<span class="cpag">${dateField(12,"pago",r[12],"data de pagamento da avença ("+cIVA.toFixed(2)+"€ c/IVA)",false)}</span>`;
+ }else{
+  pags=`<span class="cpag">
+    ${dateField(10,"adjud.",r[10],"40%: "+(val*0.4*1.23).toFixed(2)+"€ c/IVA",parcOff)}
+    ${dateField(11,"final.",r[11],"60%: "+(val*0.6*1.23).toFixed(2)+"€ c/IVA",parcOff)}
+    ${dateField(12,"total",r[12],"100%: "+cIVA.toFixed(2)+"€ c/IVA",totalOff)}
+   </span>`;
+ }
+ return `<div class="crow${contaPago(r)?" pago":""}">
+   <span class="cid">${r[0]}</span>
+   <span><span class="tt">${esc(r[3]||"—")}</span><span class="sub2">${esc(r[5]||"")}${r[1]?" · "+r[1]:""}</span></span>
+   <span class="cval">€${val.toLocaleString("pt-PT",{minimumFractionDigits:2})}<span class="sub2" style="display:block">€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})} c/IVA</span></span>
+   <select data-cf="8" data-ix="${idx}">${["ATIVO","AGUARDA","FEITO","REJEITADO",""].map(s=>`<option value="${s}" ${(r[8]||"")===s?"selected":""}>${s||"—"}</option>`).join("")}</select>
+   ${pags}
+  </div>`;
+}
+function bindConta(el){
+ el.querySelectorAll("[data-cf]").forEach(s=>s.addEventListener("change",async()=>{
+  const r=D.conta[+s.dataset.ix],f=+s.dataset.cf;
+  if(f===8)r[8]=s.value;
+  else r[f]=s.value||null;
+  await save();rConta();
+ }));
+}
 function rConta(){
  const el=$("contaList");if(!el)return;
  const fe=$("fEstC").value;
  let rows=(D.conta||[]).slice().reverse();
  if(fe)rows=rows.filter(r=>r[8]===fe);
- el.innerHTML=rows.map(r=>{
-  const idx=D.conta.indexOf(r);
-  const cIVA=(+r[6]||0)*1.23;
-  return `<div class="crow">
-   <span class="cid">${r[0]}</span>
-   <span><span class="tt">${esc(r[3]||"—")}</span><span class="sub2">${esc(r[5]||"")}${r[1]?" · "+r[1]:""}</span></span>
-   <span class="cval">€${(+r[6]||0).toLocaleString("pt-PT",{minimumFractionDigits:2})}<span class="sub2" style="display:block">€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})} c/IVA</span></span>
-   <select data-cf="8" data-ix="${idx}">${["ATIVO","AGUARDA","FEITO","REJEITADO",""].map(s=>`<option value="${s}" ${(r[8]||"")===s?"selected":""}>${s||"—"}</option>`).join("")}</select>
-   <span class="cpag">
-    <select data-cf="9" data-ix="${idx}" title="tranches pagas">${[0,1,2].map(n=>`<option value="${n}" ${r[9]===n?"selected":""}>${n}/2</option>`).join("")}</select>
-    <input type="date" data-cf="10" data-ix="${idx}" value="${r[10]||""}" title="data pagamento adjudicação (40%: €${((+r[6]||0)*0.4*1.23).toFixed(2)} c/IVA)"/>
-    <input type="date" data-cf="11" data-ix="${idx}" value="${r[11]||""}" title="data pagamento finalização (60%: €${((+r[6]||0)*0.6*1.23).toFixed(2)} c/IVA)"/>
-   </span>
-  </div>`;
- }).join("")||`<div class="empty">sem registos</div>`;
- el.querySelectorAll("[data-cf]").forEach(s=>s.addEventListener("change",async()=>{
-  const r=D.conta[+s.dataset.ix],f=+s.dataset.cf;
-  if(f===9)r[9]=parseInt(s.value);
-  else if(f===10||f===11){r[f]=s.value||null;if(s.value)r[9]=Math.max(r[9]||0,f===10?1:2);}
-  else r[8]=s.value;
-  await save();rConta();
- }));
+ const avencas=rows.filter(r=>contaAvenca(r)&&!contaPago(r));
+ const pagos=rows.filter(r=>contaPago(r));
+ const ativos=rows.filter(r=>!contaAvenca(r)&&!contaPago(r));
+ const bloco=(titulo,arr)=>arr.length?`<div class="cgrouph">${titulo} · ${arr.length}</div>`+arr.map(crow).join(""):"";
+ el.innerHTML=(bloco("ativos",ativos)+bloco("avenças",avencas)+bloco("pagos",pagos))||`<div class="empty">sem registos</div>`;
+ bindConta(el);
 }
 function novoProj(){
  const y=new Date().getFullYear().toString().slice(2);
