@@ -307,6 +307,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div><h1>STATION</h1></div>
   <div style="display:flex;align-items:center;gap:14px">
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Atualizar da nuvem" onclick="pullCloud()">☁</button>
+    <button class="ico" style="width:30px;height:30px;font-size:13px" title="Diagnóstico da ligação" onclick="diag()">⚙</button>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Enviar estado atual ao Claude" onclick="syncOut()">⇅</button>
     <div class="clock"><div class="d" id="cD">—</div><div class="h" id="cH">—</div></div>
   </div>
@@ -788,6 +789,31 @@ async function persist(tag){
 async function save(){await persist("D");}
 async function saveRot(){await persist("rot");}
 async function saveDocs(){await persist("docs");}
+async function diag(){
+ let msg="DIAGNÓSTICO STATION\n\n";
+ msg+="Worker: "+WORKER+"\n\n";
+ try{
+  const t0=Date.now();
+  const r=await fetch(WORKER,{headers:{"X-Auth":SENHA}});
+  const txt=await r.text();
+  msg+="LEITURA: HTTP "+r.status+" ("+(Date.now()-t0)+"ms)\n";
+  if(r.ok){
+   try{const o=JSON.parse(txt);msg+="  dados OK: "+(o.D&&o.D.projectos?o.D.projectos.length+" projectos":"formato inesperado")+"\n";}
+   catch(e){msg+="  resposta não-JSON: "+txt.slice(0,60)+"\n";}
+  }else{msg+="  corpo: "+txt.slice(0,80)+"\n";}
+ }catch(e){msg+="LEITURA FALHOU: "+e.message+"\n";}
+ msg+="\n";
+ try{
+  const t0=Date.now();
+  const test={...snapshot(),_diag:new Date().toISOString()};
+  const r=await fetch(WORKER,{method:"POST",headers:{"X-Auth":SENHA,"Content-Type":"application/json"},body:JSON.stringify(test)});
+  const txt=await r.text();
+  msg+="ESCRITA: HTTP "+r.status+" ("+(Date.now()-t0)+"ms)\n";
+  if(!r.ok)msg+="  corpo: "+txt.slice(0,120)+"\n";
+  else msg+="  gravou na nuvem ✓\n";
+ }catch(e){msg+="ESCRITA FALHOU: "+e.message+"\n";}
+ alert(msg);
+}
 async function pullCloud(){
  try{const cloud=await cloudGet();if(applySnapshot(cloud)){rAll();rHome&&rHome();setSt("atualizado da nuvem");}}
  catch(e){setSt("nuvem indisponível");}
