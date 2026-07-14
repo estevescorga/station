@@ -409,15 +409,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ AGENDA ============ -->
 <div class="view" id="v-AGENDA">
-  <div class="icorow">
-    <button class="ico" id="agS" title="Semana">▥</button>
-    <button class="ico" id="mCb" title="Calendário do mês">▦</button>
-    <button class="ico" id="mGb" title="Gantt de projectos">▤</button>
-    <button class="ico" id="mSpan" title="Alternar mensal / anual" style="font-size:10px;display:none">12m</button>
-  </div>
   <div class="week" id="wGrid"></div>
-  <div class="card" style="padding:20px;display:none" id="mesG"></div>
-  <div class="card" style="padding:16px;display:none" id="mesC"></div>
 </div>
 
 <!-- ============ PREÇÁRIO ============ -->
@@ -1377,9 +1369,17 @@ let dragTid=null;
 function bindAgendaDnD(){
  const g=$("wGrid");
  g.querySelectorAll(".wt").forEach(el=>{
-  el.addEventListener("click",e=>{ if(dragMoved)return; const pid=el.dataset.pid; if(pid)openP(pid); });
-  el.addEventListener("dragstart",e=>{dragTid=el.dataset.tid;dragMoved=false;el.classList.add("dragging");});
-  el.addEventListener("dragend",e=>{el.classList.remove("dragging");});
+  el.addEventListener("click",e=>{
+   if(el._dragging)return;
+   const pid=el.dataset.pid;
+   if(pid){openP(pid);}
+   else{ // tarefa da inbox sem projecto: abre edição rápida via alerta simples
+    const t=D.tarefas.find(x=>x.id===el.dataset.tid);
+    if(t){const nv=prompt("Editar tarefa:",t.titulo);if(nv!==null&&nv.trim()){t.titulo=nv.trim();save().then(rSemana);}}
+   }
+  });
+  el.addEventListener("dragstart",e=>{el._dragging=true;dragTid=el.dataset.tid;el.classList.add("dragging");});
+  el.addEventListener("dragend",e=>{el.classList.remove("dragging");setTimeout(()=>{el._dragging=false;},50);});
  });
  g.querySelectorAll(".wcell").forEach(c=>{
   c.addEventListener("dragover",e=>{e.preventDefault();c.classList.add("dragover");});
@@ -1389,18 +1389,12 @@ function bindAgendaDnD(){
    if(!dragTid)return;
    const t=D.tarefas.find(x=>x.id===dragTid);
    if(t){t.data=c.dataset.day;await save();rSemana();}
-   dragTid=null;dragMoved=true;
+   dragTid=null;
   });
  });
 }
-let dragMoved=false;
 let agMode="s",gSpan="m",mcY,mcM;
-function rAgenda(){
- $("wGrid").style.display=agMode==="s"?"grid":"none";
- $("agS").classList.toggle("pauseOn",agMode==="s");
- if(agMode==="s")rSemana();else rMes();
- if(agMode==="s"){$("mesG").style.display="none";$("mesC").style.display="none";$("mSpan").style.display="none";$("mGb").classList.remove("pauseOn");$("mCb").classList.remove("pauseOn");}
-}
+function rAgenda(){ rSemana(); }
 function rMes(){
  const n=new Date(),y=n.getFullYear();
  const ps=(D.projectos||[]).filter(p=>p.estado!=="arquivado");
@@ -1453,10 +1447,7 @@ function rMes(){
   $("mcN").addEventListener("click",()=>{mcM++;if(mcM>11){mcM=0;mcY++;}rMes();});
  }
 }
-$("agS").addEventListener("click",()=>{agMode="s";rAgenda();});
-$("mGb").addEventListener("click",()=>{agMode="g";rAgenda();});
-$("mCb").addEventListener("click",()=>{agMode="c";rAgenda();});
-$("mSpan").addEventListener("click",()=>{gSpan=gSpan==="m"?"a":"m";$("mSpan").textContent=gSpan==="m"?"12m":"1m";rAgenda();});
+
 function rGlobalTasks(){
  const fc=$("fCat").value,fp=$("fProj").value,fe=$("fEst").value,fo=$("fOrd").value,fr=$("fResp").value;
  const pjs=[...new Set(D.tarefas.filter(t=>!fc||t.categoria===fc).map(t=>t.projecto))];
