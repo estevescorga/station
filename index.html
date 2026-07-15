@@ -84,7 +84,11 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 @media(max-width:760px){.hometop{flex-wrap:wrap;}}
 .hcard{padding:14px 16px;margin-bottom:16px;}
 .hcard h5{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);margin-bottom:10px;}
-.hitem{display:flex;align-items:baseline;gap:7px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line);line-height:1.35;}
+.hitem{display:flex;align-items:center;gap:7px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line);line-height:1.35;}
+.hchk{width:14px;height:14px;min-width:14px;border-radius:5px;border:none;cursor:pointer;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);background:var(--bg);padding:0;}
+.hchk:hover{box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l),0 0 0 2px var(--acc2);}
+.hchk.c{position:relative;}
+.hchk.c::after{content:"✓";position:absolute;inset:-2px;display:flex;align-items:center;justify-content:center;color:var(--ok);font-size:9px;font-weight:700;}
 .hitem:last-child{border-bottom:none;}
 .hitem .hm{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--soft);margin-left:auto;white-space:nowrap;}
 .hitem .hm.urg{color:var(--acc);font-weight:700;}
@@ -399,11 +403,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">emails<button class="ico" style="width:24px;height:24px;font-size:11px" title="Atualizar resumo de emails" onclick="ask('Atualiza o resumo de emails da HOME: lê as caixas estevescorga@gmail.com e hello@rimastudio.pt, resume em 2-3 frases o que precisa de atenção, lista os não lidos relevantes, e atualiza o dashboard.')">↻</button></h5><div id="hMail"></div></div>
     </div>
     <div class="hcol">
+      <div class="card hcard">
+        <h5>pesquisar tarefas</h5>
+        <input class="pin" id="hSearch" placeholder="escreve para procurar…" style="width:100%;margin-bottom:8px"/>
+        <div id="hSearchRes"></div>
+      </div>
       <div class="card hcard"><h5>inbox · genéricas</h5><div id="hInbox"></div></div>
       <div class="card hcard"><h5>urgente</h5><div id="hUrg"></div></div>
       <div class="card hcard"><h5>projectos ativos</h5><div id="hProj"></div></div>
       <div class="card hcard"><h5>financeiro</h5><div id="hFin"></div></div>
-      <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">radar<button class="ico" style="width:24px;height:24px;font-size:11px" title="Atualizar notícias" onclick="ask('Atualiza o radar do dashboard: pesquisa notícias recentes de design, ilustração, animação e novas ferramentas multimédia/IA, escolhe as 5 mais relevantes para mim, e atualiza a secção Radar.')">↻</button></h5><div id="hNews"></div></div>
     </div>
   </div>
 </div>
@@ -945,6 +953,23 @@ function fecho(){
  const pz=(pausas&&pausas.data===hoje()&&pausas.itens.length)?pausas.itens.map(x=>`${x.ini}–${x.fim||"ainda ativa"}`).join(", "):"";
  ask(`Fecho do dia. Feito: ${f.join("; ")||"—"}. Pendente: ${[...p,...tp].join("; ")||"nada"}.${pz?` Pausas: ${pz} — pergunta-me o que se passou.`:""} Faz-me as perguntas do fecho (sono, sesta, energia, exercício, horas por projecto), regista no tracker, pergunta o que transita e atualiza o dashboard.`);
 }
+function rSearchTasks(q){
+ const el=$("hSearchRes");if(!el)return;
+ q=(q||"").trim().toLowerCase();
+ if(q.length<2){el.innerHTML="";return;}
+ const res=(D.tarefas||[]).filter(t=>t.titulo.toLowerCase().includes(q)).slice(0,8);
+ el.innerHTML=res.map(t=>{
+  const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
+  const done=t.estado==="concluída";
+  return `<div class="hitem"><button class="hchk${done?" c":""}" data-sc="${t.id}" aria-label="concluir"></button><span ${pid?`data-sop="${pid}" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;min-width:0"`:"style=\"display:flex;align-items:center;gap:6px;flex:1;min-width:0\""}><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${done?'text-decoration:line-through;opacity:.5':''}">${esc(t.titulo)}</span></span><span class="hm">${esc(t.projecto||"")}</span></div>`;
+ }).join("")||`<div class="hsub">sem resultados</div>`;
+ el.querySelectorAll("[data-sc]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();const t=D.tarefas.find(x=>x.id===b.dataset.sc);if(!t)return;
+  t.estado=t.estado==="concluída"?"ativa":"concluída";await save();rSearchTasks($("hSearch").value);rHome();
+ }));
+ el.querySelectorAll("[data-sop]").forEach(s=>s.addEventListener("click",()=>openP(s.dataset.sop)));
+}
+document.addEventListener("input",e=>{if(e.target.id==="hSearch")rSearchTasks(e.target.value);});
 function rHome(){
  const n=new Date();
  // agenda do dia
@@ -959,20 +984,36 @@ function rHome(){
   (mail.resumo?`<div style="font-size:12px;line-height:1.5;margin-bottom:8px">${esc(mail.resumo)}</div>`:"")+
   ((mail.itens||[]).map(x=>`<div class="hitem"><span><span class="tt" style="font-size:12px">${esc(x.de||"")}</span><span class="sub2">${esc(x.assunto||"")}</span></span>${x.conta?`<span class="hm">${esc(x.conta)}</span>`:""}</div>`).join(""))
  )||`<div class="hsub">caixas limpas</div>`:`<div class="hsub">por atualizar — ✳ ou ↻</div>`;
- // urgente: prazo ≤7d/expirado ou trabalho marcado para hoje
+ // urgente: pontuação = proximidade do prazo + prioridade do projecto + cliente
+ function scoreT(t){
+  const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
+  const pj=D.projectos.find(x=>x.nome===t.projecto);
+  const pri=(pj&&pj.prioridade)||2, cli=pj&&pj.cliente?1:0;
+  let s=0;
+  if(dl!==null)s+=Math.max(0,30-dl)*3; // quanto mais perto/atrasado, maior
+  s+=pri*8+cli*10;
+  if(t.data===hoje())s+=6;
+  return s;
+ }
  const urg=D.tarefas.filter(t=>{
   if(["arquivada","concluída"].includes(t.estado))return false;
   const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
-  return (dl!==null&&dl<=7)||t.data===hoje();
- }).sort((a,b)=>(a.prazo||"9999")<(b.prazo||"9999")?-1:1).slice(0,7);
+  return (dl!==null&&dl<=14)||t.data===hoje();
+ }).sort((a,b)=>scoreT(b)-scoreT(a)).slice(0,10);
  $("hUrg").innerHTML=urg.map(t=>{
   const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
   const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
-  return `<div class="hitem" ${pid?`data-op="${pid}" style="cursor:pointer"`:""}><i class="pdot" style="background:${pcor(t)}"></i><span>${esc(t.titulo)}</span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?(dl<0?`${-dl}d atraso`:`${dl}d`):"hoje"}</span></div>`;
+  return `<div class="hitem"><button class="hchk" data-hc="${t.id}" aria-label="concluir"></button><span ${pid?`data-op="${pid}" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;min-width:0"`:"style=\"display:flex;align-items:center;gap:6px;flex:1;min-width:0\""}><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo)}</span></span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?(dl<0?`${-dl}d atraso`:`${dl}d`):"hoje"}</span></div>`;
  }).join("")||`<div class="hsub">nada urgente</div>`;
+ $("hUrg").querySelectorAll("[data-hc]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();const t=D.tarefas.find(x=>x.id===b.dataset.hc);if(!t)return;t.estado="concluída";await save();rHome();rAll();
+ }));
  // inbox / genéricas
  const gen=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&!["concluída","arquivada"].includes(t.estado));
- $("hInbox").innerHTML=gen.map(t=>`<div class="hitem"><i class="pdot" style="background:${pcor(t)}"></i><span>${esc(t.titulo)}</span></div>`).join("")||`<div class="hsub">inbox limpa</div>`;
+ $("hInbox").innerHTML=gen.map(t=>`<div class="hitem"><button class="hchk" data-hc2="${t.id}" aria-label="concluir"></button><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo)}</span></div>`).join("")||`<div class="hsub">inbox limpa</div>`;
+ $("hInbox").querySelectorAll("[data-hc2]").forEach(b=>b.addEventListener("click",async()=>{
+  const t=D.tarefas.find(x=>x.id===b.dataset.hc2);if(!t)return;t.estado="concluída";await save();rHome();rAll();
+ }));
  // por adjudicar (da contabilidade + projectos marcados)
  const adj=(D.conta||[]).filter(r=>r[8]==="AGUARDA"||((r[8]||"")!=="FEITO"&&(r[8]||"")!=="REJEITADO"&&(r[7]||"").toLowerCase()!=="s"));
  const adjP=(D.projectos||[]).filter(p=>p.adjudicado===false&&p.estado!=="arquivado");
@@ -1000,8 +1041,6 @@ function rHome(){
  const movs=(f.movimentos||[]).slice(-3).reverse();
  $("hFin").innerHTML=`<div class="hbig ${m.receita>=f.objetivoMinimo?"good":"bad"}">€${(m.receita||0).toLocaleString("pt-PT")}</div><div class="hsub">${Math.round((m.receita||0)/f.objetivoMinimo*100)}% do objetivo mensal · s/IVA</div>`+
   movs.map(x=>`<div class="hitem"><span>${esc(x.desc)}</span><span class="hm">${x.val>=0?"+":""}€${x.val.toLocaleString("pt-PT")}</span></div>`).join("");
- // radar
- $("hNews").innerHTML=(news||[]).slice(0,5).map(x=>`<div class="hitem"><span>${x.url?`<a href="${x.url}" target="_blank" rel="noopener">${esc(x.t)}</a>`:esc(x.t)}</span><span class="hm">${esc(x.fonte||"")}</span></div>`).join("")||`<div class="hsub">clica ↻ para eu pesquisar novidades</div>`;
 }
 
 /* ============ CATEGORIA (montra) ============ */
