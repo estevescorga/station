@@ -123,10 +123,12 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 @media(max-width:700px){.trkrow{grid-template-columns:70px 44px 40px 64px 1fr;} .trkrow span:nth-child(5),.trkrow span:nth-child(6){display:none;}}
 
 /* contabilidade */
-.crow{display:grid;grid-template-columns:56px 1fr auto auto auto auto;gap:10px;padding:10px 16px;align-items:center;font-size:13px;border-bottom:1px solid var(--line);}
-.clink{display:flex;gap:6px;align-items:center;}
-.clink select{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:4px 6px;border:none;border-radius:8px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);max-width:130px;}
-@media(max-width:1300px){.crow{grid-template-columns:56px 1fr auto auto;}.clink{grid-column:1/-1;justify-content:flex-end;}}
+.crow{display:grid;grid-template-columns:56px 1fr auto auto auto 30px;gap:10px;padding:10px 16px;align-items:center;font-size:13px;border-bottom:1px solid var(--line);}
+.clink{display:flex;align-items:center;justify-content:center;}
+.linkBtn{width:26px;height:26px;font-size:13px;color:var(--acc2);}
+.linkBtn.off{color:var(--line);opacity:.55;}
+.linkSel{position:absolute;width:1px;height:1px;opacity:0;}
+@media(max-width:1300px){.crow{grid-template-columns:56px 1fr auto auto 30px;}}
 .cpag{display:flex;gap:10px;align-items:flex-end;}
 .cpf{display:flex;flex-direction:column;gap:2px;}
 .cpf .cpl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);padding-left:2px;}
@@ -857,11 +859,11 @@ async function load(){
  if(!D.conta)D.conta=[];
  if(!D.despesas)D.despesas={fixos:SEED.despesas.fixos,meses:{}};
  D.conta.forEach(r=>{while(r.length<14)r.push(null);});
- // link registo -> projecto (campo 15, índice 14): auto-liga na 1ª vez por nome/cliente
+ // link registo -> projecto (índice 14): auto-liga só se ainda por decidir (null/undefined). "none" = explicitamente sem projecto, nunca mais tenta.
  let mudouLink=false;
  D.conta.forEach(r=>{
   if(r.length<15)r.push(null);
-  if(!r[14]){
+  if(r[14]===null||r[14]===undefined){
    const cli=(r[3]||"").toLowerCase(),desc=(r[5]||"").toLowerCase();
    const p=(D.projectos||[]).find(pj=>{
     const nm=(pj.nome||"").toLowerCase();
@@ -1171,6 +1173,7 @@ function rPrec(){
 
 /* ============ contabilidade ============ */
 function contaRej(r){ return (r[8]||"")==="REJEITADO"; }
+function contaProjId(r){ return (r[14]&&r[14]!=="none")?r[14]:null; }
 function contaFeito(r){ return (r[8]||"")==="FEITO"; }
 function temPagamento(r){ return !!(r[12] || (r[10] && r[11])); }
 function contaNull(r){ return !!r[13] && contaFeito(r); } // só sai para null se FEITO
@@ -1203,6 +1206,8 @@ function crow(r){
     ${dateField(13,"null",r[13],"anulado — não conta para a contabilidade",nullBlock)}
    </span>`;
  }
+ const pid=contaProjId(r);
+ const proj=pid?(D.projectos||[]).find(p=>p.id===pid):null;
  return `<div class="crow${contaRej(r)?" rejeitado":contaNull(r)?" anulado":contaPago(r)?" pago":""}${contaAviso(r)?" aviso":""}">
    <span class="cid">${r[0]}</span>
    <span class="cnome"><span class="cli">${esc(r[3]||"—")}</span><span class="cdesc">${esc(r[5]||"")}${r[1]?" · "+r[1]:""}</span></span>
@@ -1210,8 +1215,11 @@ function crow(r){
    <select data-cf="8" data-ix="${idx}">${["ATIVO","AGUARDA","FEITO","REJEITADO",""].map(s=>`<option value="${s}" ${(r[8]||"")===s?"selected":""}>${s||"—"}</option>`).join("")}</select>
    ${pags}
    <span class="clink">
-    <select data-clink="${idx}" title="projecto ligado"><option value="">— sem projecto —</option>${(D.projectos||[]).filter(p=>p.categoria==="RIMA").map(p=>`<option value="${p.id}" ${r[14]===p.id?"selected":""}>${esc(p.nome)}</option>`).join("")}</select>
-    ${r[14]?`<button class="ico" style="width:24px;height:24px;font-size:11px" data-copen="${r[14]}" title="Abrir projecto">▸</button>`:""}
+    <button class="ico linkBtn${pid?"":" off"}" data-linkbtn="${idx}" title="${proj?esc(proj.nome):"sem projecto — clique para atribuir"}">▸</button>
+    <select class="linkSel" data-clink="${idx}" hidden>
+     <option value="none">— sem projecto —</option>
+     ${(D.projectos||[]).filter(p=>p.categoria==="RIMA").map(p=>`<option value="${p.id}" ${pid===p.id?"selected":""}>${esc(p.nome)}</option>`).join("")}
+    </select>
    </span>
   </div>`;
 }
@@ -1222,10 +1230,16 @@ function bindConta(el){
   else r[f]=s.value||null;
   await save();rConta();
  }));
- el.querySelectorAll("[data-clink]").forEach(s=>s.addEventListener("change",async()=>{
-  D.conta[+s.dataset.clink][14]=s.value||null;await save();rConta();
+ el.querySelectorAll("[data-linkbtn]").forEach(b=>b.addEventListener("click",e=>{
+  e.stopPropagation();
+  const idx=+b.dataset.linkbtn,r=D.conta[idx],pid=contaProjId(r);
+  if(pid){openP(pid);return;}
+  const sel=el.querySelector(`select[data-clink="${idx}"]`);
+  if(sel){try{sel.showPicker?sel.showPicker():sel.click();}catch(e){sel.hidden=false;sel.focus();}}
  }));
- el.querySelectorAll("[data-copen]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();openP(b.dataset.copen);}));
+ el.querySelectorAll("[data-clink]").forEach(s=>s.addEventListener("change",async()=>{
+  D.conta[+s.dataset.clink][14]=s.value;await save();rConta();
+ }));
 }
 let contaOpen={ativos:true,"avenças":true,pagos:false,null:false,rejeitados:false};
 function rConta(){
@@ -1252,7 +1266,7 @@ function novoProj(){
  const y=new Date().getFullYear().toString().slice(2);
  const ns=(D.conta||[]).filter(r=>(r[0]||"").startsWith(y+"_")).map(r=>parseInt(r[0].split("_")[1])).filter(n=>!isNaN(n));
  const nx=y+"_"+String((ns.length?Math.max(...ns):0)+1).padStart(3,"0");
- ask(`Novo projecto — próximo número: ${nx}. Faz-me as perguntas necessárias (responsável M/R, tipo, cliente, data de entrada, descrição, valor s/IVA, e se JÁ ESTÁ ADJUDICADO ou é proposta). Depois: 1) cria a entrada na contabilidade, 2) cria o projecto na categoria certa e define comigo as tarefas base. SE AINDA NÃO ADJUDICADO: marca o projecto como "por adjudicar" e para aí (sem pastas nem ficheiros). SE/QUANDO ADJUDICADO: 3) cria a pasta Drive "${nx}_[cliente]_[descrição]" com WORK, RECEBIDO, PARTILHADO e PROPOSTAS AI, 4) gera o orçamento "${nx}_ORCAMENTO-RIMA_[cliente]_[descrição]" em PARTILHADO, 5) em PROPOSTAS AI cria documentos que impulsionem o projecto (perguntando-me o necessário) e adiciona-os também aos documentos do projecto no dashboard.`);
+ ask(`Novo projecto — próximo número: ${nx}. Faz-me as perguntas necessárias (responsável M/R, tipo, cliente, data de entrada, descrição, valor s/IVA, e se JÁ ESTÁ ADJUDICADO ou é proposta). Depois: 1) cria a entrada na contabilidade (o campo de índice 14 dessa linha, o link ao projecto, tem de ficar igual ao id do novo projecto — nunca deixes por ligar), 2) cria o projecto na categoria certa e define comigo as tarefas base. SE AINDA NÃO ADJUDICADO: marca o projecto como "por adjudicar" e para aí (sem pastas nem ficheiros). SE/QUANDO ADJUDICADO: 3) cria a pasta Drive "${nx}_[cliente]_[descrição]" com WORK, RECEBIDO, PARTILHADO e PROPOSTAS AI, 4) gera o orçamento "${nx}_ORCAMENTO-RIMA_[cliente]_[descrição]" em PARTILHADO, 5) em PROPOSTAS AI cria documentos que impulsionem o projecto (perguntando-me o necessário) e adiciona-os também aos documentos do projecto no dashboard.`);
 }
 
 /* ============ despesas ============ */
@@ -1319,7 +1333,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&mP)closeP();});
 $("mNew").addEventListener("keydown",e=>{if(e.key==="Enter")mAdd();});
 function renderP(){
  const p=D.projectos.find(x=>x.id===mP);if(!p)return;
- const nums=(D.conta||[]).filter(r=>r[14]===p.id).map(r=>r[0]);
+ const nums=(D.conta||[]).filter(r=>contaProjId(r)===p.id).map(r=>r[0]);
  $("mName").innerHTML=esc(p.nome)+(nums.length?` <span class="chip" style="display:inline-block;margin-left:8px;font-size:10px;vertical-align:middle">${nums.map(esc).join(" · ")}</span>`:"");
  const pr={1:"1 · baixa",2:"2 · média",3:"3 · alta"};
  $("mEdit").innerHTML=`
