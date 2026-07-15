@@ -170,19 +170,12 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 #gateBtn:active{box-shadow:inset 3px 3px 8px var(--sh-d),inset -3px -3px 8px var(--sh-l);}
 #gateErr{font-size:11px;color:var(--acc);height:14px;}
 
-/* chat */
-#chatFab{position:fixed;right:22px;bottom:22px;z-index:60;width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;font-size:19px;color:var(--acc);background:var(--bg);box-shadow:6px 6px 14px var(--sh-d),-6px -6px 14px var(--sh-l);}
-#chatFab:active{box-shadow:inset 4px 4px 9px var(--sh-d),inset -4px -4px 9px var(--sh-l);}
-#chatPanel{position:fixed;right:18px;bottom:84px;z-index:61;width:min(360px,calc(100vw - 36px));height:min(520px,calc(100vh - 130px));display:none;flex-direction:column;background:var(--bg);border-radius:20px;box-shadow:10px 10px 26px var(--sh-d),-10px -10px 26px var(--sh-l);overflow:hidden;}
-#chatPanel.on{display:flex;}
+/* pedido para o Claude */
+#askPanel{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.28);}
+#askPanel.on{display:flex;}
+#askPanel>div:last-child{width:min(440px,calc(100vw - 40px));background:var(--bg);border-radius:20px;box-shadow:10px 10px 26px var(--sh-d),-10px -10px 26px var(--sh-l);overflow:hidden;}
 .chead{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);border-bottom:1px solid var(--line);}
-#chatLog{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
-.cmsg{max-width:88%;padding:9px 13px;border-radius:14px;font-size:12.5px;line-height:1.55;white-space:pre-wrap;}
-.cmsg.eu{align-self:flex-end;box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
-.cmsg.ai{align-self:flex-start;box-shadow:4px 4px 10px var(--sh-d),-4px -4px 10px var(--sh-l);}
-.cmsg.pensa{color:var(--soft);font-style:italic;}
-.cinput{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);align-items:flex-end;}
-.cinput textarea{flex:1;resize:none;border:none;background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:12.5px;padding:8px 10px;border-radius:10px;box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);outline:none;}
+#askText{width:100%;resize:none;border:none;background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.5;padding:10px 12px;border-radius:10px;box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);outline:none;box-sizing:border-box;}
 
 /* pausa */
 #pauseTint{position:fixed;inset:0;background:rgba(120,42,32,.13);pointer-events:none;z-index:40;opacity:0;transition:opacity .5s;}
@@ -357,11 +350,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="wrap">
 
 <div id="pauseTint"></div>
-<button id="chatFab" title="Falar com o Claude" onclick="chatToggle()">✦</button>
-<div id="chatPanel">
- <div class="chead"><span>STATION · Claude</span><button class="ico" style="width:26px;height:26px;font-size:12px" onclick="chatToggle()">✕</button></div>
- <div id="chatLog"><div class="cmsg ai">Olá. Tenho o estado do painel comigo. Posso gerar a rotina, ler os emails, atualizar a agenda ou responder ao que precisares.</div></div>
- <div class="cinput"><textarea id="chatIn" rows="2" placeholder="escreve…"></textarea><button class="ico" onclick="chatSend()" title="Enviar">➤</button></div>
+<div id="askPanel">
+ <div>
+  <div class="chead"><span>Pedido para o Claude</span><button class="ico" style="width:26px;height:26px;font-size:12px" onclick="askPanelClose()">✕</button></div>
+  <div style="padding:14px">
+   <div class="hsub" style="margin-bottom:8px">Copia e cola na conversa GOTEN:</div>
+   <textarea id="askText" rows="9" readonly></textarea>
+   <button class="ico" style="width:100%;margin-top:10px;font-size:11px" onclick="askCopy()">📋 copiar</button>
+  </div>
+ </div>
 </div>
 <div class="head card">
   <div><h1>STATION</h1></div>
@@ -670,87 +667,18 @@ function isoLocal(d){const x=d||new Date();return x.getFullYear()+"-"+String(x.g
 const hoje=()=>isoLocal();
 const esc=s=>{const d=document.createElement("div");d.textContent=fixEnc(String(s==null?"":s));return d.innerHTML;};
 const min=q=>{const m=(q||"").match(/^(\d{1,2}):(\d{2})/);return m?+m[1]*60+ +m[2]:null;};
-function ask(t){if(typeof sendPrompt==="function"){sendPrompt(t);}else{chatOpen();$("chatIn").value=t;chatSend();}}
-/* ============ chat embebido ============ */
-let chatHist=[],chatBusy=false;
-function chatToggle(){$("chatPanel").classList.toggle("on");}
-function chatOpen(){$("chatPanel").classList.add("on");}
-function chatCtx(){
- const n=new Date();
- const ps=(D.projectos||[]).filter(p=>p.estado!=="arquivado").map(p=>({nome:p.nome,cat:p.categoria,estado:p.estado,prazo:p.prazo,pri:p.prioridade,cliente:p.cliente,marca:p.marca}));
- const ts=(D.tarefas||[]).filter(t=>!["concluída","arquivada"].includes(t.estado)).map(t=>({t:t.titulo,proj:t.projecto,cat:t.categoria,data:t.data,prazo:t.prazo,resp:t.responsavel||"Ricardo",estado:t.estado}));
- const ca=(D.conta||[]).filter(r=>["ATIVO","AGUARDA"].includes(r[8])).map(r=>({n:r[0],cliente:r[3],desc:r[5],val:r[6],estado:r[8],pago:r[9]}));
- const mk=n.toISOString().slice(0,7);
- return `És o Claude do STATION, o painel de gestão do Ricardo Esteves Corga e da Marta Oliveira (RIMA CORE Lda). Responde SEMPRE em português europeu, direto e conciso, sem elogios vazios. NUNCA uses em dashes (—) em nenhum texto.
-DATA/HORA: ${n.toLocaleString("pt-PT")} (${["dom","seg","ter","qua","qui","sex","sáb"][n.getDay()]})
-REGRAS DA ROTINA: dias úteis: 07:30 acordar, 09:00 escola, 09:45 estúdio, 10:00 abertura do dia, 10:30 reunião Marta (15min, se presente no calendário Marta Oliveira), 10:45-12:45 bloco 1, 12:45 almoço, 13:15 sesta 20min inegociável, 13:35-14:00 bloco comercial, 14:00-16:30 bloco 2, 16:30 fecho, 16:45-21:00 filhas, 21:00 Monofobia, 22:30 dormir. Fins de semana, feriados PT e férias (folgas): SEM blocos de trabalho. Blocos preenchidos com tarefas concretas, nunca vago. Prioridade a clientes. Tarefa comercial diária às 13:35.
-CONHECIMENTO RIMA (segue esta hierarquia ao criar rotinas e priorizar):
-${D.kb||""}
-FOLGAS MARCADAS: ${JSON.stringify(D.folgas||[])}
-FINANCEIRO ${mk} (s/IVA): ${JSON.stringify((D.financeiro.meses[mk]||{receita:0}))} · objetivo mín ${D.financeiro.objetivoMinimo}, ideal ${D.financeiro.objetivoIdeal}
-PROJECTOS: ${JSON.stringify(ps)}
-TAREFAS ABERTAS: ${JSON.stringify(ts)}
-CONTABILIDADE ABERTA: ${JSON.stringify(ca)}
-ROTINA DE HOJE: ${rot&&rot.data===hoje()?JSON.stringify(rot):"ainda não gerada"}
-PODES ATUALIZAR O PAINEL devolvendo no fim da resposta um ou mais blocos exatamente neste formato (sem mais nada dentro):
-\u0060\u0060\u0060station-update
-{"key":"dash:rotina","value":{"data":"${hoje()}","itens":[{"q":"10:45","t":"...","feito":false}]}}
-\u0060\u0060\u0060
-No FECHO DO DIA regista o tracker devolvendo {"key":"dash:tracker","value":{"AAAA-MM-DD":{"sono":7.5,"sesta":true,"energia":4,"exercicio":0,"horas":{"NomeProjecto":2.5},"notas":"..."}}} (faz merge, não apaga dias anteriores).
-TRACKER RECENTE: ${JSON.stringify(Object.fromEntries(Object.entries(trk).sort().slice(-5)))}
-Chaves permitidas: dash:tracker (merge por dia), dash:rotina (rotina do dia, itens com q/t/feito), dash:agenda ({data,eventos:[{h,t,cal}],aniversarios:[]}), dash:mail ({data,resumo,itens:[{de,assunto,conta}]}), dash:news (array {t,f,quando}). Usa as ferramentas Gmail/Calendar/Drive quando fizer sentido (ler emails, eventos do dia, presença da Marta). Não inventes dados.`;
+function ask(t){
+ if(typeof sendPrompt==="function"){sendPrompt(t);return;}
+ $("askText").value=t;
+ $("askPanel").classList.add("on");
 }
-async function chatSend(){
- const inp=$("chatIn"),txt=inp.value.trim();
- if(!txt||chatBusy)return;
- inp.value="";chatBusy=true;
- const log=$("chatLog");
- log.insertAdjacentHTML("beforeend",`<div class="cmsg eu">${esc(txt)}</div><div class="cmsg ai pensa" id="cWait">a pensar…</div>`);
- log.scrollTop=log.scrollHeight;
- chatHist.push({role:"user",content:txt});
- try{
-  const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,system:chatCtx(),messages:chatHist.slice(-12),
-    mcp_servers:[
-     {type:"url",url:"https://gmailmcp.googleapis.com/mcp/v1",name:"gmail"},
-     {type:"url",url:"https://calendarmcp.googleapis.com/mcp/v1",name:"gcal"},
-     {type:"url",url:"https://drivemcp.googleapis.com/mcp/v1",name:"gdrive"}
-    ]})});
-  const data=await res.json();
-  let full=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
-  if(!full)full="(sem resposta)";
-  // aplicar blocos station-update
-  const re=/\u0060\u0060\u0060station-update\s*([\s\S]*?)\u0060\u0060\u0060/g;
-  let m,aplicados=0;
-  while((m=re.exec(full))!==null){
-   try{
-    const u=JSON.parse(m[1]);
-    if(u.key==="dash:tracker"){
-     Object.keys(u.value||{}).forEach(d=>{trk[d]=Object.assign(trk[d]||{},u.value[d]);});
-     await window.storage.set("dash:tracker",JSON.stringify(trk),true);aplicados++;
-    }else if(["dash:rotina","dash:agenda","dash:mail","dash:news"].includes(u.key)){
-     await window.storage.set(u.key,JSON.stringify(u.value),true);
-     if(u.key==="dash:rotina")rot=u.value;
-     if(u.key==="dash:agenda")agenda=u.value;
-     if(u.key==="dash:mail")mail=u.value;
-     if(u.key==="dash:news")news=u.value;
-     aplicados++;
-    }
-   }catch(e){}
-  }
-  full=full.replace(re,"").trim();
-  if(aplicados){await persist("chat");rAll();full+=(full?"\n":"")+"✓ painel atualizado";}
-  chatHist.push({role:"assistant",content:full||"ok"});
-  $("cWait").outerHTML=`<div class="cmsg ai">${esc(full)}</div>`;
- }catch(e){
-  $("cWait").outerHTML=`<div class="cmsg ai">Erro de ligação. Tenta outra vez.</div>`;
-  chatHist.pop();
- }
- chatBusy=false;
- log.scrollTop=log.scrollHeight;
+function askPanelClose(){$("askPanel").classList.remove("on");}
+function askCopy(){
+ const ta=$("askText");ta.select();ta.setSelectionRange(0,999999);
+ try{navigator.clipboard.writeText(ta.value);}catch(e){try{document.execCommand("copy");}catch(e2){}}
+ setSt("copiado — cola na conversa com o Claude");
 }
 document.addEventListener("keydown",e=>{
- if(e.target&&e.target.id==="chatIn"&&e.key==="Enter"&&!e.shiftKey){e.preventDefault();chatSend();}
  if(e.target&&e.target.id==="inboxNew"&&e.key==="Enter"){
   const v=e.target.value.trim();if(!v)return;
   D.tarefas.push({id:"t"+Date.now(),categoria:"RIMA",projecto:"Inbox",titulo:v,estado:"ativa",data:null,prazo:null,responsavel:"Ricardo"});
@@ -1329,6 +1257,7 @@ let mP=null;
 function openP(id){mP=id;sel=null;renderP();$("pOvl").classList.add("on");}
 function closeP(){mP=null;sel=null;ttsStop();$("pOvl").classList.remove("on");}
 $("pOvl").addEventListener("click",e=>{if(e.target.id==="pOvl")closeP();});
+$("askPanel").addEventListener("click",e=>{if(e.target.id==="askPanel")askPanelClose();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&mP)closeP();});
 $("mNew").addEventListener("keydown",e=>{if(e.key==="Enter")mAdd();});
 function renderP(){
