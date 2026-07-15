@@ -364,8 +364,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div><h1>STATION</h1></div>
   <div style="display:flex;align-items:center;gap:14px">
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Atualizar da nuvem" onclick="pullCloud()">☁</button>
-    <button class="ico" style="width:30px;height:30px;font-size:13px" title="Diagnóstico da ligação" onclick="diag()">⚙</button>
-    <button class="ico" style="width:30px;height:30px;font-size:13px" title="Enviar estado atual ao Claude" onclick="syncOut()">⇅</button>
     <div class="clock"><div class="d" id="cD">—</div><div class="h" id="cH">—</div></div>
   </div>
 </div>
@@ -389,10 +387,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="hometop">
     <div class="now card"><div class="pip"></div><div id="nowTxt">—</div></div>
     <div class="icorow" style="margin-bottom:0">
-      <button class="ico" title="Gerar rotina de hoje" onclick="ask('Abertura do dia: gera a rotina de hoje segundo as regras STATION — calendários importantes, presença da Marta, emails das duas caixas (resumo na HOME), agenda e aniversários, radar, tarefas concretas nos blocos com prioridade a clientes, tarefa comercial do dia, fins de semana, feriados e férias sem blocos de trabalho (só descanso, salvo excesso e com aviso meu). Faz-me as perguntas da manhã que faltarem (sono, energia) e escreve tudo no dashboard e no calendário Rotina.')">✳</button>
-      <button class="ico" title="Gerar rotina de amanhã" onclick="ask('Gera a rotina de amanhã segundo as regras STATION e escreve no dashboard e no calendário Rotina.')">↷</button>
-      <button class="ico" title="Fecho do dia" onclick="fecho()">⏻</button>
       <button class="ico" id="btnPause" title="Pausa" onclick="togglePause()">⏸</button>
+      <button class="ico" id="btnSom" title="Som ao mudar de bloco" onclick="toggleSom()">🔔</button>
     </div>
   </div>
   <div class="home">
@@ -819,7 +815,7 @@ async function load(){
   }}catch(e){}
  }
  if(D&&D.tracker&&Object.keys(D.tracker).length){Object.assign(trk,D.tracker);D.tracker={};await persist("trk");}
- rPause();
+ rPause();rSomBtn();
 }
 async function persist(tag){
  const snap=snapshot();
@@ -866,6 +862,38 @@ async function pullCloud(){
 }
 
 /* ============ relógio ============ */
+let lastBlockQ=undefined,audioCtx=null;
+function toggleSom(){
+ D.somBlocos=D.somBlocos===false?true:false;
+ save();rSomBtn();
+ if(D.somBlocos!==false)beep();
+}
+function rSomBtn(){
+ const b=$("btnSom");if(!b)return;
+ const on=D.somBlocos!==false;
+ b.textContent=on?"🔔":"🔕";
+ b.style.opacity=on?"1":".45";
+}
+function beep(){
+ try{
+  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended")audioCtx.resume();
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type="sine";o.frequency.value=740;
+  g.gain.setValueAtTime(0.0001,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.12,audioCtx.currentTime+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.55);
+  o.connect(g);g.connect(audioCtx.destination);
+  o.start();o.stop(audioCtx.currentTime+0.58);
+  const o2=audioCtx.createOscillator();o2.type="sine";o2.frequency.value=988;
+  const g2=audioCtx.createGain();g2.gain.setValueAtTime(0.0001,audioCtx.currentTime+0.16);
+  g2.gain.exponentialRampToValueAtTime(0.11,audioCtx.currentTime+0.18);
+  g2.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.6);
+  o2.connect(g2);g2.connect(audioCtx.destination);
+  o2.start(audioCtx.currentTime+0.16);o2.stop(audioCtx.currentTime+0.62);
+ }catch(e){}
+}
+document.addEventListener("click",()=>{if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}},{once:true});
 function tick(){
  const n=new Date();
  $("cD").textContent=n.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long"});
@@ -874,6 +902,9 @@ function tick(){
  const s=[...its].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
  let c=null;
  for(let i=0;i<s.length;i++){const m=min(s[i].q),nx=i<s.length-1?min(s[i+1].q):1440;if(m!==null&&nm>=m&&nm<nx){c=s[i];break;}}
+ const q=c?c.q:null;
+ if(lastBlockQ!==undefined&&lastBlockQ!==null&&q!==lastBlockQ&&(D.somBlocos!==false))beep();
+ lastBlockQ=q;
  let base=c?`agora · <strong>${esc(c.t)}</strong>${(c.tarefas&&c.tarefas.length)?" — "+esc(c.tarefas[0]):c.n?" — "+esc(c.n):""}`:"sem bloco definido";
  if(pausaAtiva()){
   const ini=pausas.itens[pausas.itens.length-1].ini;
