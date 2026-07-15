@@ -143,6 +143,11 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .cnome .cdesc{font-size:11px;color:var(--soft);}
 .cgroup{margin-bottom:6px;}
 .cgrouph{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);padding:16px 16px 8px;}
+.recrow{display:grid;grid-template-columns:1fr 1fr 30px;gap:10px;padding:9px 16px;align-items:center;font-size:12px;border-bottom:1px solid var(--line);}
+.recside{padding:6px 9px;border-radius:8px;line-height:1.4;}
+.recside.bad{background:rgba(199,74,60,.11);color:var(--acc);font-style:italic;}
+.recside .sub2{display:block;margin-top:1px;}
+@media(max-width:760px){.recrow{grid-template-columns:1fr 1fr;} .recrow>.clink{grid-column:1/-1;justify-content:flex-end;}}
 .cgrouph.acc{cursor:pointer;user-select:none;display:flex;align-items:center;gap:7px;}
 .cgrouph.acc:hover{color:var(--txt);}
 .accarr{font-size:9px;width:10px;}
@@ -452,10 +457,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Despesas<span style="display:flex;gap:8px;align-items:center"><select id="fMesD"></select></span></h2>
   <div class="fin" id="finD"></div>
-  <div class="card" style="padding:16px 18px;margin-bottom:18px">
-   <div class="msech" style="display:flex;justify-content:space-between;align-items:center">fixos mensais<button class="ico" style="width:24px;height:24px;font-size:13px" title="Adicionar fixo" onclick="addFixo()">+</button></div>
-   <div id="fixosList"></div>
-  </div>
   <div class="card" style="padding:6px 0" id="despList"></div>
 </div>
 
@@ -789,7 +790,7 @@ async function load(){
  }
  if(!D.tracker)D.tracker={};
  if(!D.conta)D.conta=[];
- if(!D.despesas)D.despesas={fixos:SEED.despesas.fixos,meses:{}};
+ if(!D.despesas)D.despesas={meses:{}};
  D.conta.forEach(r=>{while(r.length<14)r.push(null);});
  // link registo -> projecto (índice 14): auto-liga só se ainda por decidir (null/undefined). "none" = explicitamente sem projecto, nunca mais tenta.
  let mudouLink=false;
@@ -1268,36 +1269,57 @@ function novoProj(){
 }
 
 /* ============ despesas ============ */
+const QUALIDADES=["Ordenado Ricardo","Ordenado Marta","Subsídio alimentação · Ricardo","Subsídio alimentação · Marta","Comissão bancária","Imposto de selo","TSU","Contabilista","Xeconxira","Equipamento","Software/subscrições","Deslocações","Notariado/registos","Suprimento sócia","Outros"];
 function mesesDisp(){
  const ms=Object.keys((D.despesas&&D.despesas.meses)||{}).sort().reverse();
  return ms.length?ms:[new Date().toISOString().slice(0,7)];
 }
 let mesDAtual=null;
+function despEntradasStation(mk){
+ const out=[];
+ (D.conta||[]).forEach(r=>{
+  const val=+r[6]||0;
+  if(r[12]&&r[12].slice(0,7)===mk)out.push({desc:r[3],valor:val*1.23,ref:r[0]+" total"});
+  else{
+   if(r[10]&&r[10].slice(0,7)===mk)out.push({desc:r[3],valor:val*0.4*1.23,ref:r[0]+" adjud."});
+   if(r[11]&&r[11].slice(0,7)===mk)out.push({desc:r[3],valor:val*0.6*1.23,ref:r[0]+" final."});
+  }
+ });
+ return out;
+}
+function parear(stLista,exLista){
+ const st=stLista.map(x=>({...x,usado:false})), ex=exLista.map(x=>({...x,usado:false}));
+ const pares=[];
+ st.forEach(s=>{
+  let best=null,bd=1.5;
+  ex.forEach(e=>{if(!e.usado){const d=Math.abs(e.valor-s.valor);if(d<bd){bd=d;best=e;}}});
+  if(best){best.usado=true;s.usado=true;pares.push({station:s,extrato:best});}
+ });
+ st.filter(s=>!s.usado).forEach(s=>pares.push({station:s,extrato:null}));
+ ex.filter(e=>!e.usado).forEach(e=>pares.push({station:null,extrato:e}));
+ return pares;
+}
 function rDespFin(mk){
  const md=(D.despesas.meses||{})[mk]||{movimentos:[]};
  const movs=md.movimentos||[];
- const entradas=movs.filter(m=>m.tipo==="entrada").reduce((s,m)=>s+m.valor,0);
- const saidas=movs.filter(m=>m.tipo==="saida").reduce((s,m)=>s+m.valor,0);
- const semMatch=movs.filter(m=>!m.match).length;
- const fixosEsperados=D.despesas.fixos.length;
- const fixosBatidos=new Set(movs.filter(m=>m.match==="fixo").map(m=>m.categoria)).size;
+ const entradas=movs.filter(m=>m.tipo==="entrada"),saidas=movs.filter(m=>m.tipo==="saida");
+ const parEnt=parear(despEntradasStation(mk),entradas.map(m=>({desc:m.desc,valor:m.valor,mov:m})));
+ const semQual=saidas.filter(m=>!m.qualidade).length;
+ const entOk=parEnt.filter(p=>p.station&&p.extrato).length;
  $("finD").innerHTML=`
-  <div class="fcard card"><div class="fl">entradas</div><div class="fv" style="color:var(--ok)">€${entradas.toLocaleString("pt-PT",{minimumFractionDigits:2})}</div><div class="fs">${movs.filter(m=>m.tipo==="entrada").length} movimentos</div></div>
-  <div class="fcard card"><div class="fl">saídas</div><div class="fv" style="color:var(--acc)">€${saidas.toLocaleString("pt-PT",{minimumFractionDigits:2})}</div><div class="fs">${movs.filter(m=>m.tipo==="saida").length} movimentos</div></div>
-  <div class="fcard card"><div class="fl">a bater</div><div class="fv" style="${semMatch?'color:var(--acc)':''}">${semMatch}</div><div class="fs">${fixosBatidos}/${fixosEsperados} fixos confirmados</div></div>`;
+  <div class="fcard card"><div class="fl">entradas</div><div class="fv" style="color:var(--ok)">€${entradas.reduce((s,m)=>s+m.valor,0).toLocaleString("pt-PT",{minimumFractionDigits:2})}</div><div class="fs">${entOk}/${parEnt.length} confirmadas</div></div>
+  <div class="fcard card"><div class="fl">saídas</div><div class="fv" style="color:var(--acc)">€${saidas.reduce((s,m)=>s+m.valor,0).toLocaleString("pt-PT",{minimumFractionDigits:2})}</div><div class="fs">${saidas.length-semQual}/${saidas.length} com qualidade</div></div>
+  <div class="fcard card"><div class="fl">por rever</div><div class="fv" style="${semQual?'color:var(--acc)':''}">${semQual}</div><div class="fs">saídas sem qualidade atribuída</div></div>`;
 }
-function rFixos(){
- const el=$("fixosList");if(!el)return;
- el.innerHTML=(D.despesas.fixos||[]).map((f,i)=>`<div class="frow"><input class="pin" style="flex:1" data-fi="${i}" data-ff="nome" value="${esc(f.nome)}"/><input class="pin" style="width:120px" data-fi="${i}" data-ff="cat" value="${esc(f.cat||"")}" placeholder="categoria"/><button class="ico" style="width:24px;height:24px;font-size:11px" data-fdel="${i}">✕</button></div>`).join("")||`<div class="empty">sem fixos definidos</div>`;
- el.querySelectorAll("[data-ff]").forEach(inp=>inp.addEventListener("change",async()=>{
-  const i=+inp.dataset.fi,f=inp.dataset.ff;D.despesas.fixos[i][f]=inp.value;await save();
- }));
- el.querySelectorAll("[data-fdel]").forEach(b=>b.addEventListener("click",async()=>{
-  D.despesas.fixos.splice(+b.dataset.fdel,1);await save();rFixos();
- }));
-}
-function addFixo(){
- D.despesas.fixos.push({nome:"novo fixo",cat:""});save().then(rFixos);
+function qualBtn(m,idx){
+ const q=m.qualidade;
+ return `<span class="clink">
+  <button class="ico linkBtn${q?"":" off"}" data-qbtn="${idx}" title="${q?esc(q):"sem qualidade — clique para atribuir"}">▸</button>
+  <select class="linkSel" data-qsel="${idx}" hidden>
+   <option value="">— sem qualidade —</option>
+   ${QUALIDADES.map(x=>`<option value="${esc(x)}" ${q===x?"selected":""}>${esc(x)}</option>`).join("")}
+  </select>
+ </span>`;
 }
 function rDesp(){
  if(!D.despesas)return;
@@ -1306,19 +1328,41 @@ function rDesp(){
  if(!mesDAtual||!ms.includes(mesDAtual))mesDAtual=ms[0];
  sel.innerHTML=ms.map(m=>`<option value="${m}" ${m===mesDAtual?"selected":""}>${new Date(m+"-01T12:00").toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</option>`).join("");
  rDespFin(mesDAtual);
- rFixos();
  const md=(D.despesas.meses||{})[mesDAtual]||{movimentos:[]};
  const movs=md.movimentos||[];
  const el=$("despList");
  if(!movs.length){el.innerHTML=`<div class="empty">sem movimentos importados para este mês<br>pede no chat para processar o extrato</div>`;return;}
- const chip=m=>m.match==="fixo"?`<span class="chip" style="color:var(--ok)">✓ fixo</span>`:m.match==="projeto"?`<span class="chip" style="color:var(--ok)">✓ ${esc(m.matchRef||"projecto")}</span>`:`<span class="chip" style="color:var(--acc)">⚠ a rever</span>`;
- el.innerHTML=movs.map(m=>`<div class="crow" style="grid-template-columns:70px 1fr auto auto">
-   <span class="cid">${m.data||""}</span>
-   <span class="cnome"><span class="cli">${esc(m.desc)}</span><span class="cdesc">${esc(m.categoria||"")}</span></span>
-   <span class="cval" style="color:${m.tipo==='entrada'?'var(--ok)':'var(--txt)'}">${m.tipo==='entrada'?'+':'-'}€${m.valor.toLocaleString("pt-PT",{minimumFractionDigits:2})}</span>
-   ${chip(m)}
-  </div>`).join("");
+ // ENTRADAS: Station (conta) vs Extrato (movimentos)
+ const entradas=movs.filter(m=>m.tipo==="entrada");
+ const parEnt=parear(despEntradasStation(mesDAtual),entradas.map(m=>({desc:m.desc,valor:m.valor})));
+ let h=`<div class="cgrouph">entradas · station vs extrato</div>`;
+ h+=parEnt.map(p=>`<div class="recrow">
+   <span class="recside${p.station?"":" bad"}">${p.station?`${esc(p.station.desc)} <span class="sub2">${esc(p.station.ref)} · €${p.station.valor.toFixed(2)}</span>`:"— não encontrado na contabilidade —"}</span>
+   <span class="recside${p.extrato?"":" bad"}">${p.extrato?`${esc(p.extrato.desc)} <span class="sub2">€${p.extrato.valor.toFixed(2)}</span>`:"— não encontrado no extrato —"}</span>
+   <span></span>
+  </div>`).join("")||`<div class="empty">sem entradas este mês</div>`;
+ // SAÍDAS: Station (com qualidade) vs Extrato (todas)
+ const saidas=movs.filter(m=>m.tipo==="saida");
+ h+=`<div class="cgrouph" style="margin-top:16px">saídas · station vs extrato</div>`;
+ h+=saidas.map((m,i)=>{
+  const idx=movs.indexOf(m);
+  const ok=!!m.qualidade;
+  return `<div class="recrow">
+   <span class="recside${ok?"":" bad"}">${ok?`${esc(m.qualidade)} <span class="sub2">€${m.valor.toFixed(2)}</span>`:"— por atribuir —"}</span>
+   <span class="recside${ok?"":" bad"}">${esc(m.desc)} <span class="sub2">€${m.valor.toFixed(2)}</span></span>
+   ${qualBtn(m,idx)}
+  </div>`;
+ }).join("")||`<div class="empty">sem saídas este mês</div>`;
+ el.innerHTML=h;
  if(md.nota)el.insertAdjacentHTML("beforeend",`<div class="hsub" style="padding:12px 16px">${esc(md.nota)}</div>`);
+ el.querySelectorAll("[data-qbtn]").forEach(b=>b.addEventListener("click",e=>{
+  e.stopPropagation();
+  const s=el.querySelector(`select[data-qsel="${b.dataset.qbtn}"]`);
+  if(s){try{s.showPicker?s.showPicker():s.click();}catch(e2){s.hidden=false;s.focus();}}
+ }));
+ el.querySelectorAll("[data-qsel]").forEach(s=>s.addEventListener("change",async()=>{
+  movs[+s.dataset.qsel].qualidade=s.value||null;await save();rDesp();
+ }));
 }
 document.addEventListener("change",e=>{if(e.target.id==="fMesD"){mesDAtual=e.target.value;rDesp();}});
 
