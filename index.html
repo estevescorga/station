@@ -143,11 +143,27 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .cnome .cdesc{font-size:11px;color:var(--soft);}
 .cgroup{margin-bottom:6px;}
 .cgrouph{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);padding:16px 16px 8px;}
-.recrow{display:grid;grid-template-columns:1fr 1fr 30px;gap:10px;padding:9px 16px;align-items:center;font-size:12px;border-bottom:1px solid var(--line);}
+.recrow,.rechead{display:grid;grid-template-columns:1fr 34px 1fr 30px;gap:10px;padding:9px 16px;align-items:center;font-size:12px;border-bottom:1px solid var(--line);}
+.rechead{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);padding-bottom:6px;}
+.rechead .rechc{text-align:center;}
 .recside{padding:6px 9px;border-radius:8px;line-height:1.4;}
+.recside.reg{cursor:pointer;}
+.recside.reg:hover{box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .recside.bad{background:rgba(199,74,60,.11);color:var(--acc);font-style:italic;}
 .recside .sub2{display:block;margin-top:1px;}
-@media(max-width:760px){.recrow{grid-template-columns:1fr 1fr;} .recrow>.clink{grid-column:1/-1;justify-content:flex-end;}}
+.fwrap{display:flex;justify-content:center;}
+.fchk{width:17px;height:17px;border-radius:6px;border:none;cursor:pointer;background:var(--bg);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);position:relative;padding:0;}
+.fchk::after{position:absolute;inset:-1px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+.fchk.auto{cursor:default;}
+.fchk.auto::after{content:"✓";color:var(--ok);}
+.fchk.man::after{content:"✓";color:var(--acc2);}
+.qwrap{position:relative;display:flex;justify-content:center;}
+.qmenu{position:absolute;right:0;top:26px;z-index:40;background:var(--bg);border-radius:12px;box-shadow:6px 6px 16px var(--sh-d),-6px -6px 16px var(--sh-l);padding:6px;min-width:150px;display:flex;flex-direction:column;gap:2px;}
+.qmenu button{border:none;background:transparent;text-align:left;padding:7px 10px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;font-size:11.5px;color:var(--txt);}
+.qmenu button:hover{box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
+.qmenu button.on{color:var(--acc);font-weight:600;}
+.qmenu button.clear{color:var(--soft);font-size:10px;border-top:1px solid var(--line);margin-top:3px;padding-top:7px;border-radius:0;}
+@media(max-width:760px){.recrow,.rechead{grid-template-columns:1fr 30px;} .recrow>.qwrap{grid-column:2;}}
 .cgrouph.acc{cursor:pointer;user-select:none;display:flex;align-items:center;gap:7px;}
 .cgrouph.acc:hover{color:var(--txt);}
 .accarr{font-size:9px;width:10px;}
@@ -1213,12 +1229,12 @@ function crow(r){
    <span class="cval">€${val.toLocaleString("pt-PT",{minimumFractionDigits:2})}<span class="sub2" style="display:block">€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})} c/IVA</span></span>
    <select data-cf="8" data-ix="${idx}">${["ATIVO","AGUARDA","FEITO","REJEITADO",""].map(s=>`<option value="${s}" ${(r[8]||"")===s?"selected":""}>${s||"—"}</option>`).join("")}</select>
    ${pags}
-   <span class="clink">
+   <span class="qwrap">
     <button class="ico linkBtn${pid?"":" off"}" data-linkbtn="${idx}" title="${proj?esc(proj.nome):"sem projecto — clique para atribuir"}">▸</button>
-    <select class="linkSel" data-clink="${idx}" hidden>
-     <option value="none">— sem projecto —</option>
-     ${(D.projectos||[]).filter(p=>p.categoria==="RIMA").map(p=>`<option value="${p.id}" ${pid===p.id?"selected":""}>${esc(p.nome)}</option>`).join("")}
-    </select>
+    <div class="qmenu" data-lmenu="${idx}" hidden style="max-height:260px;overflow-y:auto">
+     ${(D.projectos||[]).filter(p=>p.categoria==="RIMA").map(p=>`<button data-lset="${idx}" data-lval="${p.id}" class="${pid===p.id?"on":""}">${esc(p.nome)}</button>`).join("")}
+     <button data-lset="${idx}" data-lval="none" class="clear">— sem projecto —</button>
+    </div>
    </span>
   </div>`;
 }
@@ -1233,11 +1249,13 @@ function bindConta(el){
   e.stopPropagation();
   const idx=+b.dataset.linkbtn,r=D.conta[idx],pid=contaProjId(r);
   if(pid){openP(pid);return;}
-  const sel=el.querySelector(`select[data-clink="${idx}"]`);
-  if(sel){try{sel.showPicker?sel.showPicker():sel.click();}catch(e){sel.hidden=false;sel.focus();}}
+  const menu=el.querySelector(`[data-lmenu="${idx}"]`);
+  el.querySelectorAll(".qmenu").forEach(x=>{if(x!==menu)x.hidden=true;});
+  if(menu)menu.hidden=!menu.hidden;
  }));
- el.querySelectorAll("[data-clink]").forEach(s=>s.addEventListener("change",async()=>{
-  D.conta[+s.dataset.clink][14]=s.value;await save();rConta();
+ el.querySelectorAll("[data-lset]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();
+  D.conta[+b.dataset.lset][14]=b.dataset.lval;await save();rConta();
  }));
 }
 let contaOpen={ativos:true,"avenças":true,pagos:false,null:false,rejeitados:false};
@@ -1269,7 +1287,33 @@ function novoProj(){
 }
 
 /* ============ despesas ============ */
-const QUALIDADES=["Ordenado Ricardo","Ordenado Marta","Subsídio alimentação · Ricardo","Subsídio alimentação · Marta","Comissão bancária","Imposto de selo","TSU","Contabilista","Xeconxira","Equipamento","Software/subscrições","Deslocações","Notariado/registos","Suprimento sócia","Outros"];
+const QUALIDADES=["fixa mensal","fixa trimestral","fixa anual","pontual","equipamento"];
+// padrões reconhecidos: [regex, registo sugerido, qualidade]
+const PADROES=[
+ [/COM\.?\s*MAN\.?\s*CONTA|comiss[ãa]o/i,"Comissão bancária","fixa mensal"],
+ [/imposto\s*de?\s*selo/i,"Imposto de selo","fixa mensal"],
+ [/taxa\s*social|PTU|TSU/i,"TSU","fixa mensal"],
+ [/xeconxira/i,"Xeconxira","fixa mensal"],
+ [/fiscalia/i,"Contabilista","fixa mensal"],
+ [/marta\s*oliveira/i,"Ordenado Marta","fixa mensal"],
+ [/ricardo\s*esteves/i,"Ordenado Ricardo","fixa mensal"],
+ [/subs[íi]dio|PAG\s*SERV\s*22102/i,"Subsídio alimentação","fixa mensal"],
+ [/dyson|equipamento/i,"Equipamento","equipamento"],
+ [/registos?\s*notariado|notari/i,"Notariado e registos","pontual"]
+];
+function autoReconhece(m){
+ if(m.qualidade&&m.registo)return false;
+ const d=(m.desc||"")+" "+(m.categoria||"");
+ for(const [re,reg,qual] of PADROES){
+  if(re.test(d)){
+   let mudou=false;
+   if(!m.registo){m.registo=reg;mudou=true;}
+   if(!m.qualidade){m.qualidade=qual;mudou=true;}
+   return mudou;
+  }
+ }
+ return false;
+}
 function mesesDisp(){
  const ms=Object.keys((D.despesas&&D.despesas.meses)||{}).sort().reverse();
  return ms.length?ms:[new Date().toISOString().slice(0,7)];
@@ -1304,22 +1348,28 @@ function rDespFin(mk){
  const movs=md.movimentos||[];
  const entradas=movs.filter(m=>m.tipo==="entrada"),saidas=movs.filter(m=>m.tipo==="saida");
  const parEnt=parear(despEntradasStation(mk),entradas.map(m=>({desc:m.desc,valor:m.valor,mov:m})));
- const semQual=saidas.filter(m=>!m.qualidade).length;
  const entOk=parEnt.filter(p=>p.station&&p.extrato).length;
+ const semReg=saidas.filter(m=>!m.registo).length;
+ const semFat=movs.filter(m=>!m.fatura).length;
+ const fixas=saidas.filter(m=>(m.qualidade||"").startsWith("fixa")).reduce((s,m)=>s+m.valor,0);
  $("finD").innerHTML=`
   <div class="fcard card"><div class="fl">entradas</div><div class="fv" style="color:var(--ok)">€${entradas.reduce((s,m)=>s+m.valor,0).toLocaleString("pt-PT",{minimumFractionDigits:2})}</div><div class="fs">${entOk}/${parEnt.length} confirmadas</div></div>
-  <div class="fcard card"><div class="fl">saídas</div><div class="fv" style="color:var(--acc)">€${saidas.reduce((s,m)=>s+m.valor,0).toLocaleString("pt-PT",{minimumFractionDigits:2})}</div><div class="fs">${saidas.length-semQual}/${saidas.length} com qualidade</div></div>
-  <div class="fcard card"><div class="fl">por rever</div><div class="fv" style="${semQual?'color:var(--acc)':''}">${semQual}</div><div class="fs">saídas sem qualidade atribuída</div></div>`;
+  <div class="fcard card"><div class="fl">saídas</div><div class="fv" style="color:var(--acc)">€${saidas.reduce((s,m)=>s+m.valor,0).toLocaleString("pt-PT",{minimumFractionDigits:2})}</div><div class="fs">€${fixas.toLocaleString("pt-PT",{minimumFractionDigits:2})} em despesas fixas</div></div>
+  <div class="fcard card"><div class="fl">por rever</div><div class="fv" style="${(semReg||semFat)?'color:var(--acc)':''}">${semReg}</div><div class="fs">por registar · ${semFat} sem fatura</div></div>`;
 }
 function qualBtn(m,idx){
  const q=m.qualidade;
- return `<span class="clink">
+ return `<span class="qwrap">
   <button class="ico linkBtn${q?"":" off"}" data-qbtn="${idx}" title="${q?esc(q):"sem qualidade — clique para atribuir"}">▸</button>
-  <select class="linkSel" data-qsel="${idx}" hidden>
-   <option value="">— sem qualidade —</option>
-   ${QUALIDADES.map(x=>`<option value="${esc(x)}" ${q===x?"selected":""}>${esc(x)}</option>`).join("")}
-  </select>
+  <div class="qmenu" data-qmenu="${idx}" hidden>
+   ${QUALIDADES.map(x=>`<button data-qset="${idx}" data-qval="${esc(x)}" class="${q===x?"on":""}">${esc(x)}</button>`).join("")}
+   <button data-qset="${idx}" data-qval="" class="clear">limpar</button>
+  </div>
  </span>`;
+}
+function fchk(m,idx){
+ const f=m.fatura;
+ return `<span class="fwrap"><button class="fchk${f==="auto"?" auto":f==="manual"?" man":""}" data-fchk="${idx}" ${f==="auto"?"disabled":""} title="${f==="auto"?"fatura confirmada na Drive":f==="manual"?"marcado manualmente":"sem fatura encontrada — clique para marcar"}"></button></span>`;
 }
 function rDesp(){
  if(!D.despesas)return;
@@ -1327,43 +1377,72 @@ function rDesp(){
  const ms=mesesDisp();
  if(!mesDAtual||!ms.includes(mesDAtual))mesDAtual=ms[0];
  sel.innerHTML=ms.map(m=>`<option value="${m}" ${m===mesDAtual?"selected":""}>${new Date(m+"-01T12:00").toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</option>`).join("");
- rDespFin(mesDAtual);
  const md=(D.despesas.meses||{})[mesDAtual]||{movimentos:[]};
  const movs=md.movimentos||[];
+ // reconhecimento automático de padrões
+ let mudou=false;
+ movs.forEach(m=>{if(autoReconhece(m))mudou=true;});
+ if(mudou)save();
+ rDespFin(mesDAtual);
  const el=$("despList");
- if(!movs.length){el.innerHTML=`<div class="empty">sem movimentos importados para este mês<br>pede no chat para processar o extrato</div>`;return;}
- // ENTRADAS: Station (conta) vs Extrato (movimentos)
+ if(!movs.length){el.innerHTML=`<div class="empty">sem movimentos importados para este mês<br>pede-me para processar o extrato</div>`;return;}
+ // ENTRADAS: Contabilidade vs Extrato
  const entradas=movs.filter(m=>m.tipo==="entrada");
- const parEnt=parear(despEntradasStation(mesDAtual),entradas.map(m=>({desc:m.desc,valor:m.valor})));
- let h=`<div class="cgrouph">entradas · station vs extrato</div>`;
- h+=parEnt.map(p=>`<div class="recrow">
+ const parEnt=parear(despEntradasStation(mesDAtual),entradas.map(m=>({desc:m.desc,valor:m.valor,mov:m})));
+ let h=`<div class="rechead"><span>registado na station</span><span class="rechc">fatura</span><span>extrato bancário</span><span></span></div>`;
+ h+=`<div class="cgrouph">entradas · ${parEnt.length}</div>`;
+ h+=parEnt.map(p=>{
+  const idx=p.extrato&&p.extrato.mov?movs.indexOf(p.extrato.mov):-1;
+  return `<div class="recrow">
    <span class="recside${p.station?"":" bad"}">${p.station?`${esc(p.station.desc)} <span class="sub2">${esc(p.station.ref)} · €${p.station.valor.toFixed(2)}</span>`:"— não encontrado na contabilidade —"}</span>
+   ${idx>=0?fchk(movs[idx],idx):`<span class="fwrap"></span>`}
    <span class="recside${p.extrato?"":" bad"}">${p.extrato?`${esc(p.extrato.desc)} <span class="sub2">€${p.extrato.valor.toFixed(2)}</span>`:"— não encontrado no extrato —"}</span>
    <span></span>
-  </div>`).join("")||`<div class="empty">sem entradas este mês</div>`;
- // SAÍDAS: Station (com qualidade) vs Extrato (todas)
+  </div>`;
+ }).join("")||`<div class="empty">sem entradas este mês</div>`;
+ // SAÍDAS: registo manual vs Extrato
  const saidas=movs.filter(m=>m.tipo==="saida");
- h+=`<div class="cgrouph" style="margin-top:16px">saídas · station vs extrato</div>`;
- h+=saidas.map((m,i)=>{
+ h+=`<div class="cgrouph" style="margin-top:14px">saídas · ${saidas.length}</div>`;
+ h+=saidas.map(m=>{
   const idx=movs.indexOf(m);
-  const ok=!!m.qualidade;
+  const ok=!!m.registo;
   return `<div class="recrow">
-   <span class="recside${ok?"":" bad"}">${ok?`${esc(m.qualidade)} <span class="sub2">€${m.valor.toFixed(2)}</span>`:"— por atribuir —"}</span>
+   <span class="recside reg${ok?"":" bad"}" data-reg="${idx}" title="clique para ${ok?"editar":"registar"}">${ok?`${esc(m.registo)} <span class="sub2">${m.qualidade?esc(m.qualidade)+" · ":""}€${m.valor.toFixed(2)}</span>`:"— por registar —"}</span>
+   ${fchk(m,idx)}
    <span class="recside${ok?"":" bad"}">${esc(m.desc)} <span class="sub2">€${m.valor.toFixed(2)}</span></span>
    ${qualBtn(m,idx)}
   </div>`;
  }).join("")||`<div class="empty">sem saídas este mês</div>`;
  el.innerHTML=h;
  if(md.nota)el.insertAdjacentHTML("beforeend",`<div class="hsub" style="padding:12px 16px">${esc(md.nota)}</div>`);
+ // registo editável
+ el.querySelectorAll("[data-reg]").forEach(s=>s.addEventListener("click",async()=>{
+  const m=movs[+s.dataset.reg];
+  const nv=prompt("Descrição do movimento:",m.registo||"");
+  if(nv===null)return;
+  m.registo=nv.trim()||null;await save();rDesp();
+ }));
+ // menu de qualidade
  el.querySelectorAll("[data-qbtn]").forEach(b=>b.addEventListener("click",e=>{
   e.stopPropagation();
-  const s=el.querySelector(`select[data-qsel="${b.dataset.qbtn}"]`);
-  if(s){try{s.showPicker?s.showPicker():s.click();}catch(e2){s.hidden=false;s.focus();}}
+  const menu=el.querySelector(`[data-qmenu="${b.dataset.qbtn}"]`);
+  el.querySelectorAll(".qmenu").forEach(x=>{if(x!==menu)x.hidden=true;});
+  if(menu)menu.hidden=!menu.hidden;
  }));
- el.querySelectorAll("[data-qsel]").forEach(s=>s.addEventListener("change",async()=>{
-  movs[+s.dataset.qsel].qualidade=s.value||null;await save();rDesp();
+ el.querySelectorAll("[data-qset]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();
+  movs[+b.dataset.qset].qualidade=b.dataset.qval||null;await save();rDesp();
+ }));
+ // check de fatura manual
+ el.querySelectorAll("[data-fchk]").forEach(b=>b.addEventListener("click",async()=>{
+  const m=movs[+b.dataset.fchk];
+  if(m.fatura==="auto")return;
+  m.fatura=m.fatura==="manual"?null:"manual";await save();rDesp();
  }));
 }
+document.addEventListener("click",e=>{
+ if(!e.target.closest(".qwrap"))document.querySelectorAll(".qmenu").forEach(x=>x.hidden=true);
+});
 document.addEventListener("change",e=>{if(e.target.id==="fMesD"){mesDAtual=e.target.value;rDesp();}});
 
 /* ============ modal de projecto ============ */
