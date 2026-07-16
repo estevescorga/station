@@ -85,6 +85,8 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .hcard{padding:14px 16px;margin-bottom:16px;}
 .hcard h5{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);margin-bottom:10px;}
 .hitem{display:flex;align-items:center;gap:7px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line);line-height:1.35;}
+.nowMeta{display:block;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--soft);margin-top:3px;letter-spacing:.03em;}
+.nowMeta b{color:var(--acc);}
 .glink{width:30px;height:30px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--soft);display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:50%;background:var(--bg);box-shadow:4px 4px 10px var(--sh-d),-4px -4px 10px var(--sh-l);}
 .glink:hover{color:var(--acc);}
 .glink:active{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
@@ -144,6 +146,8 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .cpf.off{opacity:.32;}
 .cpf.off input{pointer-events:none;}
 .cnome{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.cnome.clk{cursor:pointer;}
+.cnome.clk:hover .cli{color:var(--acc);}
 .cnome .cli{font-weight:600;font-size:13px;}
 .cnome .cdesc{font-size:11px;color:var(--soft);}
 .cgroup{margin-bottom:6px;}
@@ -398,6 +402,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="head card">
   <div><h1>STATION</h1></div>
   <div style="display:flex;align-items:center;gap:14px">
+    <a class="ico glink" href="https://claude.ai" target="_blank" rel="noopener" title="Consola GOTEN (por fixar o link)" id="gotenLink" style="color:var(--acc)">✦</a>
     <a class="ico glink" href="https://calendar.google.com" target="_blank" rel="noopener" title="Google Calendar">C</a>
     <a class="ico glink" href="https://tasks.google.com" target="_blank" rel="noopener" title="Google Tasks">T</a>
     <a class="ico glink" href="https://keep.google.com" target="_blank" rel="noopener" title="Google Keep">K</a>
@@ -578,7 +583,7 @@ const P=(id,c,n,o={})=>({id,categoria:c,nome:n,estado:o.e||"em curso",cliente:!!
 const SEED={
  versao:13,
  folgas:[],
- precario:[
+  servicos:[
   {cat:"Identidade e marca",itens:[
    {s:"Identidade visual completa (brand)",v:1500,u:"projeto",n:"logótipo, paleta, tipografia, guidelines base"},
    {s:"Refresh de marca existente",v:900,u:"projeto",n:"atualização sem partir do zero"},
@@ -862,7 +867,7 @@ async function load(){
  else if((D.versao||0)<SEED.versao){
   D.rotinaBase=SEED.rotinaBase;D.tracker=D.tracker||{};
   if(!D.conta)D.conta=SEED.conta;
-  if(!D.precario)D.precario=SEED.precario;
+  if(!D.servicos)D.servicos=SEED.servicos;
   if((D.versao||0)<9)D.financeiro.meses=JSON.parse(JSON.stringify(SEED.financeiro.meses));
   if(!D.folgas)D.folgas=[];
   if(!D.kb||(D.versao||0)<11)D.kb=SEED.kb;
@@ -873,7 +878,7 @@ async function load(){
  if(!D.tracker)D.tracker={};
  if(!D.conta)D.conta=[];
  if(!D.despesas)D.despesas={meses:{}};
- if(!D.precario)D.precario=SEED.precario;
+
  D.conta.forEach(r=>{while(r.length<14)r.push(null);});
  // link registo -> projecto (índice 14): auto-liga só se ainda por decidir (null/undefined). "none" = explicitamente sem projecto, nunca mais tenta.
  let mudouLink=false;
@@ -992,12 +997,19 @@ function tick(){
  $("cH").textContent=n.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
  const its=(rot&&rot.itens)||D.rotinaBase, nm=n.getHours()*60+n.getMinutes();
  const s=[...its].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
- let c=null;
- for(let i=0;i<s.length;i++){const m=min(s[i].q),nx=i<s.length-1?min(s[i+1].q):1440;if(m!==null&&nm>=m&&nm<nx){c=s[i];break;}}
+ let c=null,cFim=null;
+ for(let i=0;i<s.length;i++){const m=min(s[i].q),nx=i<s.length-1?min(s[i+1].q):1440;if(m!==null&&nm>=m&&nm<nx){c=s[i];cFim=nx;break;}}
  const q=c?c.q:null;
  if(lastBlockQ!==undefined&&lastBlockQ!==null&&q!==lastBlockQ&&(D.somBlocos!==false))beep();
  lastBlockQ=q;
- let base=c?`agora · <strong>${esc(c.t)}</strong>${(c.tarefas&&c.tarefas.length)?" — "+esc(c.tarefas[0]):c.n?" — "+esc(c.n):""}`:"sem bloco definido";
+ let base;
+ if(c){
+  const ini=min(c.q),total=cFim-ini,dec=nm-ini,falta=cFim-nm;
+  const fmt=m=>{const hh=Math.floor(m/60),mm=m%60;return hh?`${hh}h${mm?String(mm).padStart(2,"0"):""}`:`${mm}min`;};
+  const fimStr=`${String(Math.floor(cFim/60)).padStart(2,"0")}:${String(cFim%60).padStart(2,"0")}`;
+  base=`agora · <strong>${esc(c.t)}</strong>${(c.tarefas&&c.tarefas.length)?" — "+esc(c.tarefas[0]):c.n?" — "+esc(c.n):""}
+   <span class="nowMeta">${c.q} → ${fimStr} · ${fmt(total)} total · ${fmt(dec)} decorrido · <b>${fmt(falta)} restantes</b></span>`;
+ }else base="sem bloco definido";
  if(pausaAtiva()){
   const ini=pausas.itens[pausas.itens.length-1].ini;
   const [ih,im]=ini.split(":").map(Number);
@@ -1394,7 +1406,7 @@ function crow(r){
  const proj=pid?(D.projectos||[]).find(p=>p.id===pid):null;
  return `<div class="crow${contaRej(r)?" rejeitado":contaNull(r)?" anulado":contaPago(r)?" pago":""}${contaAviso(r)?" aviso":""}">
    <span class="cid">${r[0]}</span>
-   <span class="cnome"><span class="cli">${esc(r[3]||"—")}</span><span class="cdesc">${esc(r[5]||"")}${r[1]?" · "+r[1]:""}</span></span>
+   <span class="cnome${pid?" clk":""}" ${pid?`data-copen="${pid}"`:""}><span class="cli">${esc(r[3]||"—")}</span><span class="cdesc">${esc(r[5]||"")}${r[1]?" · "+r[1]:""}</span></span>
    <span class="cval">€${val.toLocaleString("pt-PT",{minimumFractionDigits:2})}<span class="sub2" style="display:block">€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})} c/IVA</span></span>
    <select data-cf="8" data-ix="${idx}">${["ATIVO","AGUARDA","FEITO","REJEITADO",""].map(s=>`<option value="${s}" ${(r[8]||"")===s?"selected":""}>${s||"—"}</option>`).join("")}</select>
    ${pags}
@@ -1422,6 +1434,7 @@ function bindConta(el){
   el.querySelectorAll(".qmenu").forEach(x=>{if(x!==menu)x.hidden=true;});
   if(menu)menu.hidden=!menu.hidden;
  }));
+ el.querySelectorAll("[data-copen]").forEach(s=>s.addEventListener("click",()=>openP(s.dataset.copen)));
  el.querySelectorAll("[data-lset]").forEach(b=>b.addEventListener("click",async e=>{
   e.stopPropagation();
   D.conta[+b.dataset.lset][14]=b.dataset.lval;await save();rConta();
@@ -1458,7 +1471,7 @@ function novoProj(){
 /* ============ preçário serviços ============ */
 function rServ(){
  const el=$("pServ");if(!el)return;
- const P=D.precario||[];
+ const P=D.servicos||[];
  el.innerHTML=P.map(c=>`<div class="cgrouph">${esc(c.cat)}</div>`+c.itens.map(i=>`<div class="srow">
    <span class="cnome"><span class="cli">${esc(i.s)}</span><span class="cdesc">${esc(i.n||"")}</span></span>
    <span class="sval">desde <b>€${i.v.toLocaleString("pt-PT")}</b><span class="sub2" style="display:block">/${esc(i.u)}</span></span>
@@ -1682,18 +1695,30 @@ function renderP(){
 }
 function renderBudget(p){
  const box=$("mBudget");if(!box)return;
+ // orçamento: se há registo ligado, o valor vem de lá (fonte única)
+ const reg=(D.conta||[]).find(r=>contaProjId(r)===p.id);
+ const orcLink=reg?(+reg[6]||0):null;
+ if(orcLink!==null&&p.orcamento!==orcLink){p.orcamento=orcLink;save();}
  const hp=p.horasPrevistas,hg=p.horasGastas||0,orc=p.orcamento;
+ // €/h por nível (derivado do preçário)
+ const pr=D.precario,hm=pr.horasDia*pr.diasSemana*4.33;
+ const eurH={baixo:pr.niveis.baixo/hm,medio:pr.niveis.medio/hm,alto:pr.niveis.alto/hm};
+ const nivel=p.nivel||"medio";
+ const hEst=orc?orc/eurH[nivel]:null;
  const pct=hp?Math.min(100,Math.round(hg/hp*100)):0;
  const over=hp&&hg>hp;
  box.innerHTML=`<div class="pedit" style="margin-bottom:8px">
+   <label class="mono">orçamento € <input class="pin" type="number" min="0" step="10" data-bf="orcamento" value="${orc??""}" style="width:74px" ${orcLink!==null?"disabled title=\"ligado ao registo "+esc(reg[0])+"\"":""}/></label>
+   <label class="mono">nível cliente <select data-bf="nivel">${["baixo","medio","alto"].map(n=>`<option value="${n}" ${nivel===n?"selected":""}>${n}</option>`).join("")}</select></label>
    <label class="mono">h. previstas <input class="pin" type="number" min="0" step="0.5" data-bf="horasPrevistas" value="${hp??""}" style="width:64px" /></label>
    <label class="mono">h. gastas <input class="pin" type="number" min="0" step="0.5" data-bf="horasGastas" value="${hg}" style="width:64px" /></label>
-   <label class="mono">orçamento € <input class="pin" type="number" min="0" step="10" data-bf="orcamento" value="${orc??""}" style="width:74px" /></label>
   </div>
-  ${hp?`<div class="pbar" style="margin-bottom:10px"><div style="width:${pct}%;background:${over?"var(--acc)":"var(--acc2)"}"></div></div><div class="hsub" style="margin-bottom:12px">${hg}h / ${hp}h${over?" — acima do previsto":""}${orc?` · €${orc.toLocaleString("pt-PT")}`:""}</div>`:orc?`<div class="hsub" style="margin-bottom:12px">orçamento €${orc.toLocaleString("pt-PT")}</div>`:""}`;
+  ${hEst?`<div class="hsub" style="margin-bottom:8px">estimativa pelo orçamento: <b>${hEst.toFixed(1)}h disponíveis</b> a €${eurH[nivel].toFixed(0)}/h (nível ${nivel})${orcLink!==null?` · valor ligado a ${esc(reg[0])}`:""}</div>`:""}
+  ${hp?`<div class="pbar" style="margin-bottom:10px"><div style="width:${pct}%;background:${over?"var(--acc)":"var(--acc2)"}"></div></div><div class="hsub" style="margin-bottom:12px">${hg}h / ${hp}h${over?" — acima do previsto":""}</div>`:""}`;
  box.querySelectorAll("[data-bf]").forEach(el=>el.addEventListener("change",async()=>{
-  const f=el.dataset.bf,v=el.value===""?null:+el.value;
-  p[f]=f==="horasGastas"?(v||0):v;
+  const f=el.dataset.bf;
+  if(f==="nivel")p.nivel=el.value;
+  else{const v=el.value===""?null:+el.value;p[f]=f==="horasGastas"?(v||0):v;}
   await save();renderBudget(p);
  }));
 }
