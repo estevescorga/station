@@ -24,9 +24,9 @@ body[data-theme="ARTE"]{
   --acc:#C0491E; --acc2:#D98A2B; --ok:#6E8F5E;
 }
 body[data-theme="CASA"]{
-  --bg:#D9DFD0; --txt:#2F3A2A; --soft:#7C8A6E; --line:#C2CBB4;
-  --sh-d:#B4BEA3; --sh-l:#EDF1E5;
-  --acc:#4F7A46; --acc2:#8AA86A; --ok:#6E8F5E;
+  --bg:#CDE3E0; --txt:#1E3D3A; --soft:#5E8A85; --line:#B0D0CC;
+  --sh-d:#A3C6C1; --sh-l:#E8F5F3;
+  --acc:#0E7C72; --acc2:#3AA99C; --ok:#4F8F6B;
 }
 
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -151,6 +151,10 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .recside.reg:hover{box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .recside.bad{background:rgba(199,74,60,.11);color:var(--acc);font-style:italic;}
 .recside .sub2{display:block;margin-top:1px;}
+.srow{display:grid;grid-template-columns:1fr auto;gap:12px;padding:9px 16px;align-items:center;border-bottom:1px solid var(--line);font-size:12.5px;}
+.sval{text-align:right;font-size:12px;color:var(--soft);}
+.sval b{color:var(--acc);font-size:14px;}
+.fixbox{margin:14px 10px 0;border-radius:14px;box-shadow:inset 3px 3px 8px var(--sh-d),inset -3px -3px 8px var(--sh-l);padding-bottom:4px;}
 .fwrap{display:flex;justify-content:center;}
 .fchk{width:17px;height:17px;border-radius:6px;border:none;cursor:pointer;background:var(--bg);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);position:relative;padding:0;}
 .fchk::after{position:absolute;inset:-1px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
@@ -247,7 +251,7 @@ body.paused #pauseTint{opacity:1;}
 /* ================= SEMANA / MÊS ================= */
 .week{display:flex;flex-direction:column;gap:10px;}
 .wkrow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
-.wcell{background:var(--bg);border-radius:12px;padding:8px 9px;min-height:96px;font-size:11px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);transition:box-shadow .15s;}
+.wcell{background:var(--bg);border-radius:12px;padding:9px 10px;min-height:calc((100vh - 300px)/4);font-size:11px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);transition:box-shadow .15s;}
 .wcell.folga{background:color-mix(in srgb, var(--acc) 6%, var(--bg));}
 .wcell.today{box-shadow:inset 0 0 0 2px var(--acc), inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
 .wcell.dragover{box-shadow:inset 0 0 0 2px var(--acc2);}
@@ -445,6 +449,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ PREÇÁRIO ============ -->
 <div class="view" id="v-PRECARIO">
+  <h2 class="sec">Serviços · valores de partida</h2>
+  <div class="card" style="padding:6px 0;margin-bottom:22px" id="pServ"></div>
   <h2 class="sec">Valores</h2>
   <div class="vgrid"><div class="card" style="padding:14px 18px" id="pTab"></div><div class="fcard card" id="pPar"></div></div>
   <h2 class="sec">Calculadora</h2>
@@ -507,6 +513,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ TAREFAS (global, filtros) ============ -->
 <div class="view" id="v-TAREFAS">
+  <div class="card" style="padding:14px 18px;margin-bottom:18px">
+    <h5 style="margin-bottom:10px">pesquisar tarefas</h5>
+    <input class="pin" id="tSearch" placeholder="escreve para procurar…" style="width:100%;margin-bottom:8px"/>
+    <div id="tSearchRes"></div>
+  </div>
   <div class="card" style="padding:14px 18px;margin-bottom:18px" id="inboxCard">
     <h5 style="margin-bottom:10px">inbox · genéricas</h5>
     <div id="inboxList"></div>
@@ -547,6 +558,34 @@ const P=(id,c,n,o={})=>({id,categoria:c,nome:n,estado:o.e||"em curso",cliente:!!
 const SEED={
  versao:13,
  folgas:[],
+ precario:[
+  {cat:"Identidade e marca",itens:[
+   {s:"Identidade visual completa (brand)",v:1500,u:"projeto",n:"logótipo, paleta, tipografia, guidelines base"},
+   {s:"Refresh de marca existente",v:900,u:"projeto",n:"atualização sem partir do zero"},
+   {s:"Manual de normas alargado",v:600,u:"extra",n:"sobre identidade já criada"}
+  ]},
+  {cat:"Ilustração",itens:[
+   {s:"Ilustração personalizada",v:80,u:"ilustração",n:"peça única, uso pessoal"},
+   {s:"Retrato em linha (modelo Entrelinhas/Grünenthal)",v:120,u:"retrato",n:"B2B: físico + digital; volume negociável"},
+   {s:"Ilustração editorial/comercial",v:250,u:"ilustração",n:"com direitos de uso comercial"},
+   {s:"Série de ilustrações (3+)",v:200,u:"ilustração",n:"desconto de série incluído"}
+  ]},
+  {cat:"Animação e motion",itens:[
+   {s:"Storyboard",v:25,u:"quadro",n:"mínimo 12 quadros por encomenda"},
+   {s:"Animação para redes sociais (até 15s)",v:400,u:"vídeo",n:"formato quadrado/vertical, 1 revisão"},
+   {s:"Animação institucional (30-60s)",v:1200,u:"vídeo",n:"guião + storyboard + animação"},
+   {s:"Motion design para website",v:350,u:"conjunto",n:"micro-animações, loops, headers"}
+  ]},
+  {cat:"Design e web",itens:[
+   {s:"Website (Squarespace/Wix/Shopify)",v:1600,u:"projeto",n:"até 5 páginas, plataforma gerível pelo cliente"},
+   {s:"Design editorial (livro/catálogo)",v:850,u:"projeto",n:"paginação até 48 pp; +15€/pp extra"},
+   {s:"Materiais gráficos (cartões, formulários…)",v:120,u:"peça",n:"produção não incluída"}
+  ]},
+  {cat:"Avenças e continuidade",itens:[
+   {s:"Avença mensal design",v:280,u:"mês",n:"bolsa de horas definida; modelo RPJ"},
+   {s:"Consultoria criativa",v:60,u:"hora",n:"estratégia, direção, acompanhamento"}
+  ]}
+ ],
  despesas:{
   fixos:[
    {nome:"Comissão bancária",cat:"banco"},
@@ -808,6 +847,7 @@ async function load(){
  if(!D.tracker)D.tracker={};
  if(!D.conta)D.conta=[];
  if(!D.despesas)D.despesas={meses:{}};
+ if(!D.precario)D.precario=SEED.precario;
  D.conta.forEach(r=>{while(r.length<14)r.push(null);});
  // link registo -> projecto (índice 14): auto-liga só se ainda por decidir (null/undefined). "none" = explicitamente sem projecto, nunca mais tenta.
  let mudouLink=false;
@@ -971,8 +1011,8 @@ function fecho(){
  const pz=(pausas&&pausas.data===hoje()&&pausas.itens.length)?pausas.itens.map(x=>`${x.ini}–${x.fim||"ainda ativa"}`).join(", "):"";
  ask(`Fecho do dia. Feito: ${f.join("; ")||"—"}. Pendente: ${[...p,...tp].join("; ")||"nada"}.${pz?` Pausas: ${pz} — pergunta-me o que se passou.`:""} Faz-me as perguntas do fecho (sono, sesta, energia, exercício, horas por projecto), regista no tracker, pergunta o que transita e atualiza o dashboard.`);
 }
-function rSearchTasks(q){
- const el=$("hSearchRes");if(!el)return;
+function rSearchTasks(q,elId){
+ const el=$(elId||"hSearchRes");if(!el)return;
  q=(q||"").trim().toLowerCase();
  if(q.length<2){el.innerHTML="";return;}
  const res=(D.tarefas||[]).filter(t=>t.titulo.toLowerCase().includes(q)).slice(0,8);
@@ -983,11 +1023,14 @@ function rSearchTasks(q){
  }).join("")||`<div class="hsub">sem resultados</div>`;
  el.querySelectorAll("[data-sc]").forEach(b=>b.addEventListener("click",async e=>{
   e.stopPropagation();const t=D.tarefas.find(x=>x.id===b.dataset.sc);if(!t)return;
-  t.estado=t.estado==="concluída"?"ativa":"concluída";await save();rSearchTasks($("hSearch").value);rHome();
+  t.estado=t.estado==="concluída"?"ativa":"concluída";await save();rSearchTasks($(elId==="tSearchRes"?"tSearch":"hSearch").value,elId);rHome();
  }));
  el.querySelectorAll("[data-sop]").forEach(s=>s.addEventListener("click",()=>openP(s.dataset.sop)));
 }
-document.addEventListener("input",e=>{if(e.target.id==="hSearch")rSearchTasks(e.target.value);});
+document.addEventListener("input",e=>{
+ if(e.target.id==="hSearch")rSearchTasks(e.target.value,"hSearchRes");
+ if(e.target.id==="tSearch")rSearchTasks(e.target.value,"tSearchRes");
+});
 function rHome(){
  const n=new Date();
  // agenda do dia
@@ -1071,7 +1114,11 @@ function rCat(){
  if(!cat)return;
  const g=$("pGrid");g.innerHTML="";
  const ps=(D.projectos||[]).filter(p=>p.categoria===cat&&p.estado!=="arquivado")
-  .sort((a,b)=>((b.cliente?1:0)-(a.cliente?1:0))||(b.prioridade-a.prioridade));
+  .sort((a,b)=>{
+   const oa=a.ordem??999,ob=b.ordem??999;
+   if(oa!==ob)return oa-ob;
+   return ((b.cliente?1:0)-(a.cliente?1:0))||(b.prioridade-a.prioridade);
+  });
  if(!ps.length)g.innerHTML=`<div class="empty card" style="grid-column:1/-1">sem projectos — pede no chat para criar</div>`;
  ps.forEach(p=>{
   const ts=D.tarefas.filter(t=>t.categoria===cat&&t.projecto===p.nome);
@@ -1092,7 +1139,26 @@ function rCat(){
    <div class="pmeta"><span></span><span class="${urg?"urg":""}">${p.prazo?(dl<0?`${-dl}d atraso ⚠`:urg?`${dl}d ⚠`:`prazo ${dl}d`):""}</span></div>
   </div>`);
  });
- g.querySelectorAll("[data-pc]").forEach(c=>c.addEventListener("click",()=>openP(c.dataset.pc)));
+ g.querySelectorAll("[data-pc]").forEach(c=>{
+  c.addEventListener("click",()=>{if(!c._drag)openP(c.dataset.pc);});
+  c.setAttribute("draggable","true");
+  c.addEventListener("dragstart",e=>{c._drag=true;c.classList.add("dragging");e.dataTransfer.setData("text/plain",c.dataset.pc);});
+  c.addEventListener("dragend",()=>{c.classList.remove("dragging");setTimeout(()=>c._drag=false,60);});
+  c.addEventListener("dragover",e=>{e.preventDefault();c.classList.add("dragover");});
+  c.addEventListener("dragleave",()=>c.classList.remove("dragover"));
+  c.addEventListener("drop",async e=>{
+   e.preventDefault();c.classList.remove("dragover");
+   const fromId=e.dataTransfer.getData("text/plain"),toId=c.dataset.pc;
+   if(!fromId||fromId===toId)return;
+   const lista=(D.projectos||[]).filter(p=>p.categoria===cat&&p.estado!=="arquivado")
+    .sort((a,b)=>(a.ordem??999)-(b.ordem??999)||((b.cliente?1:0)-(a.cliente?1:0))||(b.prioridade-a.prioridade));
+   const ids=lista.map(p=>p.id);
+   const fi=ids.indexOf(fromId),ti=ids.indexOf(toId);
+   ids.splice(ti,0,ids.splice(fi,1)[0]);
+   ids.forEach((id,i)=>{const pj=D.projectos.find(x=>x.id===id);if(pj)pj.ordem=i;});
+   await save();rCat();
+  });
+ });
  const arq=(D.projectos||[]).filter(p=>p.categoria===cat&&p.estado==="arquivado");
  $("arqWrap").innerHTML=arq.length?`<div class="chip" id="arqToggle" style="cursor:pointer">ver arquivados (${arq.length})</div><div class="pgrid" id="arqGrid" style="display:none;margin-top:10px"></div>`:"";
  if(arq.length){
@@ -1287,6 +1353,16 @@ function novoProj(){
  ask(`Novo projecto — próximo número: ${nx}. Faz-me as perguntas necessárias (responsável M/R, tipo, cliente, data de entrada, descrição, valor s/IVA, e se JÁ ESTÁ ADJUDICADO ou é proposta). Depois: 1) cria a entrada na contabilidade (o campo de índice 14 dessa linha, o link ao projecto, tem de ficar igual ao id do novo projecto — nunca deixes por ligar), 2) cria o projecto na categoria certa e define comigo as tarefas base. SE AINDA NÃO ADJUDICADO: marca o projecto como "por adjudicar" e para aí (sem pastas nem ficheiros). SE/QUANDO ADJUDICADO: 3) cria a pasta Drive "${nx}_[cliente]_[descrição]" com WORK, RECEBIDO, PARTILHADO e PROPOSTAS AI, 4) gera o orçamento "${nx}_ORCAMENTO-RIMA_[cliente]_[descrição]" em PARTILHADO, 5) em PROPOSTAS AI cria documentos que impulsionem o projecto (perguntando-me o necessário) e adiciona-os também aos documentos do projecto no dashboard.`);
 }
 
+/* ============ preçário serviços ============ */
+function rServ(){
+ const el=$("pServ");if(!el)return;
+ const P=D.precario||[];
+ el.innerHTML=P.map(c=>`<div class="cgrouph">${esc(c.cat)}</div>`+c.itens.map(i=>`<div class="srow">
+   <span class="cnome"><span class="cli">${esc(i.s)}</span><span class="cdesc">${esc(i.n||"")}</span></span>
+   <span class="sval">desde <b>€${i.v.toLocaleString("pt-PT")}</b><span class="sub2" style="display:block">/${esc(i.u)}</span></span>
+  </div>`).join("")).join("")||`<div class="empty">sem serviços definidos</div>`;
+}
+
 /* ============ despesas ============ */
 const QUALIDADES=["fixa mensal","fixa trimestral","fixa anual","pontual","equipamento"];
 // padrões reconhecidos: [regex, registo sugerido, qualidade]
@@ -1299,6 +1375,7 @@ const PADROES=[
  [/marta\s*oliveira/i,"Ordenado Marta","fixa mensal"],
  [/ricardo\s*esteves/i,"Ordenado Ricardo","fixa mensal"],
  [/subs[íi]dio|PAG\s*SERV\s*22102/i,"Subsídio alimentação","fixa mensal"],
+ [/PayPal\s*\*?Shop/i,"Shopify RIMA lab","fixa mensal"],
  [/dyson|equipamento/i,"Equipamento","equipamento"],
  [/registos?\s*notariado|notari/i,"Notariado e registos","pontual"]
 ];
@@ -1406,11 +1483,12 @@ function rDesp(){
    <span></span>
   </div>`;
  }).join("")||`<div class="empty">sem entradas este mês</div>`;
- // SAÍDAS ordenadas: fixa mensal → trimestral → anual → equipamento → pontual → sem qualidade
+ // SAÍDAS: fixas numa caixa própria, resto noutra
  const ordemQ={"fixa mensal":0,"fixa trimestral":1,"fixa anual":2,"equipamento":3,"pontual":4};
- const saidas=movs.filter(m=>m.tipo==="saida").sort((a,b)=>(ordemQ[a.qualidade]??9)-(ordemQ[b.qualidade]??9));
- h+=`<div class="cgrouph" style="margin-top:14px">saídas · ${saidas.length}</div>`;
- h+=saidas.map(m=>{
+ const todas=movs.filter(m=>m.tipo==="saida").sort((a,b)=>(ordemQ[a.qualidade]??9)-(ordemQ[b.qualidade]??9));
+ const fixas=todas.filter(m=>(m.qualidade||"").startsWith("fixa"));
+ const outras=todas.filter(m=>!(m.qualidade||"").startsWith("fixa"));
+ const linhaS=m=>{
   const idx=movs.indexOf(m);
   const ok=!!m.registo;
   return `<div class="recrow">
@@ -1419,7 +1497,13 @@ function rDesp(){
    <span class="recside${ok?"":" bad"}">${esc(m.desc)} <span class="sub2">€${m.valor.toFixed(2)}</span></span>
    ${qualBtn(m,idx)}
   </div>`;
- }).join("")||`<div class="empty">sem saídas este mês</div>`;
+ };
+ if(fixas.length){
+  h+=`<div class="fixbox"><div class="cgrouph" style="padding-top:10px">despesas fixas · ${fixas.length} · €${fixas.reduce((s,m)=>s+m.valor,0).toLocaleString("pt-PT",{minimumFractionDigits:2})}</div>`;
+  h+=fixas.map(linhaS).join("")+`</div>`;
+ }
+ h+=`<div class="cgrouph" style="margin-top:14px">outras saídas · ${outras.length}</div>`;
+ h+=outras.map(linhaS).join("")||`<div class="empty">sem outras saídas</div>`;
  el.innerHTML=h;
  if(md.nota)el.insertAdjacentHTML("beforeend",`<div class="hsub" style="padding:12px 16px">${esc(md.nota)}</div>`);
  // registo editável
@@ -1823,7 +1907,7 @@ $("nav").addEventListener("click",e=>{
   if(v==="AGENDA")rAgenda();
   if(v==="GESTAO"){rCom();rDesp();}
   if(v==="REGISTOS")rConta();
-  if(v==="PRECARIO")rPrec();
+  if(v==="PRECARIO"){rPrec();rServ();}
   if(v==="TRACKER")rTracker();
  }
 });
