@@ -10,7 +10,7 @@
 /* ================= TEMAS (ambientes) ================= */
 body{ /* HOJE + RIMA: branco quente, micro-acentos vermelhos */
   --bg:#F1EFE9; --txt:#3D3B34; --soft:#948F81; --line:#E2DED2;
-  --sh-d:rgba(178,170,150,.42); --sh-l:#FFFFFB;
+  --sh-d:rgba(178,170,150,.30); --sh-l:#FFFFFB;
   --acc:#C74A3C; --acc2:#3AAFA9; --ok:#7FA88B;
 }
 body[data-theme="MUSICA"]{
@@ -31,14 +31,14 @@ body[data-theme="CASA"]{
 
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;padding:26px 18px 70px;min-height:100vh;transition:background .35s,color .35s;}
-body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.055;mix-blend-mode:multiply;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%25" height="100%25" filter="url(%23n)"/></svg>');}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.085;mix-blend-mode:multiply;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%25" height="100%25" filter="url(%23n)"/></svg>');}
 body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .wrap{max-width:1600px;margin:0 auto;padding:0 5%;}
 @media(max-width:1100px){.wrap{padding:0;}}
 .mono{font-family:'IBM Plex Mono',monospace;}
 
 /* neumorphic primitives */
-.card{background:var(--bg);border-radius:18px;box-shadow:8px 8px 18px var(--sh-d),-8px -8px 18px var(--sh-l);transition:background .35s,box-shadow .35s;}
+.card{background:var(--bg);border-radius:18px;box-shadow:5px 5px 12px var(--sh-d),-5px -5px 12px var(--sh-l);transition:background .35s,box-shadow .35s;}
 .chip{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.07em;padding:3px 0;color:var(--soft);}
 .chip.hot{color:var(--acc);font-weight:600;}
 
@@ -85,6 +85,7 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .hcard{padding:14px 16px;margin-bottom:16px;}
 .hcard h5{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);margin-bottom:10px;}
 .hitem{display:flex;align-items:center;gap:7px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line);line-height:1.35;}
+.fraseCard{position:relative;padding:16px 34px 16px 18px !important;font-size:13px;font-style:italic;line-height:1.5;color:var(--txt);text-align:center;}
 .nowMeta{display:block;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--soft);margin-top:3px;letter-spacing:.03em;}
 .nowMeta b{color:var(--acc);}
 .glink{width:30px;height:30px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--soft);display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:50%;background:var(--bg);box-shadow:4px 4px 10px var(--sh-d),-4px -4px 10px var(--sh-l);}
@@ -583,6 +584,7 @@ const P=(id,c,n,o={})=>({id,categoria:c,nome:n,estado:o.e||"em curso",cliente:!!
 const SEED={
  versao:13,
  folgas:[],
+ frases:["Não é motivação, é disciplina, basta começar.","Pão! Alívio mental, conforto, e até capricho!","Ilustrador | Multiinstrumentista | Pai","Mãe | primos | ethno | Rita |","Diogo | Sérgio","IEL | Sayan | Esteves Corga","Alguém fez, tu fazes. Não fiques para trás","Foco, como nas emo2","Não é tarde, mas está na hora.","Mergulha","Endireita | Medita | Foca |","Organiza | Faz | Insiste","O louco usa pedras","Há o que é preciso: Ser I","Crescer | Soltar | Fazer","Custo recompensa | Ser o melhor, agora"],
   servicos:[
   {cat:"Identidade e marca",itens:[
    {s:"Identidade visual completa (brand)",v:1500,u:"projeto",n:"logótipo, paleta, tipografia, guidelines base"},
@@ -733,6 +735,7 @@ ROTINA: manhã=trabalho profundo de cliente; tarefas administrativas/leves à ta
  ],
  rotinaBase:[
   {q:"07:30",t:"Acordar"},{q:"09:00",t:"Levar à escola"},{q:"09:45",t:"Estúdio"},
+  {q:"09:50",t:"Meditar",n:"5 min, endireita e respira"},
   {q:"10:00",t:"Abertura do dia",n:"rotina + perguntas com o Claude"},
   {q:"10:30",t:"Reunião com a Marta",n:"15 min, se presente"},
   {q:"10:45",t:"Bloco de trabalho 1",n:"até 12:45",tarefas:[]},
@@ -895,6 +898,7 @@ async function load(){
  });
  if(mudouLink)save();
  (D.tarefas||[]).forEach(t=>{if(t.estado==="pendente")t.estado="ativa";});
+ if(!D.frases)D.frases=SEED.frases;
  if(!D.precario)D.precario={niveis:{baixo:3500,medio:7000,alto:13000},horasDia:5,diasSemana:5};
  (D.projectos||[]).forEach(p=>{if(p.cliente===undefined)p.cliente=false;if(p.marca===undefined)p.marca=null;if(p.prioridade===undefined)p.prioridade=2;if(p.horasPrevistas===undefined)p.horasPrevistas=null;if(p.horasGastas===undefined)p.horasGastas=0;if(p.orcamento===undefined)p.orcamento=null;if(p.adjudicado===undefined)p.adjudicado=true;});
  const PAL=["#C74A3C","#3AAFA9","#D99A3C","#6B92E5","#A87CA8","#7FA88B","#B85C7A","#5C8AA8","#8A7B63","#6E8F5A","#C77B3C","#7A6BB8","#4AA3C7","#A8A23C","#B8635C","#5CA88F","#8F5CA8","#A8845C","#5C6EA8","#94A83C","#C75C94","#3C9AA8","#A83C5C"];
@@ -1049,6 +1053,24 @@ function fecho(){
  const pz=(pausas&&pausas.data===hoje()&&pausas.itens.length)?pausas.itens.map(x=>`${x.ini}–${x.fim||"ainda ativa"}`).join(", "):"";
  ask(`Fecho do dia. Feito: ${f.join("; ")||"—"}. Pendente: ${[...p,...tp].join("; ")||"nada"}.${pz?` Pausas: ${pz} — pergunta-me o que se passou.`:""} Faz-me as perguntas do fecho (sono, sesta, energia, exercício, horas por projecto), regista no tracker, pergunta o que transita e atualiza o dashboard.`);
 }
+function fraseDoDia(){
+ const fr=D.frases||[];if(!fr.length)return"";
+ if(!D.fraseCiclo)D.fraseCiclo={ordem:[],pos:-1,data:null};
+ const fc=D.fraseCiclo;
+ if(fc.data!==hoje()){
+  fc.pos++;
+  if(!fc.ordem.length||fc.pos>=fc.ordem.length||fc.ordem.length!==fr.length){
+   fc.ordem=[...fr.keys()].sort(()=>Math.random()-0.5);
+   fc.pos=0;
+  }
+  fc.data=hoje();save();
+ }
+ return fr[fc.ordem[fc.pos]]||fr[0];
+}
+function addFrase(){
+ const nv=prompt("Nova frase de motivação:");
+ if(nv&&nv.trim()){D.frases.push(nv.trim());D.fraseCiclo=null;save().then(rHome);}
+}
 function rSearchTasks(q,elId){
  const el=$(elId||"hSearchRes");if(!el)return;
  q=(q||"").trim().toLowerCase();
@@ -1083,6 +1105,8 @@ function rHome(){
   (mail.resumo?`<div style="font-size:12px;line-height:1.5;margin-bottom:8px">${esc(mail.resumo)}</div>`:"")+
   ((mail.itens||[]).map(x=>`<div class="hitem"><span><span class="tt" style="font-size:12px">${esc(x.de||"")}</span><span class="sub2">${esc(x.assunto||"")}</span></span>${x.conta?`<span class="hm">${esc(x.conta)}</span>`:""}</div>`).join(""))
  )||`<div class="hsub">caixas limpas</div>`:`<div class="hsub">por atualizar — ✳ ou ↻</div>`;
+ // frase do dia
+ const fEl=$("hFrase");if(fEl)fEl.textContent=fraseDoDia();
  // urgente: pontuação = proximidade do prazo + prioridade do projecto + cliente
  function scoreT(t){
   const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
