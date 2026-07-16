@@ -31,7 +31,7 @@ body[data-theme="CASA"]{
 
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;padding:26px 18px 70px;min-height:100vh;transition:background .35s,color .35s;}
-body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.085;mix-blend-mode:multiply;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%25" height="100%25" filter="url(%23n)"/></svg>');}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.12;mix-blend-mode:multiply;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%25" height="100%25" filter="url(%23n)"/></svg>');}
 body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .wrap{max-width:1600px;margin:0 auto;padding:0 5%;}
 @media(max-width:1100px){.wrap{padding:0;}}
@@ -85,7 +85,25 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .hcard{padding:14px 16px;margin-bottom:16px;}
 .hcard h5{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);margin-bottom:10px;}
 .hitem{display:flex;align-items:center;gap:7px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line);line-height:1.35;}
-.fraseCard{position:relative;padding:16px 34px 16px 18px !important;font-size:13px;font-style:italic;line-height:1.5;color:var(--txt);text-align:center;}
+.ecalgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+@media(max-width:900px){.ecalgrid{grid-template-columns:repeat(3,1fr);}}
+.ecalm{padding:10px 11px;border-radius:12px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);min-height:64px;}
+.ecalm.now{box-shadow:inset 0 0 0 2px var(--acc),inset 2px 2px 6px var(--sh-d);}
+.ecmn{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--acc2);margin-bottom:4px;}
+.ecalm.now .ecmn{color:var(--acc);font-weight:700;}
+.ecmt{font-size:10.5px;line-height:1.4;color:var(--txt);}
+.fcard2{position:relative;padding-bottom:14px;}
+.fcard2 .fsel{font-family:'IBM Plex Mono',monospace;font-size:9px;margin:6px 0 8px;padding:4px 8px;border:none;border-radius:8px;background:var(--bg);color:var(--acc2);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
+.fcorpo{font-size:12px;line-height:1.55;color:var(--txt);outline:none;min-height:40px;}
+.fcorpo:focus,.ititulo:focus,.icorpo:focus,[contenteditable]:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:6px;}
+.fdel{position:absolute;top:10px;right:10px;width:22px;height:22px;font-size:10px;opacity:.4;}
+.fdel:hover{opacity:1;}
+.irow{position:relative;display:flex;gap:10px;padding:10px 40px 10px 16px;border-bottom:1px solid var(--line);align-items:flex-start;}
+.irow .fdel{top:8px;right:8px;}
+.idot{color:var(--acc2);font-weight:700;padding-top:1px;}
+.ititulo{font-weight:600;font-size:13px;outline:none;}
+.icorpo{font-size:11.5px;color:var(--soft);line-height:1.5;margin-top:2px;outline:none;}
+.fraseCard{position:relative;padding:8px 30px 8px 14px !important;font-size:10.5px;font-family:'IBM Plex Mono',monospace;line-height:1.4;color:var(--soft);text-align:center;letter-spacing:.02em;}
 .nowMeta{display:block;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--soft);margin-top:3px;letter-spacing:.03em;}
 .nowMeta b{color:var(--acc);}
 .glink{width:30px;height:30px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--soft);display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:50%;background:var(--bg);box-shadow:4px 4px 10px var(--sh-d),-4px -4px 10px var(--sh-l);}
@@ -421,6 +439,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <button data-v="RIMA">Rima</button>
   <button data-v="GESTAO">Gestão</button>
   <button data-v="REGISTOS">Registos</button>
+  <button data-v="ESTRATEGIA">Estratégia</button>
   <button data-v="TAREFAS">Tarefas</button>
   <button data-v="PRECARIO">Preçário</button>
   <button data-v="TRACKER">Tracker</button>
@@ -539,6 +558,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 
 <!-- ============ TAREFAS (global, filtros) ============ -->
+<div class="view" id="v-ESTRATEGIA">
+  <h2 class="sec">Calendário comercial</h2>
+  <div class="card" style="padding:16px" id="ecal"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Frentes de ataque<button class="ico" style="width:28px;height:28px" title="Nova frente" onclick="addFrente()">＋</button></h2>
+  <div class="pgrid" id="efrentes"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Ideias<button class="ico" style="width:28px;height:28px" title="Nova ideia" onclick="addIdeia()">＋</button></h2>
+  <div class="card" style="padding:10px 0" id="eideias"></div>
+  <h2 class="sec">Princípios</h2>
+  <div class="card" style="padding:10px 0" id="eprin"></div>
+</div>
+
 <div class="view" id="v-TAREFAS">
   <div class="card" style="padding:14px 18px;margin-bottom:18px">
     <h5 style="margin-bottom:10px">pesquisar tarefas</h5>
@@ -900,6 +930,29 @@ async function load(){
  if(mudouLink)save();
  (D.tarefas||[]).forEach(t=>{if(t.estado==="pendente")t.estado="ativa";});
  if(!D.frases)D.frases=SEED.frases;
+ if(!D.estrategia)D.estrategia={
+  frentes:[
+   {id:"f1",titulo:"Reativar CTT",estado:"a trabalhar",corpo:"O maior projecto pago da história RIMA veio da CTT (paginação do relatório de tendências). Contactos antigos de email existem; cruzar com LinkedIn (Susana Guerra) e reabrir a porta com uma proposta concreta: animações institucionais ou o report do próximo ano.\n\nPasso 1: localizar os contactos e verificar quem ainda lá está. Passo 2: mensagem curta de reativação com portfólio relevante. Sem esperar pela ocasião perfeita."},
+   {id:"f2",titulo:"Proposta RP/RH · modelo Grünenthal",estado:"a trabalhar",corpo:"A Grünenthal provou o modelo: retratos ilustrados como prendas de empresa, encomendados pelo departamento de RP/RH, recorrentes e com boa margem. Replicar: construir uma proposta formal (PDF de 2-3 páginas com exemplos, preços por volume, prazos) e enviá-la a 5 empresas com cultura de employer branding.\n\nTiming crítico: as empresas fecham orçamentos de prendas de Natal até início de novembro. A prospeção tem de começar em setembro."},
+   {id:"f3",titulo:"Fechar propostas em aberto",estado:"a trabalhar",corpo:"Três propostas ativas somam ~5.650€: MBF LEGAL (website, 1.600€), Unlisted (brand + site, 1.500€), Katerina (livro de composição musical, 2.550€ em 3 fases).\n\nCada semana sem follow-up é margem a evaporar. Regra: follow-up educado ao 5º dia útil de silêncio, máximo dois, depois pergunta direta sobre a decisão."},
+   {id:"f4",titulo:"Reel Entrelinhas",estado:"ideia",corpo:"O motor B2C do lab é o Entrelinhas, e o formato que vende é ver o processo: gravar a criação de um retrato com OBS (ecrã) + telemóvel (mão a desenhar), editar para reel de 20-30s.\n\nUm reel bom vale mais que dez posts estáticos. Objetivo: um por semana durante um mês e medir."}
+  ],
+  ideias:[
+   {id:"i1",titulo:"Som + Forma",corpo:"Música ao vivo + ilustração ao vivo no mesmo espetáculo. Diferenciador único que junta as duas competências. Formato para eventos de empresa, festivais, inaugurações."},
+   {id:"i2",titulo:"Produtos digitais do lab",corpo:"Templates, prints digitais, recursos para ilustradores. Margem infinita depois de feitos. Horizonte 3-6 meses."},
+   {id:"i3",titulo:"Workshops piloto",corpo:"Ilustração ou line-portrait workshops no estúdio (a sala de reuniões serve). Testar com um grupo pequeno pago antes de escalar. Horizonte 6-12 meses."},
+   {id:"i4",titulo:"Estúdio como ativo",corpo:"Sala de reuniões, kitchenette, sala acústica: alugável a fotógrafos, podcasts, formações. Receita passiva sobre custo fixo já pago. Não prioritário, não esquecer."}
+  ],
+  principios:[
+   "Perguntar sempre o budget antes de orçamentar. Sem exceções.",
+   "Nunca baixar preços em silêncio. Desconto só explícito, nomeado, e com contrapartida.",
+   "Escolher 3-4 datas comerciais por ano e trabalhá-las a sério. Ignorar as restantes.",
+   "O autoral e o físico são a proteção contra a IA. Comunicar isso.",
+   "Corporate de Natal: prospeção em setembro/outubro, proposta na mesa até início de novembro. Depois disso o ano está perdido.",
+   "Estar onde os compradores estão (RH, employer branding, marketing), não onde os pares estão.",
+   "Eventos só com proposta concreta na mão. Presença sem oferta é passeio."
+  ]
+ };
  if(!D.precario)D.precario={niveis:{baixo:3500,medio:7000,alto:13000},horasDia:5,diasSemana:5};
  (D.projectos||[]).forEach(p=>{if(p.cliente===undefined)p.cliente=false;if(p.marca===undefined)p.marca=null;if(p.prioridade===undefined)p.prioridade=2;if(p.horasPrevistas===undefined)p.horasPrevistas=null;if(p.horasGastas===undefined)p.horasGastas=0;if(p.orcamento===undefined)p.orcamento=null;if(p.adjudicado===undefined)p.adjudicado=true;});
  const PAL=["#C74A3C","#3AAFA9","#D99A3C","#6B92E5","#A87CA8","#7FA88B","#B85C7A","#5C8AA8","#8A7B63","#6E8F5A","#C77B3C","#7A6BB8","#4AA3C7","#A8A23C","#B8635C","#5CA88F","#8F5CA8","#A8845C","#5C6EA8","#94A83C","#C75C94","#3C9AA8","#A83C5C"];
@@ -1493,6 +1546,61 @@ function novoProj(){
  ask(`Novo projecto — próximo número: ${nx}. Faz-me as perguntas necessárias (responsável M/R, tipo, cliente, data de entrada, descrição, valor s/IVA, e se JÁ ESTÁ ADJUDICADO ou é proposta). Depois: 1) cria a entrada na contabilidade (o campo de índice 14 dessa linha, o link ao projecto, tem de ficar igual ao id do novo projecto — nunca deixes por ligar), 2) cria o projecto na categoria certa e define comigo as tarefas base. SE AINDA NÃO ADJUDICADO: marca o projecto como "por adjudicar" e para aí (sem pastas nem ficheiros). SE/QUANDO ADJUDICADO: 3) cria a pasta Drive "${nx}_[cliente]_[descrição]" com WORK, RECEBIDO, PARTILHADO e PROPOSTAS AI, 4) gera o orçamento "${nx}_ORCAMENTO-RIMA_[cliente]_[descrição]" em PARTILHADO, 5) em PROPOSTAS AI cria documentos que impulsionem o projecto (perguntando-me o necessário) e adiciona-os também aos documentos do projecto no dashboard.`);
 }
 
+/* ============ estratégia ============ */
+const CALCOM=[
+ ["jan","comunicar S. Valentim (desde dia 15)"],
+ ["fev","Dia dos Namorados (14)"],
+ ["mar","Dia do Pai (19) · Dia da Mulher (8, ângulo RH)"],
+ ["abr","comunicar Dia da Mãe (desde dia 1)"],
+ ["mai","Dia da Mãe — pico B2C · Dia da Família (15)"],
+ ["jun","Dia da Criança (1) · fim de ano escolar · casamentos"],
+ ["jul","casamentos · prendas de professores"],
+ ["ago","produzir e preparar o outono"],
+ ["set","regresso às aulas · retomar prospeção corporate"],
+ ["out","Dia do Animal (4) · arrancar comunicação Natal corporate"],
+ ["nov","Black Friday · empresas fecham orçamentos de Natal"],
+ ["dez","pico de Natal — B2C e corporate"]
+];
+function rEstrategia(){
+ const E=D.estrategia;if(!E)return;
+ // calendário
+ const mesAtual=new Date().getMonth();
+ $("ecal").innerHTML=`<div class="ecalgrid">`+CALCOM.map(([m,tx],i)=>`<div class="ecalm${i===mesAtual?" now":""}"><div class="ecmn">${m}</div><div class="ecmt">${tx}</div></div>`).join("")+`</div>`;
+ // frentes
+ const ESTADOS=["ideia","a trabalhar","em pausa","ganha","perdida"];
+ $("efrentes").innerHTML=E.frentes.map(f=>`<div class="pcard card fcard2" data-fid="${f.id}">
+   <div class="pname" contenteditable data-ef="titulo" data-fid="${f.id}">${esc(f.titulo)}</div>
+   <select data-ef="estado" data-fid="${f.id}" class="fsel">${ESTADOS.map(s=>`<option ${f.estado===s?"selected":""}>${s}</option>`).join("")}</select>
+   <div class="fcorpo" contenteditable data-ef="corpo" data-fid="${f.id}">${esc(f.corpo).replace(/\n/g,"<br>")}</div>
+   <button class="ico fdel" data-fdel="${f.id}" title="Apagar">✕</button>
+  </div>`).join("")||`<div class="empty">sem frentes — usa o ＋</div>`;
+ // ideias
+ $("eideias").innerHTML=E.ideias.map(i=>`<div class="irow" data-iid="${i.id}">
+   <span class="idot">•</span>
+   <div style="flex:1;min-width:0">
+    <div class="ititulo" contenteditable data-ei="titulo" data-iid="${i.id}">${esc(i.titulo)}</div>
+    <div class="icorpo" contenteditable data-ei="corpo" data-iid="${i.id}">${esc(i.corpo)}</div>
+   </div>
+   <button class="ico fdel" data-idel="${i.id}" title="Apagar">✕</button>
+  </div>`).join("")||`<div class="empty">sem ideias — usa o ＋</div>`;
+ // princípios
+ $("eprin").innerHTML=E.principios.map((p,i)=>`<div class="irow"><span class="idot" style="color:var(--acc)">${i+1}</span><div class="icorpo" style="font-size:12.5px" contenteditable data-ep="${i}">${esc(p)}</div></div>`).join("");
+ bindEstrategia();
+}
+function bindEstrategia(){
+ const E=D.estrategia;
+ document.querySelectorAll("[data-ef]").forEach(el=>{
+  if(el.tagName==="SELECT")el.addEventListener("change",async()=>{const f=E.frentes.find(x=>x.id===el.dataset.fid);if(f){f.estado=el.value;await save();}});
+  else el.addEventListener("blur",async()=>{const f=E.frentes.find(x=>x.id===el.dataset.fid);if(f){f[el.dataset.ef]=el.dataset.ef==="corpo"?el.innerText.trim():el.textContent.trim();await save();}});
+ });
+ document.querySelectorAll("[data-ei]").forEach(el=>el.addEventListener("blur",async()=>{const i=E.ideias.find(x=>x.id===el.dataset.iid);if(i){i[el.dataset.ei]=el.innerText.trim();await save();}}));
+ document.querySelectorAll("[data-ep]").forEach(el=>el.addEventListener("blur",async()=>{E.principios[+el.dataset.ep]=el.innerText.trim();await save();}));
+ document.querySelectorAll("[data-fdel]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Apagar esta frente?"))return;E.frentes=E.frentes.filter(x=>x.id!==b.dataset.fdel);await save();rEstrategia();}));
+ document.querySelectorAll("[data-idel]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Apagar esta ideia?"))return;E.ideias=E.ideias.filter(x=>x.id!==b.dataset.idel);await save();rEstrategia();}));
+}
+function addFrente(){D.estrategia.frentes.unshift({id:"f"+Date.now(),titulo:"Nova frente",estado:"ideia",corpo:"Descreve a oportunidade em 2-3 parágrafos."});save().then(rEstrategia);}
+function addIdeia(){D.estrategia.ideias.unshift({id:"i"+Date.now(),titulo:"Nova ideia",corpo:"Descrição crua."});save().then(rEstrategia);}
+
 /* ============ preçário serviços ============ */
 function rServ(){
  const el=$("pServ");if(!el)return;
@@ -2060,6 +2168,7 @@ $("nav").addEventListener("click",e=>{
   if(v==="GESTAO"){rCom();rDesp();}
   if(v==="REGISTOS")rConta();
   if(v==="PRECARIO"){rPrec();rServ();}
+  if(v==="ESTRATEGIA")rEstrategia();
   if(v==="TRACKER")rTracker();
  }
 });
