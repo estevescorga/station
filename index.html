@@ -85,7 +85,8 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .hcard{padding:14px 16px;margin-bottom:16px;}
 .hcard h5{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);margin-bottom:10px;}
 .hitem{display:flex;align-items:center;gap:7px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line);line-height:1.35;}
-.glink{width:30px;height:30px;font-size:13px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:50%;background:var(--bg);box-shadow:4px 4px 10px var(--sh-d),-4px -4px 10px var(--sh-l);}
+.glink{width:30px;height:30px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--soft);display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border-radius:50%;background:var(--bg);box-shadow:4px 4px 10px var(--sh-d),-4px -4px 10px var(--sh-l);}
+.glink:hover{color:var(--acc);}
 .glink:active{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
 .pzone.dragover{outline:2px dashed var(--acc2);outline-offset:6px;border-radius:14px;}
 .pzone{min-height:60px;}
@@ -397,9 +398,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="head card">
   <div><h1>STATION</h1></div>
   <div style="display:flex;align-items:center;gap:14px">
-    <a class="ico glink" href="https://calendar.google.com" target="_blank" rel="noopener" title="Google Calendar">📅</a>
-    <a class="ico glink" href="https://tasks.google.com" target="_blank" rel="noopener" title="Google Tasks">☑</a>
-    <a class="ico glink" href="https://keep.google.com" target="_blank" rel="noopener" title="Google Keep">📝</a>
+    <a class="ico glink" href="https://calendar.google.com" target="_blank" rel="noopener" title="Google Calendar">C</a>
+    <a class="ico glink" href="https://tasks.google.com" target="_blank" rel="noopener" title="Google Tasks">T</a>
+    <a class="ico glink" href="https://keep.google.com" target="_blank" rel="noopener" title="Google Keep">K</a>
+    <a class="ico glink" href="https://mail.google.com" target="_blank" rel="noopener" title="Gmail">G</a>
+    <a class="ico glink" href="https://web.whatsapp.com" target="_blank" rel="noopener" title="WhatsApp Web">W</a>
+    <a class="ico glink" href="https://news.google.com" target="_blank" rel="noopener" title="Google Notícias">N</a>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Atualizar da nuvem" onclick="pullCloud()">☁</button>
     <div class="clock"><div class="d" id="cD">—</div><div class="h" id="cH">—</div></div>
   </div>
@@ -466,10 +470,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ TRACKER ============ -->
 <div class="view" id="v-TRACKER">
+  <div class="fin" id="trkHoje"></div>
   <h2 class="sec">Tracker diário</h2>
   <div class="card" style="padding:6px 0;overflow-x:auto" id="trkTab"></div>
   <h2 class="sec">Horas por projecto · últimos 7 dias</h2>
   <div class="card" style="padding:14px 20px" id="trkProj"></div>
+  <div class="vgrid" style="margin-top:18px">
+   <div class="card" style="padding:14px 20px"><h5 style="margin-bottom:10px">sono · últimos 14 dias</h5><div id="trkSono"></div></div>
+   <div class="card" style="padding:14px 20px"><h5 style="margin-bottom:10px">resumo mensal</h5><div id="trkMes"></div></div>
+  </div>
 </div>
 
 <!-- ============ CATEGORIAS (montra) ============ -->
@@ -1216,7 +1225,35 @@ function rInbox(){
 }
 
 /* ============ tracker ============ */
+function estimativaHoje(){
+ // camada 1: horas de bloco da rotina de hoje, menos pausas registadas
+ const its=(rot&&rot.data===hoje()&&rot.itens)||D.rotinaBase;
+ let minutos=0;
+ const blocos=its.filter(x=>/bloco/i.test(x.t||""));
+ blocos.forEach((b,i)=>{
+  const ini=min(b.q);if(ini===null)return;
+  // fim: próximo item na rotina depois deste
+  const sorted=[...its].sort((a,c)=>(min(a.q)??9999)-(min(c.q)??9999));
+  const pos=sorted.indexOf(b);
+  const fim=pos<sorted.length-1?min(sorted[pos+1].q):ini;
+  if(fim>ini)minutos+=fim-ini;
+ });
+ // pausas de hoje
+ let pmin=0;
+ if(pausas&&pausas.data===hoje())(pausas.itens||[]).forEach(p=>{
+  if(p.ini&&p.fim){const[a,b]=[min(p.ini),min(p.fim)];if(b>a)pmin+=b-a;}
+ });
+ return {bloco:minutos/60,pausa:pmin/60,liquido:Math.max(0,(minutos-pmin)/60)};
+}
 function rTracker(){
+ // camada 1: cartões do dia
+ const est=estimativaHoje();
+ const rHoje=trk[hoje()]||{};
+ const horasReg=Object.values(rHoje.horas||{}).reduce((s,v)=>s+v,0);
+ $("trkHoje").innerHTML=`
+  <div class="fcard card"><div class="fl">hoje · blocos de trabalho</div><div class="fv">${est.bloco.toFixed(1)}h</div><div class="fs">${est.pausa>0?`− ${est.pausa.toFixed(1)}h de pausas = ${est.liquido.toFixed(1)}h líquidas`:"sem pausas registadas"}</div></div>
+  <div class="fcard card"><div class="fl">horas registadas hoje</div><div class="fv">${horasReg?horasReg.toFixed(1)+"h":"—"}</div><div class="fs">via fecho do dia</div></div>
+  <div class="fcard card"><div class="fl">sono ontem</div><div class="fv">${(()=>{const o=isoLocal(new Date(Date.now()-864e5));const r=trk[o];return r&&r.sono?r.sono+"h":"—";})()}</div><div class="fs">energia: ${rHoje.energia?"●".repeat(rHoje.energia)+"○".repeat(5-rHoje.energia):"por registar"}</div></div>`;
  const dias=Object.keys(trk).sort().reverse().slice(0,21);
  $("trkTab").innerHTML=`<div class="trkrow trkhead"><span>data</span><span>sono</span><span>sesta</span><span>energia</span><span>exerc.</span><span>pausas</span><span>horas por projecto</span></div>`+
   (dias.map(d=>{
@@ -1241,6 +1278,44 @@ function rTracker(){
   const pj=D.projectos.find(x=>x.nome===k);
   return `<div class="grow"><div class="gl">${esc(k)}</div><div class="gtrack"><div class="gbar" style="left:0;width:${v/max*100}%;background:${(pj&&pj.cor)||"var(--acc2)"}"></div></div><span class="mono" style="font-size:11px;margin-left:8px">${v.toFixed(1)}h</span></div>`;
  }).join("")||`<div class="empty">sem horas registadas nos últimos 7 dias</div>`;
+ // gráfico de sono: sparkline 14 dias
+ const d14=[];
+ for(let i=13;i>=0;i--){const d=isoLocal(new Date(Date.now()-i*864e5));d14.push([d,(trk[d]||{}).sono??null]);}
+ const vals=d14.filter(([,v])=>v!==null);
+ if(vals.length){
+  const w=280,hg=60,mn=5,mx=10;
+  const pts=d14.map(([d,v],i)=>v===null?null:[i/(d14.length-1)*w,hg-((Math.min(Math.max(v,mn),mx)-mn)/(mx-mn))*hg]).filter(Boolean);
+  const path=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+  const media=(vals.reduce((s,[,v])=>s+v,0)/vals.length);
+  $("trkSono").innerHTML=`<svg viewBox="0 0 ${w} ${hg+14}" style="width:100%;height:auto">
+   <line x1="0" y1="${hg-((7.5-mn)/(mx-mn))*hg}" x2="${w}" y2="${hg-((7.5-mn)/(mx-mn))*hg}" stroke="var(--line)" stroke-dasharray="3,3"/>
+   <path d="${path}" fill="none" stroke="var(--acc2)" stroke-width="2" stroke-linecap="round"/>
+   ${pts.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.4" fill="var(--acc)"/>`).join("")}
+  </svg><div class="hsub">média ${media.toFixed(1)}h · linha tracejada = 7h30</div>`;
+ }else $("trkSono").innerHTML=`<div class="empty">sem registos de sono</div>`;
+ // resumo mensal
+ const mk=hoje().slice(0,7);
+ const doMes=Object.entries(trk).filter(([d])=>d.startsWith(mk));
+ if(doMes.length){
+  const sonos=doMes.map(([,r])=>r.sono).filter(v=>v!=null);
+  const exs=doMes.filter(([,r])=>r.exercicio&&r.exercicio>0).length;
+  const sestas=doMes.filter(([,r])=>r.sesta===true).length;
+  const horasT={};
+  doMes.forEach(([,r])=>Object.entries(r.horas||{}).forEach(([k,v])=>horasT[k]=(horasT[k]||0)+v));
+  const totalH=Object.values(horasT).reduce((s,v)=>s+v,0);
+  // €/hora real: projectos com valor e horas este mês
+  const eur=Object.entries(horasT).map(([k,v])=>{
+   const reg=(D.conta||[]).find(r=>{const pj=D.projectos.find(p=>p.id===contaProjId(r));return pj&&pj.nome===k;});
+   return reg&&v>0?[k,(+reg[6]||0)/v]:null;
+  }).filter(Boolean);
+  $("trkMes").innerHTML=`
+   <div class="hitem"><span>dias registados</span><span class="hm">${doMes.length}</span></div>
+   <div class="hitem"><span>sono médio</span><span class="hm">${sonos.length?(sonos.reduce((a,b)=>a+b,0)/sonos.length).toFixed(1)+"h":"—"}</span></div>
+   <div class="hitem"><span>sestas</span><span class="hm">${sestas}/${doMes.length}</span></div>
+   <div class="hitem"><span>dias com exercício</span><span class="hm">${exs}/${doMes.length}</span></div>
+   <div class="hitem"><span>horas de projecto</span><span class="hm">${totalH.toFixed(1)}h</span></div>
+   ${eur.map(([k,v])=>`<div class="hitem"><span>€/h real · ${esc(k)}</span><span class="hm">€${v.toFixed(0)}</span></div>`).join("")}`;
+ }else $("trkMes").innerHTML=`<div class="empty">sem registos este mês</div>`;
 }
 
 /* ============ preçário ============ */
