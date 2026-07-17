@@ -1349,7 +1349,8 @@ function rCat(){
 }
 function rInbox(){
  const el=$("inboxList");if(!el)return;
- const its=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&t.estado!=="arquivada");
+ const its=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&t.estado!=="arquivada")
+  .sort((a,b)=>(a.estado==="concluída"?1:0)-(b.estado==="concluída"?1:0));
  rTaskList(el,its);
 }
 
