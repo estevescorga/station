@@ -236,7 +236,7 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 /* pedido para o Claude */
 #askPanel{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.28);}
 #askPanel.on{display:flex;}
-#askPanel>div:last-child{width:min(440px,calc(100vw - 40px));background:var(--bg);border-radius:20px;box-shadow:7px 7px 19px var(--sh-d),-10px -10px 26px var(--sh-l);overflow:hidden;}
+#askPanel>div:last-child{width:min(440px,calc(100vw - 40px));background:var(--bg);border-radius:20px;box-shadow:0 24px 60px rgba(20,18,14,.38),0 6px 18px rgba(20,18,14,.22);overflow:hidden;}
 .chead{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);border-bottom:1px solid var(--line);}
 #askText{width:100%;resize:none;border:none;background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:12.5px;line-height:1.5;padding:10px 12px;border-radius:10px;box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);outline:none;box-sizing:border-box;}
 
@@ -595,6 +595,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="tgrid">
     <div class="tlist card" id="allTasks"></div>
     <div class="cal card" id="calBox"></div>
+    <div class="cal card" id="calBox2" style="margin-top:14px"></div>
   </div>
   <div class="addrow">
     <select id="nCat"><option>RIMA</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
@@ -608,7 +609,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <div class="footer">
   <span id="status"></span>
-  <button class="ico" title="Sincronizar com Drive" onclick="ask('Sincroniza o dashboard: lê o dados.json mais recente do Drive (pasta DASHBOARD) e atualiza o artifact.')">↻</button>
 </div>
 
 </div>
@@ -1307,19 +1307,7 @@ function rCat(){
 function rInbox(){
  const el=$("inboxList");if(!el)return;
  const its=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&!["concluída","arquivada"].includes(t.estado));
- const nomes=(D.projectos||[]).filter(p=>p.estado!=="arquivado"&&p.nome!=="Inbox").map(p=>p.nome).sort();
- el.innerHTML=its.map(t=>`<div class="trow" style="grid-template-columns:34px minmax(0,1fr) auto;padding:8px 4px">
-   <button class="chk" data-ia="tg" data-id="${t.id}" aria-label="concluir"></button>
-   <span class="tt">${esc(t.titulo)}</span>
-   <select class="pin" style="font-size:9px" data-ia="mv" data-id="${t.id}"><option value="">mover para…</option>${nomes.map(n=>`<option>${esc(n)}</option>`).join("")}</select>
-  </div>`).join("")||`<div class="hsub">inbox limpa</div>`;
- el.querySelectorAll("[data-ia=tg]").forEach(b=>b.addEventListener("click",async()=>{
-  const t=D.tarefas.find(x=>x.id===b.dataset.id);if(!t)return;t.estado="concluída";await save();rInbox();rAll();
- }));
- el.querySelectorAll("[data-ia=mv]").forEach(s=>s.addEventListener("change",async()=>{
-  const t=D.tarefas.find(x=>x.id===s.dataset.id);const pj=D.projectos.find(x=>x.nome===s.value);
-  if(!t||!pj)return;t.projecto=pj.nome;t.categoria=pj.categoria;await save();rInbox();rGlobalTasks();setSt(`movida para ${pj.nome}`);
- }));
+ rTaskList(el,its);
 }
 
 /* ============ tracker ============ */
@@ -1933,22 +1921,20 @@ function rTaskList(el,list){
  }));
 }
 let calY,calM;
-function rCal(){
- if(calY===undefined){const n=new Date();calY=n.getFullYear();calM=n.getMonth();}
- const first=new Date(calY,calM,1),dias=new Date(calY,calM+1,0).getDate(),off=(first.getDay()+6)%7;
- let h=`<div class="calh"><button class="ico" style="width:26px;height:26px;font-size:12px" id="calP">‹</button><span>${first.toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span><button class="ico" style="width:26px;height:26px;font-size:12px" id="calN">›</button></div><div class="calg">`;
+function buildMonthGrid(y,m){
+ const first=new Date(y,m,1),dias=new Date(y,m+1,0).getDate(),off=(first.getDay()+6)%7;
+ let h=`<div class="calg">`;
  ["S","T","Q","Q","S","S","D"].forEach(d=>h+=`<div class="dow">${d}</div>`);
  for(let i=0;i<off;i++)h+=`<div></div>`;
  for(let d=1;d<=dias;d++){
-  const iso=`${calY}-${String(calM+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  const iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
   const ts=D.tarefas.filter(t=>t.data===iso&&!["arquivada","concluída"].includes(t.estado));
   h+=`<div class="cald${iso===hoje()?" today":""}" data-iso="${iso}" title="${ts.map(t=>t.titulo).join(" · ")}">${d}<span class="cnt">${ts.slice(0,6).map(t=>`<i class="dot" style="background:${pcor(t)}"></i>`).join("")}</span></div>`;
  }
- h+="</div>";
- $("calBox").innerHTML=h;
- $("calP").addEventListener("click",()=>{calM--;if(calM<0){calM=11;calY--;}rCal();});
- $("calN").addEventListener("click",()=>{calM++;if(calM>11){calM=0;calY++;}rCal();});
- $("calBox").querySelectorAll(".cald").forEach(c=>{
+ return h+"</div>";
+}
+function bindMonthGrid(box){
+ box.querySelectorAll(".cald").forEach(c=>{
   c.addEventListener("dragover",e=>{e.preventDefault();c.classList.add("over");});
   c.addEventListener("dragleave",()=>c.classList.remove("over"));
   c.addEventListener("drop",async e=>{
@@ -1958,6 +1944,18 @@ function rCal(){
    if(t){t.data=c.dataset.iso;await save();rGlobalTasks();rCal();}
   });
  });
+}
+function rCal(){
+ if(calY===undefined){const n=new Date();calY=n.getFullYear();calM=n.getMonth();}
+ let nY=calY,nM=calM+1;if(nM>11){nM=0;nY++;}
+ const hdr1=`<div class="calh"><button class="ico" style="width:26px;height:26px;font-size:12px" id="calP">‹</button><span>${new Date(calY,calM,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span><button class="ico" style="width:26px;height:26px;font-size:12px" id="calN">›</button></div>`;
+ const hdr2=`<div class="calh"><span>${new Date(nY,nM,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span></div>`;
+ $("calBox").innerHTML=hdr1+buildMonthGrid(calY,calM);
+ $("calBox2").innerHTML=hdr2+buildMonthGrid(nY,nM);
+ $("calP").addEventListener("click",()=>{calM--;if(calM<0){calM=11;calY--;}rCal();});
+ $("calN").addEventListener("click",()=>{calM++;if(calM>11){calM=0;calY++;}rCal();});
+ bindMonthGrid($("calBox"));
+ bindMonthGrid($("calBox2"));
 }
 
 /* ============ semana / mês ============ */
