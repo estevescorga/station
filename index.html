@@ -477,7 +477,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     </div>
     <div class="hcol">
       <div class="card hcard mini"><h5>aniversários</h5><div id="hAniv"></div></div>
-      <div class="card hcard"><h5>inbox · genéricas</h5><div id="hInbox"></div><div style="margin-top:8px"><input class="pin" id="hInboxNew" placeholder="nova tarefa genérica… (Enter)" style="width:100%"/></div></div>
+      <div class="card hcard"><h5>inbox · genéricas</h5><input class="pin" id="hInboxNew" placeholder="nova tarefa genérica… (Enter)" style="width:100%;margin-bottom:8px"/><div id="hInbox"></div></div>
       <div class="card hcard"><h5>projectos ativos</h5><div id="hProj"></div></div>
       <div class="card hcard mini" id="finCard"><div id="hFin"></div></div>
     </div>
@@ -582,8 +582,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   </div>
   <div class="card" style="padding:14px 18px;margin-bottom:18px" id="inboxCard">
     <h5 style="margin-bottom:10px">inbox · genéricas</h5>
+    <div style="display:flex;gap:8px;margin-bottom:10px"><input class="pin" style="flex:1" id="inboxNew" placeholder="nova tarefa genérica… (Enter)"/></div>
     <div id="inboxList"></div>
-    <div style="display:flex;gap:8px;margin-top:10px"><input class="pin" style="flex:1" id="inboxNew" placeholder="nova tarefa genérica… (Enter)"/></div>
   </div>
   <div class="filters">
     <select id="fCat"><option value="">todas categorias</option><option>RIMA</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
@@ -1840,26 +1840,26 @@ function renderBudget(p){
  const reg=(D.conta||[]).find(r=>contaProjId(r)===p.id);
  const orcLink=reg?(+reg[6]||0):null;
  if(orcLink!==null&&p.orcamento!==orcLink){p.orcamento=orcLink;save();}
- const hp=p.horasPrevistas,hg=p.horasGastas||0,orc=p.orcamento;
+ const orc=p.orcamento;
  // €/h por nível (derivado do preçário)
  const pr=D.precario,hm=pr.horasDia*pr.diasSemana*4.33;
  const eurH={baixo:pr.niveis.baixo/hm,medio:pr.niveis.medio/hm,alto:pr.niveis.alto/hm};
  const nivel=p.nivel||"medio";
- const hEst=orc?orc/eurH[nivel]:null;
- const pct=hp?Math.min(100,Math.round(hg/hp*100)):0;
- const over=hp&&hg>hp;
+ const hEst=orc?orc/eurH[nivel]:null; // previstas: derivadas do orçamento, não manuais
+ // gastas: somadas do tracker (fecho do dia), não manuais
+ const hg=Object.values(trk||{}).reduce((s,dia)=>s+((dia.horas&&dia.horas[p.nome])||0),0);
+ const pct=hEst?Math.min(100,Math.round(hg/hEst*100)):0;
+ const over=hEst&&hg>hEst;
  box.innerHTML=`<div class="pedit" style="margin-bottom:8px">
    <label class="mono">orçamento € <input class="pin" type="number" min="0" step="10" data-bf="orcamento" value="${orc??""}" style="width:74px" ${orcLink!==null?"disabled title=\"ligado ao registo "+esc(reg[0])+"\"":""}/></label>
    <label class="mono">nível cliente <select data-bf="nivel">${["baixo","medio","alto"].map(n=>`<option value="${n}" ${nivel===n?"selected":""}>${n}</option>`).join("")}</select></label>
-   <label class="mono">h. previstas <input class="pin" type="number" min="0" step="0.5" data-bf="horasPrevistas" value="${hp??""}" style="width:64px" /></label>
-   <label class="mono">h. gastas <input class="pin" type="number" min="0" step="0.5" data-bf="horasGastas" value="${hg}" style="width:64px" /></label>
   </div>
-  ${hEst?`<div class="hsub" style="margin-bottom:8px">orçamento: <b>${hEst.toFixed(1)}h disponíveis</b> · ${hg}h usadas · ${Math.max(0,hEst-hg).toFixed(1)}h restantes</div>`:""}
-  ${hp?`<div class="pbar" style="margin-bottom:10px"><div style="width:${pct}%;background:${over?"var(--acc)":"var(--acc2)"}"></div></div><div class="hsub" style="margin-bottom:12px">${hg}h / ${hp}h${over?" — acima do previsto":""}</div>`:""}`;
+  ${hEst?`<div class="hsub" style="margin-bottom:8px">orçamento: <b>${hEst.toFixed(1)}h disponíveis</b> · ${hg.toFixed(1)}h usadas (tracker) · ${Math.max(0,hEst-hg).toFixed(1)}h restantes</div>`:""}
+  ${hEst?`<div class="pbar" style="margin-bottom:10px"><div style="width:${pct}%;background:${over?"var(--acc)":"var(--acc2)"}"></div></div>${over?`<div class="hsub" style="margin-bottom:12px;color:var(--acc)">acima do previsto</div>`:""}`:""}`;
  box.querySelectorAll("[data-bf]").forEach(el=>el.addEventListener("change",async()=>{
   const f=el.dataset.bf;
   if(f==="nivel")p.nivel=el.value;
-  else{const v=el.value===""?null:+el.value;p[f]=f==="horasGastas"?(v||0):v;}
+  else{const v=el.value===""?null:+el.value;p[f]=v;}
   await save();renderBudget(p);
  }));
 }
