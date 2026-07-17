@@ -1197,11 +1197,13 @@ document.addEventListener("input",e=>{
 function rHome(){
  const n=new Date();
  // agenda do dia
- const agOk=agenda&&agenda.data===hoje();
+ const agOk=agenda&&agenda.atualizado===hoje();
+ const evHoje=agOk?(agenda.eventos||[]).filter(e=>e.data===hoje()):[];
+ const anivHoje=agOk?(agenda.aniversarios||[]).filter(a=>a.data===hoje()):[];
  $("hAg").innerHTML=agOk?(
-  (agenda.eventos||[]).map(e=>`<div class="hitem"><span class="hm" style="margin:0 0 0 0">${esc(e.h||"")}</span><span>${esc(e.t)}${e.quem?` <span class="chip" style="display:inline;color:var(--acc2)">${esc(e.quem)}</span>`:""}</span></div>`).join("")||`<div class="hsub">sem eventos hoje</div>`
+  evHoje.map(e=>`<div class="hitem"><span class="hm" style="margin:0 0 0 0">${esc(e.h||"")}</span><span>${esc(e.t)}${e.quem?` <span class="chip" style="display:inline;color:var(--acc2)">${esc(e.quem)}</span>`:""}</span></div>`).join("")||`<div class="hsub">sem eventos hoje</div>`
  ):`<div class="hsub">por atualizar</div>`;
- $("hAniv").innerHTML=(agOk&&agenda.aniversarios&&agenda.aniversarios.length)?agenda.aniversarios.map(n=>`<div class="hitem"><span>🎂 ${esc(n)}</span></div>`).join(""):`<div class="hsub">nenhum hoje</div>`;
+ $("hAniv").innerHTML=anivHoje.length?anivHoje.map(a=>`<div class="hitem"><span>🎂 ${esc(a.nome)}</span></div>`).join(""):`<div class="hsub">nenhum hoje</div>`;
  // emails
  const mOk=mail&&mail.data===hoje();
  $("hMail").innerHTML=mOk?(
@@ -2121,6 +2123,7 @@ function rSemana(){
  const start=new Date();start.setDate(start.getDate()-1);start.setHours(0,0,0,0);
  const nm=["seg","ter","qua","qui","sex","sáb","dom"];
  const ev=(agenda&&agenda.eventos)?agenda.eventos:[];
+ const anv=(agenda&&agenda.aniversarios)?agenda.aniversarios:[];
  for(let w=0;w<4;w++){
   const row=document.createElement("div");row.className="wkrow";
   for(let i=0;i<7;i++){
@@ -2130,12 +2133,14 @@ function rSemana(){
    const nmDia=["dom","seg","ter","qua","qui","sex","sáb"][dow];
    const ts=D.tarefas.filter(t=>t.data===iso&&!["arquivada","concluída"].includes(t.estado));
    const prazos=D.tarefas.filter(t=>t.prazo===iso&&t.data!==iso&&!["arquivada","concluída"].includes(t.estado));
-   const evs=ev.filter(e=>(e.data||"").slice(0,10)===iso);
+   const evs=ev.filter(e=>e.data===iso);
+   const anivs=anv.filter(a=>a.data===iso);
    const cell=document.createElement("div");
    cell.className="wcell"+(iso===hoje()?" today":"")+(folga?" folga":"");
    cell.dataset.day=iso;
    cell.innerHTML=`<div class="wch"><span class="wcn">${nmDia} ${d.getDate()}</span>${d.getDate()===1||i===0&&w===0?`<span class="wcm">${d.toLocaleDateString("pt-PT",{month:"short"})}</span>`:""}</div>`+
-    evs.map(e=>`<div class="wev">${e.h?`<b>${esc(e.h)}</b> `:""}${esc(e.t||"")}</div>`).join("")+
+    anivs.map(a=>`<div class="wev">🎂 ${esc(a.nome)}</div>`).join("")+
+    evs.map(e=>`<div class="wev">${e.h?`<b>${esc(e.h)}</b> `:""}${esc(e.t||"")}${e.quem?` <span class="wm">${esc(e.quem)}</span>`:""}</div>`).join("")+
     ts.map(t=>taskChip(t,iso)).join("")+
     prazos.map(t=>taskChip(t,iso,true)).join("");
    row.appendChild(cell);
