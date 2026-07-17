@@ -595,26 +595,28 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 
 <div class="view" id="v-TAREFAS">
-  <div class="card" style="padding:14px 18px;margin-bottom:18px">
-    <h5 style="margin-bottom:10px">pesquisar tarefas</h5>
-    <input class="pin" id="tSearch" placeholder="escreve para procurar…" style="width:100%;margin-bottom:8px"/>
-    <div id="tSearchRes"></div>
-  </div>
-  <div class="card" style="padding:14px 18px;margin-bottom:18px" id="inboxCard">
-    <h5 style="margin-bottom:10px">inbox · genéricas</h5>
-    <div style="display:flex;gap:8px;margin-bottom:10px"><input class="pin" style="flex:1" id="inboxNew" placeholder="nova tarefa genérica… (Enter)"/></div>
-    <div id="inboxList"></div>
-  </div>
-  <div class="filters">
-    <select id="fCat"><option value="">todas categorias</option><option>RIMA</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
-    <select id="fProj"><option value="">todos projectos</option></select>
-    <select id="fEst"><option value="">ativas</option><option value="ativa">ativa</option><option>em espera</option><option>concluída</option><option value="*">todas</option></select>
-    <select id="fOrd"><option value="data">ordenar: data</option><option value="manual">ordenar: manual</option></select>
-    <select id="fResp"><option value="">todos</option><option>Ricardo</option><option>Marta</option></select>
-  </div>
   <div class="tgrid">
+   <div class="tleft">
+    <div class="card" style="padding:14px 18px;margin-bottom:18px">
+      <h5 style="margin-bottom:10px">pesquisar tarefas</h5>
+      <input class="pin" id="tSearch" placeholder="escreve para procurar…" style="width:100%;margin-bottom:8px"/>
+      <div id="tSearchRes"></div>
+    </div>
+    <div class="card" style="padding:14px 18px;margin-bottom:18px" id="inboxCard">
+      <h5 style="margin-bottom:10px">inbox · genéricas</h5>
+      <div style="display:flex;gap:8px;margin-bottom:10px"><input class="pin" style="flex:1" id="inboxNew" placeholder="nova tarefa genérica… (Enter)"/></div>
+      <div id="inboxList" style="max-height:280px;overflow-y:auto"></div>
+    </div>
+    <div class="filters">
+      <select id="fCat"><option value="">todas categorias</option><option>RIMA</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
+      <select id="fProj"><option value="">todos projectos</option></select>
+      <select id="fEst"><option value="">ativas</option><option value="ativa">ativa</option><option>em espera</option><option>concluída</option><option value="*">todas</option></select>
+      <select id="fOrd"><option value="data">ordenar: data</option><option value="manual">ordenar: manual</option></select>
+      <select id="fResp"><option value="">todos</option><option>Ricardo</option><option>Marta</option></select>
+    </div>
     <div class="tlist card" id="allTasks"></div>
-    <div class="cal card" id="calBox"></div>
+   </div>
+   <div class="cal card" id="calBox"></div>
   </div>
   <div class="addrow">
     <select id="nCat"><option>RIMA</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
