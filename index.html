@@ -107,6 +107,7 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .ititulo{font-weight:600;font-size:13px;outline:none;}
 .icorpo{font-size:11.5px;color:var(--soft);line-height:1.5;margin-top:2px;outline:none;}
 .fraseTop{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--soft);letter-spacing:.02em;margin-left:12px;font-weight:400;}
+.tt.editing{outline:none;box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:5px;padding:1px 4px;cursor:text;}
 .finmini{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
 .fraseCard{position:relative;padding:8px 30px 8px 14px !important;font-size:10.5px;font-family:'IBM Plex Mono',monospace;line-height:1.4;color:var(--soft);text-align:center;letter-spacing:.02em;}
 .nowMeta{display:block;font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--soft);margin-top:3px;letter-spacing:.03em;}
@@ -324,6 +325,7 @@ body.paused #pauseTint{opacity:1;}
 
 /* ================= TAREFAS ================= */
 .tgrid{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
+.tside{min-width:0;}
 @media(max-width:760px){.tgrid{grid-template-columns:1fr;}}
 .pdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;flex-shrink:0;}
 .trow[draggable=true]{cursor:grab;}
@@ -426,7 +428,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="head card">
   <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h1 style="margin:0">STATION</h1><span id="hFraseTop" class="fraseTop"></span><button class="ico" id="btnFrase" style="width:16px;height:16px;font-size:8px;opacity:.4" title="Adicionar frase" onclick="addFrase()">+</button></div>
   <div style="display:flex;align-items:center;gap:14px">
-    <a class="ico glink" href="https://claude.ai/public/artifacts/04231433-1ac2-4483-85bf-ef57fda49f48" target="_blank" rel="noopener" title="Consola GOTEN" id="gotenLink" style="color:var(--acc)">✦</a>
+    <a class="ico glink" href="https://claude.ai/chat/d093794a-2795-4f78-89f1-8d16eabb1cd3" target="_blank" rel="noopener" title="Conversa GOTEN" id="gotenLink" style="color:var(--acc)">✦</a>
     <a class="ico glink" href="https://calendar.google.com" target="_blank" rel="noopener" title="Google Calendar">C</a>
     <a class="ico glink" href="https://tasks.google.com" target="_blank" rel="noopener" title="Google Tasks">T</a>
     <a class="ico glink" href="https://keep.google.com" target="_blank" rel="noopener" title="Google Keep">K</a>
@@ -594,8 +596,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   </div>
   <div class="tgrid">
     <div class="tlist card" id="allTasks"></div>
-    <div class="cal card" id="calBox"></div>
-    <div class="cal card" id="calBox2" style="margin-top:14px"></div>
+    <div class="tside">
+     <div class="cal card" id="calBox"></div>
+     <div class="cal card" id="calBox2" style="margin-top:14px"></div>
+    </div>
   </div>
   <div class="addrow">
     <select id="nCat"><option>RIMA</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
@@ -1900,7 +1904,31 @@ function rTaskList(el,list){
  el.querySelectorAll("[data-a=dp]").forEach(i=>i.addEventListener("change",async()=>{
   D.tarefas.find(x=>x.id===i.dataset.id).prazo=i.value||null;await save();rAll();
  }));
- el.querySelectorAll("[data-op]").forEach(sp=>sp.addEventListener("click",e=>{if(e.target.closest("input,select,button"))return;const id=sp.dataset.op;if(id)openP(id);}));
+ el.querySelectorAll("[data-op]").forEach(sp=>sp.addEventListener("click",e=>{if(e.target.closest("input,select,button,.tt"))return;const id=sp.dataset.op;if(id)openP(id);}));
+ el.querySelectorAll(".tt").forEach(sp=>{
+  sp.addEventListener("dblclick",e=>{
+   e.stopPropagation();
+   const row=sp.closest("[data-drag]");
+   const t=D.tarefas.find(x=>x.id===row.dataset.drag);
+   if(!t)return;
+   sp.contentEditable="true";
+   sp.classList.add("editing");
+   sp.focus();
+   const range=document.createRange();range.selectNodeContents(sp);
+   const selc=window.getSelection();selc.removeAllRanges();selc.addRange(range);
+   const finish=async()=>{
+    sp.contentEditable="false";sp.classList.remove("editing");
+    const nv=sp.textContent.trim();
+    if(nv&&nv!==t.titulo){t.titulo=nv;await save();}
+    rAll();
+   };
+   sp.addEventListener("blur",finish,{once:true});
+   sp.addEventListener("keydown",ev=>{
+    if(ev.key==="Enter"){ev.preventDefault();sp.blur();}
+    if(ev.key==="Escape"){sp.textContent=t.titulo;sp.blur();}
+   });
+  });
+ });
  el.querySelectorAll("[data-a=rp]").forEach(s=>s.addEventListener("change",async()=>{
   D.tarefas.find(x=>x.id===s.dataset.id).responsavel=s.value;await save();rAll();
  }));
