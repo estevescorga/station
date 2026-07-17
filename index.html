@@ -1649,11 +1649,11 @@ function rRedes(){
  const ESTADOS_POST=["ideia","a gravar","a editar","agendado","publicado"];
  $("rdCal").innerHTML=posts.map(p=>`<div class="recrow" style="grid-template-columns:100px 1fr 120px 1fr 30px">
    <input type="date" class="pin" data-pf="data" data-pid="${p.id}" value="${p.data||""}" />
-   <span style="display:flex;align-items:center;gap:6px"><i class="pdot" style="background:${CONTAS_COR[p.conta]||"var(--soft)"}"></i><select data-pf="conta" data-pid="${p.id}">${["RIMA studio","RIMA lab","Ricardo Esteves Corga"].map(n=>`<option ${p.conta===n?"selected":""}>${n}</option>`).join("")}</select></span>
+   <span style="display:flex;align-items:center;gap:6px"><i class="pdot" style="background:${CONTAS_COR[p.conta]||"var(--soft)"}"></i><select class="pin" data-pf="conta" data-pid="${p.id}">${["RIMA studio","RIMA lab","Ricardo Esteves Corga"].map(n=>`<option ${p.conta===n?"selected":""}>${n}</option>`).join("")}</select></span>
    <input class="pin" data-pf="plataforma" data-pid="${p.id}" value="${esc(p.plataforma||"")}" placeholder="plataforma" />
    <span contenteditable data-pf="tema" data-pid="${p.id}" style="align-self:center">${esc(p.tema||"")}</span>
    <button class="ico" style="width:24px;height:24px;font-size:11px" data-pdel="${p.id}" title="apagar">✕</button>
-   <select data-pf="estado" data-pid="${p.id}" style="grid-column:1/3;margin-top:4px">${ESTADOS_POST.map(s=>`<option ${p.estado===s?"selected":""}>${s}</option>`).join("")}</select>
+   <select class="pin" data-pf="estado" data-pid="${p.id}" style="grid-column:1/3;margin-top:4px">${ESTADOS_POST.map(s=>`<option ${p.estado===s?"selected":""}>${s}</option>`).join("")}</select>
   </div>`).join("")||`<div class="empty">sem posts planeados — usa o ＋</div>`;
  $("rdCal").querySelectorAll("[data-pf]").forEach(el=>{
   const ev=el.tagName==="SELECT"||el.type==="date"?"change":"blur";
@@ -1670,7 +1670,7 @@ function rRedes(){
  $("rdIdeias").innerHTML=R.ideias.map(i=>`<div class="irow" data-iid2="${i.id}">
    <i class="pdot" style="background:${CONTAS_COR[i.conta]||"var(--soft)"};margin-top:5px"></i>
    <div style="flex:1;min-width:0">
-    <select data-if="conta" data-iid2="${i.id}" style="font-size:9px;margin-bottom:3px">${["RIMA studio","RIMA lab","Ricardo Esteves Corga"].map(n=>`<option ${i.conta===n?"selected":""}>${n}</option>`).join("")}</select>
+    <select class="pin" data-if="conta" data-iid2="${i.id}" style="font-size:9px;margin-bottom:3px">${["RIMA studio","RIMA lab","Ricardo Esteves Corga"].map(n=>`<option ${i.conta===n?"selected":""}>${n}</option>`).join("")}</select>
     <div class="ititulo" contenteditable data-if="titulo" data-iid2="${i.id}">${esc(i.titulo)}</div>
     <div class="icorpo" contenteditable data-if="nota" data-iid2="${i.id}">${esc(i.nota)}</div>
    </div>
