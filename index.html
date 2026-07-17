@@ -331,13 +331,19 @@ body.paused #pauseTint{opacity:1;}
 .trow[draggable=true]:active{cursor:grabbing;}
 .cal{padding:16px;position:sticky;top:12px;}
 .calh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);}
+.calh.mini{margin-bottom:8px;font-size:9px;}
 .calg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .calg .dow{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--soft);text-align:center;padding-bottom:2px;}
-.cald{min-height:36px;border-radius:8px;padding:3px 4px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--soft);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);position:relative;}
+.calg .dow.wknd{color:var(--acc2);}
+.cald{min-height:36px;border-radius:8px;padding:3px 4px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--soft);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);position:relative;cursor:pointer;}
 .cald.today{color:var(--acc);font-weight:700;}
 .cald.over{outline:2px dashed var(--acc);outline-offset:-2px;}
+.cald.wknd{background:rgba(199,74,60,.06);}
+.cald.sel{box-shadow:inset 0 0 0 1.5px var(--acc2);color:var(--txt);font-weight:700;}
 .cald .cnt{position:absolute;bottom:3px;left:4px;right:3px;display:flex;gap:2px;flex-wrap:wrap;}
 .cald .dot{width:5px;height:5px;border-radius:50%;}
+.datechip{width:auto;height:24px;padding:0 9px;border-radius:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;}
+.datepop{z-index:70;width:230px;padding:10px;right:auto;top:auto;}
 .trow input[type=date].px1{color:var(--acc);font-weight:700;}
 .trow input[type=date].px2{color:#C7833C;}
 .trow input[type=date]{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:4px 5px;border:none;border-radius:8px;background:var(--bg);color:var(--soft);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);width:104px;}
@@ -808,6 +814,7 @@ function isFolga(d){
 }
 const $=i=>document.getElementById(i);
 function isoLocal(d){const x=d||new Date();return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
+function fmtDataCurta(iso){if(!iso)return"";const[,m,d]=iso.split("-");return `${d}/${m}`;}
 const hoje=()=>isoLocal();
 const esc=s=>{const d=document.createElement("div");d.textContent=fixEnc(String(s==null?"":s));return d.innerHTML;};
 const min=q=>{const m=(q||"").match(/^(\d{1,2}):(\d{2})/);return m?+m[1]*60+ +m[2]:null;};
@@ -1338,7 +1345,7 @@ function rCat(){
 }
 function rInbox(){
  const el=$("inboxList");if(!el)return;
- const its=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&!["concluída","arquivada"].includes(t.estado));
+ const its=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&t.estado!=="arquivada");
  rTaskList(el,its);
 }
 
@@ -1976,8 +1983,8 @@ function rTaskList(el,list){
    <button class="chk${t.estado==="concluída"?" c":""}" data-a="tg" data-id="${t.id}" aria-label="concluir"></button>
    <span style="display:flex;align-items:baseline;min-width:0;cursor:pointer" data-op="${(D.projectos.find(x=>x.nome===t.projecto)||{}).id||""}"><i class="pdot" style="background:${pcor(t)}"></i><span style="min-width:0"><span class="tt">${esc(t.titulo)}${urg?' <span class="meta urg">⚠</span>':""}${t.responsavel&&t.responsavel!=="Ricardo"?` <span class="chip hot" style="display:inline">${esc(t.responsavel)}</span>`:""}</span><span class="sub2">${t.categoria} · ${esc(t.projecto)}</span></span></span>
    <span class="tctrl">
-    <input type="date" data-a="dd" data-id="${t.id}" value="${t.data||""}" title="dia de trabalho" />
-    <input type="date" data-a="dp" data-id="${t.id}" value="${t.prazo||""}" title="prazo limite" class="${px}" />
+    <button class="ico datechip" data-ddbtn="${t.id}" title="dia de trabalho">${t.data?fmtDataCurta(t.data):"dia"}</button>
+    <button class="ico datechip ${px}" data-dpbtn="${t.id}" title="prazo limite">${t.prazo?fmtDataCurta(t.prazo):"prazo"}</button>
     <select data-a="es" data-id="${t.id}">${["ativa","em espera","concluída","arquivada"].map(s=>`<option ${t.estado===s?"selected":""}>${s}</option>`).join("")}</select>
     <select data-a="rp" data-id="${t.id}" title="responsável">${["Ricardo","Marta"].map(s=>`<option ${(t.responsavel||"Ricardo")===s?"selected":""}>${s}</option>`).join("")}</select>
     <span class="qwrap">
@@ -1997,12 +2004,8 @@ function rTaskList(el,list){
  el.querySelectorAll("[data-a=es]").forEach(s=>s.addEventListener("change",async()=>{
   D.tarefas.find(x=>x.id===s.dataset.id).estado=s.value;await save();rAll();
  }));
- el.querySelectorAll("[data-a=dd]").forEach(i=>i.addEventListener("change",async()=>{
-  D.tarefas.find(x=>x.id===i.dataset.id).data=i.value||null;await save();rAll();
- }));
- el.querySelectorAll("[data-a=dp]").forEach(i=>i.addEventListener("change",async()=>{
-  D.tarefas.find(x=>x.id===i.dataset.id).prazo=i.value||null;await save();rAll();
- }));
+ el.querySelectorAll("[data-ddbtn]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();openDatePicker(b,b.dataset.ddbtn,"data");}));
+ el.querySelectorAll("[data-dpbtn]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();openDatePicker(b,b.dataset.dpbtn,"prazo");}));
  el.querySelectorAll("[data-op]").forEach(sp=>sp.addEventListener("click",e=>{if(e.target.closest("input,select,button,.tt"))return;const id=sp.dataset.op;if(id)openP(id);}));
  el.querySelectorAll(".tt").forEach(sp=>{
   sp.addEventListener("dblclick",e=>{
@@ -2048,15 +2051,17 @@ function rTaskList(el,list){
  }));
 }
 let calY,calM;
-function buildMonthGrid(y,m){
+function buildMonthGrid(y,m,selIso){
  const first=new Date(y,m,1),dias=new Date(y,m+1,0).getDate(),off=(first.getDay()+6)%7;
  let h=`<div class="calg">`;
- ["S","T","Q","Q","S","S","D"].forEach(d=>h+=`<div class="dow">${d}</div>`);
+ ["S","T","Q","Q","S","S","D"].forEach((d,i)=>h+=`<div class="dow${i>=5?" wknd":""}">${d}</div>`);
  for(let i=0;i<off;i++)h+=`<div></div>`;
  for(let d=1;d<=dias;d++){
   const iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  const dow=new Date(y,m,d).getDay();
+  const wknd=dow===0||dow===6;
   const ts=D.tarefas.filter(t=>t.data===iso&&!["arquivada","concluída"].includes(t.estado));
-  h+=`<div class="cald${iso===hoje()?" today":""}" data-iso="${iso}" title="${ts.map(t=>t.titulo).join(" · ")}">${d}<span class="cnt">${ts.slice(0,6).map(t=>`<i class="dot" style="background:${pcor(t)}"></i>`).join("")}</span></div>`;
+  h+=`<div class="cald${iso===hoje()?" today":""}${wknd?" wknd":""}${selIso===iso?" sel":""}" data-iso="${iso}" title="${ts.map(t=>t.titulo).join(" · ")}">${d}<span class="cnt">${ts.slice(0,6).map(t=>`<i class="dot" style="background:${pcor(t)}"></i>`).join("")}</span></div>`;
  }
  return h+"</div>";
 }
@@ -2071,6 +2076,33 @@ function bindMonthGrid(box){
    if(t){t.data=c.dataset.iso;await save();rGlobalTasks();rCal();}
   });
  });
+}
+function closeDatePickers(){document.querySelectorAll(".datepop").forEach(p=>p.remove());}
+document.addEventListener("click",e=>{if(!e.target.closest(".datepop")&&!e.target.closest("[data-ddbtn],[data-dpbtn]"))closeDatePickers();});
+function openDatePicker(anchorBtn,taskId,field){
+ closeDatePickers();
+ const t=D.tarefas.find(x=>x.id===taskId);if(!t)return;
+ const base=t[field]?new Date(t[field]+"T12:00"):new Date();
+ let y=base.getFullYear(),m=base.getMonth();
+ const pop=document.createElement("div");
+ pop.className="qmenu datepop";
+ pop.style.position="fixed";
+ document.body.appendChild(pop);
+ function draw(){
+  const hdr=`<div class="calh mini"><button class="ico" id="dpP" style="width:20px;height:20px;font-size:10px">‹</button><span>${new Date(y,m,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span><button class="ico" id="dpN" style="width:20px;height:20px;font-size:10px">›</button></div>`;
+  pop.innerHTML=hdr+buildMonthGrid(y,m,t[field])+`<button class="ico" id="dpClear" style="width:100%;margin-top:6px;font-size:10px;height:26px">limpar</button>`;
+  pop.querySelector("#dpP").onclick=e=>{e.stopPropagation();m--;if(m<0){m=11;y--;}draw();};
+  pop.querySelector("#dpN").onclick=e=>{e.stopPropagation();m++;if(m>11){m=0;y++;}draw();};
+  pop.querySelectorAll(".cald").forEach(c=>c.addEventListener("click",async e=>{
+   e.stopPropagation();t[field]=c.dataset.iso;await save();closeDatePickers();rAll();
+  }));
+  pop.querySelector("#dpClear").onclick=async e=>{e.stopPropagation();t[field]=null;await save();closeDatePickers();rAll();};
+ }
+ draw();
+ const r=anchorBtn.getBoundingClientRect();
+ pop.style.top=Math.min(r.bottom+6,window.innerHeight-320)+"px";
+ pop.style.left=Math.min(r.left,window.innerWidth-250)+"px";
+ pop.hidden=false;
 }
 function rCal(){
  if(calY===undefined){const n=new Date();calY=n.getFullYear();calM=n.getMonth();}
