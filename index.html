@@ -325,7 +325,6 @@ body.paused #pauseTint{opacity:1;}
 
 /* ================= TAREFAS ================= */
 .tgrid{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;}
-.tside{min-width:0;}
 @media(max-width:760px){.tgrid{grid-template-columns:1fr;}}
 .pdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;flex-shrink:0;}
 .trow[draggable=true]{cursor:grab;}
@@ -596,10 +595,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   </div>
   <div class="tgrid">
     <div class="tlist card" id="allTasks"></div>
-    <div class="tside">
-     <div class="cal card" id="calBox"></div>
-     <div class="cal card" id="calBox2" style="margin-top:14px"></div>
-    </div>
+    <div class="cal card" id="calBox"></div>
   </div>
   <div class="addrow">
     <select id="nCat"><option>RIMA</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
@@ -1977,13 +1973,11 @@ function rCal(){
  if(calY===undefined){const n=new Date();calY=n.getFullYear();calM=n.getMonth();}
  let nY=calY,nM=calM+1;if(nM>11){nM=0;nY++;}
  const hdr1=`<div class="calh"><button class="ico" style="width:26px;height:26px;font-size:12px" id="calP">‹</button><span>${new Date(calY,calM,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span><button class="ico" style="width:26px;height:26px;font-size:12px" id="calN">›</button></div>`;
- const hdr2=`<div class="calh"><span>${new Date(nY,nM,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span></div>`;
- $("calBox").innerHTML=hdr1+buildMonthGrid(calY,calM);
- $("calBox2").innerHTML=hdr2+buildMonthGrid(nY,nM);
+ const hdr2=`<div class="calh" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"><span>${new Date(nY,nM,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span></div>`;
+ $("calBox").innerHTML=hdr1+buildMonthGrid(calY,calM)+hdr2+buildMonthGrid(nY,nM);
  $("calP").addEventListener("click",()=>{calM--;if(calM<0){calM=11;calY--;}rCal();});
  $("calN").addEventListener("click",()=>{calM++;if(calM>11){calM=0;calY++;}rCal();});
  bindMonthGrid($("calBox"));
- bindMonthGrid($("calBox2"));
 }
 
 /* ============ semana / mês ============ */
