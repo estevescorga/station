@@ -446,6 +446,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <button data-v="GESTAO">Gestão</button>
   <button data-v="REGISTOS">Registos</button>
   <button data-v="ESTRATEGIA">Estratégia</button>
+  <button data-v="REDES">Redes</button>
   <button data-v="TAREFAS">Tarefas</button>
   <button data-v="PRECARIO">Preçário</button>
   <button data-v="TRACKER">Tracker</button>
@@ -573,6 +574,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="card" style="padding:10px 0" id="eideias"></div>
   <h2 class="sec">Princípios</h2>
   <div class="card" style="padding:10px 0" id="eprin"></div>
+</div>
+
+<!-- ============ REDES ============ -->
+<div class="view" id="v-REDES">
+  <h2 class="sec">Contas</h2>
+  <div class="pgrid" id="rdContas"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Calendário editorial<span style="display:flex;gap:8px;align-items:center"><select id="rdFiltro"><option value="">todas as contas</option><option>RIMA studio</option><option>RIMA lab</option><option>Ricardo Esteves Corga</option></select><button class="ico" style="width:28px;height:28px" title="Novo post" onclick="addPost()">＋</button></span></h2>
+  <div class="card" style="padding:6px 0" id="rdCal"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Banco de ideias<button class="ico" style="width:28px;height:28px" title="Nova ideia" onclick="addIdeiaRD()">＋</button></h2>
+  <div class="card" style="padding:10px 0" id="rdIdeias"></div>
+  <h2 class="sec">Reaproveitamento</h2>
+  <div class="card" style="padding:10px 0" id="rdPrin"></div>
 </div>
 
 <div class="view" id="v-TAREFAS">
@@ -961,6 +974,25 @@ async function load(){
    "Corporate de Natal: prospeção em setembro/outubro, proposta na mesa até início de novembro. Depois disso o ano está perdido.",
    "Estar onde os compradores estão (RH, employer branding, marketing), não onde os pares estão.",
    "Eventos só com proposta concreta na mão. Presença sem oferta é passeio."
+  ]
+ };
+ if(!D.redes)D.redes={
+  contas:[
+   {id:"c1",nome:"RIMA studio",plataformas:"LinkedIn, Instagram",pilares:"processo de trabalho, cases de clientes, bastidores do estúdio, motion",cadencia:"1-2 posts/semana",notas:"Alvo: quem contrata (RH, marketing, employer branding), não pares criativos. Conteúdo institucional, sóbrio."},
+   {id:"c2",nome:"RIMA lab",plataformas:"Instagram, Pinterest, Newsletter",pilares:"produto (Entrelinhas, Herbário, Diz-me), processo criativo, datas comerciais do calendário",cadencia:"3-4 posts/semana + 1 reel",notas:"Pinterest e SEO são o motor de longo prazo do B2C. Reel de processo é o formato que mais vende."},
+   {id:"c3",nome:"Ricardo Esteves Corga",plataformas:"Instagram",pilares:"ilustração autoral, processo, bastidores pessoais",cadencia:"1 post/semana",notas:"Conta pessoal, 95% ilustração. Música (Monofobia) fica para mais tarde — sem pressão agora, só quando fizer sentido."}
+  ],
+  ideias:[
+   {id:"ri1",conta:"RIMA lab",titulo:"Reel processo Entrelinhas",nota:"OBS (ecrã) + telemóvel (mão a desenhar), 20-30s, ver frente de ataque na Estratégia."},
+   {id:"ri2",conta:"RIMA studio",titulo:"Bastidores produção retratos Grünenthal",nota:"Mostrar o processo do briefing aprovado até à entrega, sem revelar dados do cliente."},
+   {id:"ri3",conta:"Ricardo Esteves Corga",titulo:"Timelapse de uma ilustração do zero ao fim",nota:"Peça pessoal, sem briefing de cliente, formato mais solto."}
+  ],
+  calendario:[],
+  principios:[
+   "Uma gravação de processo dá para 1 reel, 3-4 stories e 1 carrossel de stills. Grava uma vez, corta várias vezes.",
+   "Grava sempre vertical desde o início — poupa reformatação depois.",
+   "Escreve legendas para quem vê sem som primeiro.",
+   "Bastidores do studio podem virar stories mais informais no lab, quando fizer sentido cruzar."
   ]
  };
  if(!D.precario)D.precario={niveis:{baixo:3500,medio:7000,alto:13000},horasDia:5,diasSemana:5};
@@ -1597,6 +1629,77 @@ function bindEstrategia(){
 function addFrente(){D.estrategia.frentes.unshift({id:"f"+Date.now(),titulo:"Nova frente",estado:"ideia",corpo:"Descreve a oportunidade em 2-3 parágrafos."});save().then(rEstrategia);}
 function addIdeia(){D.estrategia.ideias.unshift({id:"i"+Date.now(),titulo:"Nova ideia",corpo:"Descrição crua."});save().then(rEstrategia);}
 
+/* ============ redes sociais ============ */
+const CONTAS_COR={"RIMA studio":"#0E7C72","RIMA lab":"#C74A3C","Ricardo Esteves Corga":"#8AA86A"};
+function rRedes(){
+ const R=D.redes;if(!R)return;
+ $("rdContas").innerHTML=R.contas.map(c=>`<div class="pcard card" style="cursor:default">
+   <div class="pname" contenteditable data-rc="nome" data-cid="${c.id}">${esc(c.nome)}</div>
+   <div class="accbar" style="background:${CONTAS_COR[c.nome]||"var(--acc)"}"></div>
+   <div class="fcorpo" style="margin-top:8px"><b>plataformas</b> <span contenteditable data-rc="plataformas" data-cid="${c.id}">${esc(c.plataformas)}</span></div>
+   <div class="fcorpo" style="margin-top:6px"><b>pilares</b> <span contenteditable data-rc="pilares" data-cid="${c.id}">${esc(c.pilares)}</span></div>
+   <div class="fcorpo" style="margin-top:6px"><b>cadência</b> <span contenteditable data-rc="cadencia" data-cid="${c.id}">${esc(c.cadencia)}</span></div>
+   <div class="fcorpo" style="margin-top:6px;color:var(--soft)" contenteditable data-rc="notas" data-cid="${c.id}">${esc(c.notas)}</div>
+  </div>`).join("");
+ $("rdContas").querySelectorAll("[data-rc]").forEach(el=>el.addEventListener("blur",async()=>{
+  const c=R.contas.find(x=>x.id===el.dataset.cid);if(c)c[el.dataset.rc]=el.innerText.trim();await save();
+ }));
+ const filtro=$("rdFiltro")?$("rdFiltro").value:"";
+ const posts=[...R.calendario].filter(p=>!filtro||p.conta===filtro).sort((a,b)=>(a.data||"9999").localeCompare(b.data||"9999"));
+ const ESTADOS_POST=["ideia","a gravar","a editar","agendado","publicado"];
+ $("rdCal").innerHTML=posts.map(p=>`<div class="recrow" style="grid-template-columns:100px 1fr 120px 1fr 30px">
+   <input type="date" class="pin" data-pf="data" data-pid="${p.id}" value="${p.data||""}" />
+   <span style="display:flex;align-items:center;gap:6px"><i class="pdot" style="background:${CONTAS_COR[p.conta]||"var(--soft)"}"></i><select data-pf="conta" data-pid="${p.id}">${["RIMA studio","RIMA lab","Ricardo Esteves Corga"].map(n=>`<option ${p.conta===n?"selected":""}>${n}</option>`).join("")}</select></span>
+   <input class="pin" data-pf="plataforma" data-pid="${p.id}" value="${esc(p.plataforma||"")}" placeholder="plataforma" />
+   <span contenteditable data-pf="tema" data-pid="${p.id}" style="align-self:center">${esc(p.tema||"")}</span>
+   <button class="ico" style="width:24px;height:24px;font-size:11px" data-pdel="${p.id}" title="apagar">✕</button>
+   <select data-pf="estado" data-pid="${p.id}" style="grid-column:1/3;margin-top:4px">${ESTADOS_POST.map(s=>`<option ${p.estado===s?"selected":""}>${s}</option>`).join("")}</select>
+  </div>`).join("")||`<div class="empty">sem posts planeados — usa o ＋</div>`;
+ $("rdCal").querySelectorAll("[data-pf]").forEach(el=>{
+  const ev=el.tagName==="SELECT"||el.type==="date"?"change":"blur";
+  el.addEventListener(ev,async()=>{
+   const p=R.calendario.find(x=>x.id===el.dataset.pid);if(!p)return;
+   const f=el.dataset.pf;
+   p[f]=el.tagName==="SPAN"?el.innerText.trim():el.value;
+   await save();rRedes();
+  });
+ });
+ $("rdCal").querySelectorAll("[data-pdel]").forEach(b=>b.addEventListener("click",async()=>{
+  R.calendario=R.calendario.filter(x=>x.id!==b.dataset.pdel);await save();rRedes();
+ }));
+ $("rdIdeias").innerHTML=R.ideias.map(i=>`<div class="irow" data-iid2="${i.id}">
+   <i class="pdot" style="background:${CONTAS_COR[i.conta]||"var(--soft)"};margin-top:5px"></i>
+   <div style="flex:1;min-width:0">
+    <select data-if="conta" data-iid2="${i.id}" style="font-size:9px;margin-bottom:3px">${["RIMA studio","RIMA lab","Ricardo Esteves Corga"].map(n=>`<option ${i.conta===n?"selected":""}>${n}</option>`).join("")}</select>
+    <div class="ititulo" contenteditable data-if="titulo" data-iid2="${i.id}">${esc(i.titulo)}</div>
+    <div class="icorpo" contenteditable data-if="nota" data-iid2="${i.id}">${esc(i.nota)}</div>
+   </div>
+   <button class="ico fdel" data-ridel="${i.id}" title="Apagar">✕</button>
+  </div>`).join("")||`<div class="empty">sem ideias — usa o ＋</div>`;
+ $("rdIdeias").querySelectorAll("[data-if]").forEach(el=>{
+  const ev=el.tagName==="SELECT"?"change":"blur";
+  el.addEventListener(ev,async()=>{
+   const i=R.ideias.find(x=>x.id===el.dataset.iid2);if(!i)return;
+   i[el.dataset.if]=el.tagName==="SELECT"?el.value:el.innerText.trim();
+   await save();
+  });
+ });
+ $("rdIdeias").querySelectorAll("[data-ridel]").forEach(b=>b.addEventListener("click",async()=>{
+  R.ideias=R.ideias.filter(x=>x.id!==b.dataset.ridel);await save();rRedes();
+ }));
+ $("rdPrin").innerHTML=R.principios.map((p,i)=>`<div class="irow"><span class="idot" style="color:var(--acc)">${i+1}</span><div class="icorpo" style="font-size:12.5px" contenteditable data-rp="${i}">${esc(p)}</div></div>`).join("");
+ $("rdPrin").querySelectorAll("[data-rp]").forEach(el=>el.addEventListener("blur",async()=>{R.principios[+el.dataset.rp]=el.innerText.trim();await save();}));
+}
+function addPost(){
+ D.redes.calendario.unshift({id:"p"+Date.now(),data:hoje(),conta:"RIMA lab",plataforma:"Instagram",tema:"",estado:"ideia"});
+ save().then(rRedes);
+}
+function addIdeiaRD(){
+ D.redes.ideias.unshift({id:"ri"+Date.now(),conta:"RIMA lab",titulo:"Nova ideia",nota:""});
+ save().then(rRedes);
+}
+document.addEventListener("change",e=>{if(e.target.id==="rdFiltro")rRedes();});
+
 /* ============ preçário serviços ============ */
 function rServ(){
  const el=$("pServ");if(!el)return;
@@ -1883,7 +1986,7 @@ function rTaskList(el,list){
       ${(D.projectos||[]).filter(p=>p.estado!=="arquivado"&&p.nome!==t.projecto).map(p=>`<button data-mvset="${t.id}" data-mvto="${esc(p.nome)}" data-mvcat="${p.categoria}">${esc(p.nome)}</button>`).join("")}
      </div>
     </span>
-    ${generica?`<button class="ico" style="width:24px;height:24px;font-size:11px" data-tdel="${t.id}" title="apagar">✕</button>`:""}
+    <button class="ico" style="width:24px;height:24px;font-size:11px" data-tdel="${t.id}" title="apagar">✕</button>
    </span>
   </div>`);
  });
@@ -2220,6 +2323,7 @@ $("nav").addEventListener("click",e=>{
   if(v==="REGISTOS")rConta();
   if(v==="PRECARIO"){rPrec();rServ();}
   if(v==="ESTRATEGIA")rEstrategia();
+  if(v==="REDES")rRedes();
   if(v==="TRACKER")rTracker();
  }
 });
