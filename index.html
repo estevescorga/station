@@ -72,6 +72,7 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .hometop{display:flex;gap:14px;align-items:center;margin-bottom:16px;}
 .hometop .now{flex:1;margin-bottom:0;}
 .home{display:grid;grid-template-columns:1.15fr .95fr .95fr;gap:16px;}
+.home>*{min-width:0;}
 .hcol{display:flex;flex-direction:column;gap:16px;}
 .hcol .hcard{margin-bottom:0;}
 @media(min-width:1000px){
@@ -1137,7 +1138,7 @@ function rSearchTasks(q,elId){
  el.innerHTML=res.map(t=>{
   const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
   const done=t.estado==="concluída";
-  return `<div class="hitem"><button class="hchk${done?" c":""}" data-sc="${t.id}" aria-label="concluir"></button><span ${pid?`data-sop="${pid}" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;min-width:0"`:"style=\"display:flex;align-items:center;gap:6px;flex:1;min-width:0\""}><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${done?'text-decoration:line-through;opacity:.5':''}">${esc(t.titulo)}</span></span><span class="hm">${esc(t.projecto||"")}</span></div>`;
+  return `<div class="hitem"><button class="hchk${done?" c":""}" data-sc="${t.id}" aria-label="concluir"></button><span ${pid?`data-sop="${pid}" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;min-width:0"`:"style=\"display:flex;align-items:center;gap:6px;flex:1;min-width:0\""}><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${done?'text-decoration:line-through;opacity:.5':''}">${esc(t.titulo)}</span></span><span class="hm" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px;flex-shrink:0" title="${esc(t.projecto||"")}">${esc(t.projecto||"")}</span></div>`;
  }).join("")||`<div class="hsub">sem resultados</div>`;
  el.querySelectorAll("[data-sc]").forEach(b=>b.addEventListener("click",async e=>{
   e.stopPropagation();const t=D.tarefas.find(x=>x.id===b.dataset.sc);if(!t)return;
