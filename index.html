@@ -78,7 +78,8 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
  .home{height:calc(100vh - 210px);min-height:430px;align-items:stretch;}
  .home .rot{overflow:auto;}
  .hcol{min-height:0;}
- .hcol .hcard{flex:1;min-height:0;overflow:auto;}
+ .hcol .hcard{flex:0 1 auto;min-height:0;overflow:auto;max-height:340px;}
+ .hcol .hcard.grow{flex:1;}
  .hcard.mini{flex:0 0 auto !important;overflow:visible;}
 }
 @media(max-width:999px){.home{grid-template-columns:1fr;}}
