@@ -1347,11 +1347,17 @@ function rCat(){
   });
  });
 }
+let inboxDoneOpen=false;
 function rInbox(){
  const el=$("inboxList");if(!el)return;
- const its=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&t.estado!=="arquivada")
-  .sort((a,b)=>(a.estado==="concluída"?1:0)-(b.estado==="concluída"?1:0));
- rTaskList(el,its);
+ const all=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&t.estado!=="arquivada");
+ const ativos=all.filter(t=>t.estado!=="concluída");
+ const feitas=all.filter(t=>t.estado==="concluída");
+ el.innerHTML=`<div id="inboxAtivos"></div>`+(feitas.length?`<div class="cgroup"><div class="cgrouph acc" data-g="inboxDone"><span class="accarr">${inboxDoneOpen?"▾":"▸"}</span>concluídas · ${feitas.length}</div><div class="cgbody" id="inboxDoneBody" style="display:${inboxDoneOpen?"block":"none"}"></div></div>`:"");
+ rTaskList($("inboxAtivos"),ativos);
+ if(feitas.length)rTaskList($("inboxDoneBody"),feitas);
+ const acc=el.querySelector(".cgrouph.acc");
+ if(acc)acc.addEventListener("click",()=>{inboxDoneOpen=!inboxDoneOpen;rInbox();});
 }
 
 /* ============ tracker ============ */
