@@ -537,14 +537,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="fin" id="finC"></div>
   <div class="pipe" id="pipeC"></div>
 
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Despesas<span style="display:flex;gap:8px;align-items:center"><select id="fMesD"></select></span></h2>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Despesas<span style="display:flex;gap:8px;align-items:center"><select id="fMesD" class="pin"></select></span></h2>
   <div class="fin" id="finD"></div>
   <div class="card" style="padding:6px 0" id="despList"></div>
 </div>
 
 <!-- ============ REGISTOS ============ -->
 <div class="view" id="v-REGISTOS">
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Contabilidade<span style="display:flex;gap:8px;align-items:center"><select id="fEstC"><option value="">todos</option><option>ATIVO</option><option>AGUARDA</option><option>FEITO</option></select><button class="ico" style="width:28px;height:28px" title="Novo projecto" onclick="novoProj()">＋</button></span></h2>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Contabilidade<span style="display:flex;gap:8px;align-items:center"><select id="fEstC" class="pin"><option value="">todos</option><option>ATIVO</option><option>AGUARDA</option><option>FEITO</option></select><button class="ico" style="width:28px;height:28px" title="Novo projecto" onclick="novoProj()">＋</button></span></h2>
   <div class="card" style="padding:6px 0" id="contaList"></div>
 </div>
 
@@ -586,7 +586,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="view" id="v-REDES">
   <h2 class="sec">Contas</h2>
   <div class="pgrid" id="rdContas"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Calendário editorial<span style="display:flex;gap:8px;align-items:center"><select id="rdFiltro"><option value="">todas as contas</option><option>RIMA studio</option><option>RIMA lab</option><option>Ricardo Esteves Corga</option></select><button class="ico" style="width:28px;height:28px" title="Novo post" onclick="addPost()">＋</button></span></h2>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Calendário editorial<span style="display:flex;gap:8px;align-items:center"><select id="rdFiltro" class="pin"><option value="">todas as contas</option><option>RIMA studio</option><option>RIMA lab</option><option>Ricardo Esteves Corga</option></select><button class="ico" style="width:28px;height:28px" title="Novo post" onclick="addPost()">＋</button></span></h2>
   <div class="card" style="padding:6px 0" id="rdCal"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Banco de ideias<button class="ico" style="width:28px;height:28px" title="Nova ideia" onclick="addIdeiaRD()">＋</button></h2>
   <div class="card" style="padding:10px 0" id="rdIdeias"></div>
@@ -1467,9 +1467,9 @@ function rPrec(){
    <span class="fs mono">≈ ${(pr.horasDia*pr.diasSemana*4.33).toFixed(0)} h/mês</span>
   </div>`;
   $("pCalc").innerHTML=`<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-   <select id="cNv">${["baixo","medio","alto"].map(k=>`<option value="${k}">${k==="medio"?"médio":k}</option>`).join("")}</select>
+   <select id="cNv" class="pin">${["baixo","medio","alto"].map(k=>`<option value="${k}">${k==="medio"?"médio":k}</option>`).join("")}</select>
    <input class="pin" style="width:74px" type="number" id="cQt" value="1" min="0" step="0.5"/>
-   <select id="cUn"><option>horas</option><option>dias</option><option>semanas</option></select>
+   <select id="cUn" class="pin"><option>horas</option><option>dias</option><option>semanas</option></select>
    <span style="margin-left:auto;text-align:right"><span class="fv" id="cRes">—</span><div class="fs" id="cRes2"></div></span>
   </div>`;
  const upd=()=>{
@@ -1525,7 +1525,7 @@ function crow(r){
    <span class="cid">${r[0]}</span>
    <span class="cnome${pid?" clk":""}" ${pid?`data-copen="${pid}"`:""}><span class="cli">${esc(r[3]||"—")}</span><span class="cdesc">${esc(r[5]||"")}${r[1]?" · "+r[1]:""}</span></span>
    <span class="cval">€${val.toLocaleString("pt-PT",{minimumFractionDigits:2})}<span class="sub2" style="display:block">€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})} c/IVA</span></span>
-   <select data-cf="8" data-ix="${idx}">${["ATIVO","AGUARDA","FEITO","REJEITADO",""].map(s=>`<option value="${s}" ${(r[8]||"")===s?"selected":""}>${s||"—"}</option>`).join("")}</select>
+   <select class="pin" data-cf="8" data-ix="${idx}">${["ATIVO","AGUARDA","FEITO","REJEITADO",""].map(s=>`<option value="${s}" ${(r[8]||"")===s?"selected":""}>${s||"—"}</option>`).join("")}</select>
    ${pags}
    <span class="qwrap">
     <button class="ico linkBtn${pid?"":" off"}" data-linkbtn="${idx}" title="${proj?esc(proj.nome):"sem projecto — clique para atribuir"}">▸</button>
@@ -1989,8 +1989,8 @@ function rTaskList(el,list){
    <span class="tctrl">
     <button class="ico datechip" data-ddbtn="${t.id}" title="dia de trabalho">${t.data?fmtDataCurta(t.data):"dia"}</button>
     <button class="ico datechip ${px}" data-dpbtn="${t.id}" title="prazo limite">${t.prazo?fmtDataCurta(t.prazo):"prazo"}</button>
-    <select data-a="es" data-id="${t.id}">${["ativa","em espera","concluída","arquivada"].map(s=>`<option ${t.estado===s?"selected":""}>${s}</option>`).join("")}</select>
-    <select data-a="rp" data-id="${t.id}" title="responsável">${["Ricardo","Marta"].map(s=>`<option ${(t.responsavel||"Ricardo")===s?"selected":""}>${s}</option>`).join("")}</select>
+    <select class="pin" data-a="es" data-id="${t.id}">${["ativa","em espera","concluída","arquivada"].map(s=>`<option ${t.estado===s?"selected":""}>${s}</option>`).join("")}</select>
+    <select class="pin" data-a="rp" data-id="${t.id}" title="responsável">${["Ricardo","Marta"].map(s=>`<option ${(t.responsavel||"Ricardo")===s?"selected":""}>${s}</option>`).join("")}</select>
     <span class="qwrap">
      <button class="ico" style="width:24px;height:24px;font-size:11px" data-mvbtn="${t.id}" title="mover para outro projecto">⇄</button>
      <div class="qmenu" data-mvmenu="${t.id}" hidden style="max-height:260px;overflow-y:auto">
