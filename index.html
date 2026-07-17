@@ -465,17 +465,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <div class="rot card" id="rotList"></div>
     <div class="hcol">
       <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
+      <div class="card hcard"><h5>urgente</h5><div id="hUrg"></div></div>
       <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
       <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">emails<button class="ico" style="width:24px;height:24px;font-size:11px" title="Atualizar resumo de emails" onclick="ask('Atualiza o resumo de emails da HOME: lê as caixas estevescorga@gmail.com e hello@rimastudio.pt, resume em 2-3 frases o que precisa de atenção, lista os não lidos relevantes, e atualiza o dashboard.')">↻</button></h5><div id="hMail"></div></div>
-    </div>
-    <div class="hcol">
       <div class="card hcard">
         <h5>pesquisar tarefas</h5>
         <input class="pin" id="hSearch" placeholder="escreve para procurar…" style="width:100%;margin-bottom:8px"/>
         <div id="hSearchRes"></div>
       </div>
+    </div>
+    <div class="hcol">
+      <div class="card hcard mini"><h5>aniversários</h5><div id="hAniv"></div></div>
       <div class="card hcard"><h5>inbox · genéricas</h5><div id="hInbox"></div></div>
-      <div class="card hcard"><h5>urgente</h5><div id="hUrg"></div></div>
       <div class="card hcard"><h5>projectos ativos</h5><div id="hProj"></div></div>
       <div class="card hcard mini" id="finCard"><div id="hFin"></div></div>
     </div>
@@ -1153,9 +1154,9 @@ function rHome(){
  // agenda do dia
  const agOk=agenda&&agenda.data===hoje();
  $("hAg").innerHTML=agOk?(
-  ((agenda.eventos||[]).map(e=>`<div class="hitem"><span class="hm" style="margin:0 0 0 0">${esc(e.h||"")}</span><span>${esc(e.t)}</span>${e.cal?`<span class="hm">${esc(e.cal)}</span>`:""}</div>`).join("")||`<div class="hsub">sem eventos hoje</div>`)+
-  ((agenda.aniversarios&&agenda.aniversarios.length)?`<div class="hitem"><span>🎂 ${agenda.aniversarios.map(esc).join(" · ")}</span></div>`:"")
+  (agenda.eventos||[]).map(e=>`<div class="hitem"><span class="hm" style="margin:0 0 0 0">${esc(e.h||"")}</span><span>${esc(e.t)}${e.quem?` <span class="chip" style="display:inline;color:var(--acc2)">${esc(e.quem)}</span>`:""}</span></div>`).join("")||`<div class="hsub">sem eventos hoje</div>`
  ):`<div class="hsub">por atualizar</div>`;
+ $("hAniv").innerHTML=(agOk&&agenda.aniversarios&&agenda.aniversarios.length)?agenda.aniversarios.map(n=>`<div class="hitem"><span>🎂 ${esc(n)}</span></div>`).join(""):`<div class="hsub">nenhum hoje</div>`;
  // emails
  const mOk=mail&&mail.data===hoje();
  $("hMail").innerHTML=mOk?(
