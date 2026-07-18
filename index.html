@@ -169,7 +169,7 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .cpf{display:flex;flex-direction:column;gap:2px;}
 .cpf .cpl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);padding-left:2px;}
 .cpf.off{opacity:.32;}
-.cpf.off input{pointer-events:none;}
+.chipoff{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:0 2px;height:24px;display:inline-flex;align-items:center;}
 .cnome{display:flex;flex-direction:column;gap:2px;min-width:0;}
 .cnome.clk{cursor:pointer;}
 .cnome.clk:hover .cli{color:var(--acc);}
@@ -1514,7 +1514,7 @@ function crow(r){
  // NULL sobrepõe tudo; se total -> adj/fin off; se adj/fin -> total off
  const nullOn=temNull;
  const totalOff=temAdj||temFin||nullOn, parcOff=temTotal||nullOn, nullBlock=temTotal||temAdj||temFin;
- const dateField=(f,lbl,valor,tip,off)=>`<label class="cpf${off?" off":""}"><span class="cpl">${lbl}</span><input type="date" data-cf="${f}" data-ix="${idx}" value="${valor||""}" title="${tip}" ${off?"disabled":""}/></label>`;
+ const dateField=(f,lbl,valor,tip,off)=>off?`<span class="cpf off" title="${esc(tip)}"><span class="cpl">${lbl}</span><span class="chipoff">${valor?fmtDataCurta(valor):"—"}</span></span>`:`<span class="cpf" title="${esc(tip)}"><span class="cpl">${lbl}</span>${dateChip("c:"+idx+":"+f,valor?fmtDataCurta(valor):"—",valor,"")}</span>`;
  let pags;
  if(av){
   pags=`<span class="cpag">${dateField(12,"pago",r[12],"data de pagamento da avença ("+cIVA.toFixed(2)+"€ c/IVA)",false)}</span>`;
@@ -1563,6 +1563,7 @@ function bindConta(el){
   e.stopPropagation();
   D.conta[+b.dataset.lset][14]=b.dataset.lval;await save();rConta();
  }));
+ bindDatePickers(el);
 }
 let contaOpen={ativos:true,"avenças":true,pagos:false,null:false,rejeitados:false};
 function rConta(){
@@ -1994,8 +1995,8 @@ function rTaskList(el,list){
    <button class="chk${t.estado==="concluída"?" c":""}" data-a="tg" data-id="${t.id}" aria-label="concluir"></button>
    <span style="display:flex;align-items:baseline;min-width:0;cursor:pointer" data-op="${(D.projectos.find(x=>x.nome===t.projecto)||{}).id||""}"><i class="pdot" style="background:${pcor(t)}"></i><span style="min-width:0"><span class="tt">${esc(t.titulo)}${urg?' <span class="meta urg">⚠</span>':""}${t.responsavel&&t.responsavel!=="Ricardo"?` <span class="chip hot" style="display:inline">${esc(t.responsavel)}</span>`:""}</span><span class="sub2">${t.categoria} · ${esc(t.projecto)}</span></span></span>
    <span class="tctrl">
-    <button class="ico datechip" data-ddbtn="${t.id}" title="dia de trabalho">${t.data?fmtDataCurta(t.data):"dia"}</button>
-    <button class="ico datechip ${px}" data-dpbtn="${t.id}" title="prazo limite">${t.prazo?fmtDataCurta(t.prazo):"prazo"}</button>
+    ${dateChip("t:"+t.id+":data",t.data?fmtDataCurta(t.data):"dia",t.data,"")}
+    ${dateChip("t:"+t.id+":prazo",t.prazo?fmtDataCurta(t.prazo):"prazo",t.prazo,px)}
     <select class="pin" data-a="es" data-id="${t.id}">${["ativa","em espera","concluída","arquivada"].map(s=>`<option ${t.estado===s?"selected":""}>${s}</option>`).join("")}</select>
     <select class="pin" data-a="rp" data-id="${t.id}" title="responsável">${["Ricardo","Marta"].map(s=>`<option ${(t.responsavel||"Ricardo")===s?"selected":""}>${s}</option>`).join("")}</select>
     <span class="qwrap">
@@ -2015,8 +2016,7 @@ function rTaskList(el,list){
  el.querySelectorAll("[data-a=es]").forEach(s=>s.addEventListener("change",async()=>{
   D.tarefas.find(x=>x.id===s.dataset.id).estado=s.value;await save();rAll();
  }));
- el.querySelectorAll("[data-ddbtn]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();openDatePicker(b,b.dataset.ddbtn,"data");}));
- el.querySelectorAll("[data-dpbtn]").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();openDatePicker(b,b.dataset.dpbtn,"prazo");}));
+ bindDatePickers(el);
  el.querySelectorAll("[data-op]").forEach(sp=>sp.addEventListener("click",e=>{if(e.target.closest("input,select,button,.tt"))return;const id=sp.dataset.op;if(id)openP(id);}));
  el.querySelectorAll(".tt").forEach(sp=>{
   sp.addEventListener("dblclick",e=>{
@@ -2088,32 +2088,63 @@ function bindMonthGrid(box){
   });
  });
 }
-function closeDatePickers(){document.querySelectorAll(".datepop").forEach(p=>p.remove());}
-document.addEventListener("click",e=>{if(!e.target.closest(".datepop")&&!e.target.closest("[data-ddbtn],[data-dpbtn]"))closeDatePickers();});
-function openDatePicker(anchorBtn,taskId,field){
- closeDatePickers();
- const t=D.tarefas.find(x=>x.id===taskId);if(!t)return;
- const base=t[field]?new Date(t[field]+"T12:00"):new Date();
- let y=base.getFullYear(),m=base.getMonth();
- const pop=document.createElement("div");
- pop.className="qmenu datepop";
- pop.style.position="fixed";
- document.body.appendChild(pop);
- function draw(){
-  const hdr=`<div class="calh mini"><button class="ico" id="dpP" style="width:20px;height:20px;font-size:10px">‹</button><span>${new Date(y,m,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span><button class="ico" id="dpN" style="width:20px;height:20px;font-size:10px">›</button></div>`;
-  pop.innerHTML=hdr+buildMonthGrid(y,m,t[field])+`<button class="ico" id="dpClear" style="width:100%;margin-top:6px;font-size:10px;height:26px">limpar</button>`;
-  pop.querySelector("#dpP").onclick=e=>{e.stopPropagation();m--;if(m<0){m=11;y--;}draw();};
-  pop.querySelector("#dpN").onclick=e=>{e.stopPropagation();m++;if(m>11){m=0;y++;}draw();};
-  pop.querySelectorAll(".cald").forEach(c=>c.addEventListener("click",async e=>{
-   e.stopPropagation();t[field]=c.dataset.iso;await save();closeDatePickers();rAll();
-  }));
-  pop.querySelector("#dpClear").onclick=async e=>{e.stopPropagation();t[field]=null;await save();closeDatePickers();rAll();};
+const dpNav={};
+function datePopHTML(key,selIso){
+ if(!dpNav[key]){
+  const base=selIso?new Date(selIso+"T12:00"):new Date();
+  dpNav[key]={y:base.getFullYear(),m:base.getMonth()};
  }
- draw();
- const r=anchorBtn.getBoundingClientRect();
- pop.style.top=Math.min(r.bottom+6,window.innerHeight-320)+"px";
- pop.style.left=Math.min(r.left,window.innerWidth-250)+"px";
- pop.hidden=false;
+ const st=dpNav[key];
+ let nY=st.y,nM=st.m+1;if(nM>11){nM=0;nY++;}
+ return `<div class="qmenu datepop" data-dpmenu="${key}" hidden>
+   <div class="calh mini"><button class="ico" data-dpp="${key}" style="width:20px;height:20px;font-size:10px">‹</button><span>${new Date(st.y,st.m,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span><button class="ico" data-dpn="${key}" style="width:20px;height:20px;font-size:10px">›</button></div>
+   ${buildMonthGrid(st.y,st.m,selIso)}
+   <div class="calh mini" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><span>${new Date(nY,nM,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span></div>
+   ${buildMonthGrid(nY,nM,selIso)}
+   <button class="ico" data-dpclear="${key}" style="width:100%;margin-top:8px;font-size:10px;height:26px">limpar data</button>
+  </div>`;
+}
+function dateChip(key,label,selIso,cls){
+ return `<span class="qwrap"><button class="ico datechip ${cls||""}" data-dpo="${key}">${esc(label)}</button>${datePopHTML(key,selIso)}</span>`;
+}
+function resolveDP(key){
+ const [kind,a,b]=key.split(":");
+ if(kind==="t"){
+  const t=D.tarefas.find(x=>x.id===a);
+  return t?{set:v=>{t[b]=v;}}:null;
+ }
+ if(kind==="c"){
+  const idx=+a,f=+b;
+  return D.conta[idx]?{set:v=>{D.conta[idx][f]=v;}}:null;
+ }
+ return null;
+}
+function bindDatePickers(el){
+ el.querySelectorAll("[data-dpo]").forEach(b=>b.addEventListener("click",e=>{
+  e.stopPropagation();
+  const menu=document.querySelector(`[data-dpmenu="${b.dataset.dpo}"]`);
+  document.querySelectorAll(".qmenu").forEach(x=>{if(x!==menu)x.hidden=true;});
+  if(menu)menu.hidden=!menu.hidden;
+ }));
+ el.querySelectorAll("[data-dpp]").forEach(b=>b.addEventListener("click",e=>{
+  e.stopPropagation();const key=b.dataset.dpp,st=dpNav[key];st.m--;if(st.m<0){st.m=11;st.y--;}
+  rAll();const m2=document.querySelector(`[data-dpmenu="${key}"]`);if(m2)m2.hidden=false;
+ }));
+ el.querySelectorAll("[data-dpn]").forEach(b=>b.addEventListener("click",e=>{
+  e.stopPropagation();const key=b.dataset.dpn,st=dpNav[key];st.m++;if(st.m>11){st.m=0;st.y++;}
+  rAll();const m2=document.querySelector(`[data-dpmenu="${key}"]`);if(m2)m2.hidden=false;
+ }));
+ el.querySelectorAll(".datepop .cald").forEach(c=>c.addEventListener("click",async e=>{
+  e.stopPropagation();
+  const menu=c.closest(".datepop"),key=menu.dataset.dpmenu;
+  const r=resolveDP(key);if(!r)return;
+  r.set(c.dataset.iso);await save();rAll();
+ }));
+ el.querySelectorAll("[data-dpclear]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();
+  const r=resolveDP(b.dataset.dpclear);if(!r)return;
+  r.set(null);await save();rAll();
+ }));
 }
 function rCal(){
  if(calY===undefined){const n=new Date();calY=n.getFullYear();calM=n.getMonth();}
