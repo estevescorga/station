@@ -596,6 +596,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ REDES ============ -->
 <div class="view" id="v-REDES">
+  <div id="rdContexto" style="margin-bottom:18px"></div>
   <h2 class="sec">Contas</h2>
   <div class="pgrid" id="rdContas"></div>
   <h2 class="sec">Calendário editorial</h2>
@@ -1731,6 +1732,16 @@ function addIdeia(){D.estrategia.ideias.unshift({id:"i"+Date.now(),titulo:"Nova 
 const CONTAS_COR={"RIMA studio":"#0E7C72","RIMA lab":"#C74A3C","Ricardo Esteves Corga":"#8AA86A"};
 function rRedes(){
  const R=D.redes;if(!R)return;
+ // contexto: a mesma oportunidade calculada na Estratégia, visível também aqui
+ const op=oportunidadeAgora();
+ if(op){
+  const h=new Date();h.setHours(0,0,0,0);
+  const faltam=diffDias(h,op.tipo==="ativo"?op.evento:op.inicio);
+  $("rdContexto").innerHTML=`<div class="card fcard2 opnow${op.tipo==="futuro"?" soon":""}" style="padding:14px 18px">
+    <div class="pname">🎯 ${op.tipo==="ativo"?"Oportunidade ativa":"A preparar"}: ${esc(op.nome)}</div>
+    <div class="fcorpo" style="margin-top:6px">${esc(op.nota)}${op.tipo==="futuro"?` Janela de comunicação abre em ${faltam} dia${faltam===1?"":"s"} (${op.inicio.toLocaleDateString("pt-PT")}).`:""}</div>
+   </div>`;
+ }else $("rdContexto").innerHTML="";
  $("rdContas").innerHTML=R.contas.map(c=>`<div class="pcard card" style="cursor:default">
    <div class="pname" contenteditable data-rc="nome" data-cid="${c.id}">${esc(c.nome)}</div>
    <div class="accbar" style="background:${CONTAS_COR[c.nome]||"var(--acc)"}"></div>
