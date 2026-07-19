@@ -96,12 +96,24 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .ecalm.now .ecmn{color:var(--acc);font-weight:700;}
 .ecmt{font-size:10.5px;line-height:1.4;color:var(--txt);}
 .fcard2{position:relative;padding-bottom:14px;}
+.opnow{box-shadow:0 0 0 1.5px var(--acc),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
+.opnow.soon{box-shadow:0 0 0 1.5px var(--acc2),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
 .fcard2 .fsel{font-family:'IBM Plex Mono',monospace;font-size:9px;margin:6px 0 8px;padding:4px 8px;border:none;border-radius:8px;background:var(--bg);color:var(--acc2);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .fcorpo{font-size:12px;line-height:1.55;color:var(--txt);outline:none;min-height:40px;}
 .fcorpo:focus,.ititulo:focus,.icorpo:focus,[contenteditable]:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:6px;}
 .fdel{position:absolute;top:10px;right:10px;width:22px;height:22px;font-size:10px;opacity:.4;}
 .fdel:hover{opacity:1;}
 .irow{position:relative;display:flex;gap:10px;padding:10px 40px 10px 16px;border-bottom:1px solid var(--line);align-items:flex-start;}
+.propsec{margin-bottom:22px;}
+.propsech{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--txt);margin-bottom:10px;font-weight:600;}
+.propgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
+.propcard{position:relative;padding:14px;}
+.propcard.vazio{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:150px;color:var(--soft);font-size:12px;text-align:center;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
+.propimg{width:100%;aspect-ratio:1.2/1;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:10px;}
+.propt{font-weight:600;font-size:12.5px;margin-bottom:4px;line-height:1.35;}
+.propd{font-size:11px;color:var(--soft);line-height:1.5;}
+.propx{position:absolute;top:8px;right:8px;width:22px;height:22px;font-size:10px;opacity:.5;}
+.propx:hover{opacity:1;}
 .irow .fdel{top:8px;right:8px;}
 .idot{color:var(--acc2);font-weight:700;padding-top:1px;}
 .ititulo{font-weight:600;font-size:13px;outline:none;}
@@ -586,8 +598,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="view" id="v-REDES">
   <h2 class="sec">Contas</h2>
   <div class="pgrid" id="rdContas"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Calendário editorial<span style="display:flex;gap:8px;align-items:center"><select id="rdFiltro" class="pin"><option value="">todas as contas</option><option>RIMA studio</option><option>RIMA lab</option><option>Ricardo Esteves Corga</option></select><button class="ico" style="width:28px;height:28px" title="Novo post" onclick="addPost()">＋</button></span></h2>
-  <div class="card" style="padding:6px 0" id="rdCal"></div>
+  <h2 class="sec">Calendário editorial</h2>
+  <div id="rdProp"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Banco de ideias<button class="ico" style="width:28px;height:28px" title="Nova ideia" onclick="addIdeiaRD()">＋</button></h2>
   <div class="card" style="padding:10px 0" id="rdIdeias"></div>
   <h2 class="sec">Reaproveitamento</h2>
@@ -996,7 +1008,7 @@ async function load(){
    {id:"ri2",conta:"RIMA studio",titulo:"Bastidores produção retratos Grünenthal",nota:"Mostrar o processo do briefing aprovado até à entrega, sem revelar dados do cliente."},
    {id:"ri3",conta:"Ricardo Esteves Corga",titulo:"Timelapse de uma ilustração do zero ao fim",nota:"Peça pessoal, sem briefing de cliente, formato mais solto."}
   ],
-  calendario:[],
+  propostas:DEFAULT_PROPOSTAS,
   principios:[
    "Uma gravação de processo dá para 1 reel, 3-4 stories e 1 carrossel de stills. Grava uma vez, corta várias vezes.",
    "Grava sempre vertical desde o início — poupa reformatação depois.",
@@ -1004,6 +1016,8 @@ async function load(){
    "Bastidores do studio podem virar stories mais informais no lab, quando fizer sentido cruzar."
   ]
  };
+ if(!D.redes.propostas)D.redes.propostas=DEFAULT_PROPOSTAS;
+ if(D.redes.calendario)delete D.redes.calendario;
  if(!D.precario)D.precario={niveis:{baixo:3500,medio:7000,alto:13000},horasDia:5,diasSemana:5};
  (D.projectos||[]).forEach(p=>{if(p.cliente===undefined)p.cliente=false;if(p.marca===undefined)p.marca=null;if(p.prioridade===undefined)p.prioridade=2;if(p.horasPrevistas===undefined)p.horasPrevistas=null;if(p.horasGastas===undefined)p.horasGastas=0;if(p.orcamento===undefined)p.orcamento=null;if(p.adjudicado===undefined)p.adjudicado=true;});
  const PAL=["#C74A3C","#3AAFA9","#D99A3C","#6B92E5","#A87CA8","#7FA88B","#B85C7A","#5C8AA8","#8A7B63","#6E8F5A","#C77B3C","#7A6BB8","#4AA3C7","#A8A23C","#B8635C","#5CA88F","#8F5CA8","#A8845C","#5C6EA8","#94A83C","#C75C94","#3C9AA8","#A83C5C"];
@@ -1594,33 +1608,98 @@ function novoProj(){
 }
 
 /* ============ estratégia ============ */
-const CALCOM=[
- ["jan","comunicar S. Valentim (desde dia 15)"],
- ["fev","Dia dos Namorados (14)"],
- ["mar","Dia do Pai (19) · Dia da Mulher (8, ângulo RH)"],
- ["abr","comunicar Dia da Mãe (desde dia 1)"],
- ["mai","Dia da Mãe — pico B2C · Dia da Família (15)"],
- ["jun","Dia da Criança (1) · fim de ano escolar · casamentos"],
- ["jul","casamentos · prendas de professores"],
- ["ago","produzir e preparar o outono"],
- ["set","regresso às aulas · retomar prospeção corporate"],
- ["out","Dia do Animal (4) · arrancar comunicação Natal corporate"],
- ["nov","Black Friday · empresas fecham orçamentos de Natal"],
- ["dez","pico de Natal — B2C e corporate"]
+const OPORTUNIDADES=[
+ {nome:"São Valentim",mes:2,dia:14,cMes:1,cDia:15,nota:"Comunicar Diz-me e Entrelinhas como prenda de romance."},
+ {nome:"Dia da Mulher (ângulo RH)",mes:3,dia:8,cMes:2,cDia:20,nota:"Proposta institucional para RH/RP, não é campanha B2C."},
+ {nome:"Dia do Pai",mes:3,dia:19,cMes:3,cDia:1,nota:"Curadoria emocional de prendas para pais."},
+ {nome:"Dia da Mãe",mes:5,dia:3,cMes:4,cDia:1,nota:"Pico B2C do ano — maior investimento de comunicação."},
+ {nome:"Dia da Família",mes:5,dia:15,cMes:5,cDia:1,nota:"Extensão natural da campanha do Dia da Mãe."},
+ {nome:"Dia da Criança",mes:6,dia:1,cMes:5,cDia:15,nota:"Prendas para crianças, ângulo lúdico."},
+ {nome:"Fim de ano escolar",mes:6,dia:20,cMes:6,cDia:1,nota:"Prendas de professores, retratos de turma."},
+ {nome:"Preparar o outono",mes:9,dia:1,cMes:8,cDia:1,nota:"Agosto é para produzir stock e conteúdo, não vender."},
+ {nome:"Retomar prospeção corporate",mes:9,dia:15,cMes:8,cDia:15,nota:"Reativar contactos B2B depois do verão."},
+ {nome:"Dia do Animal",mes:10,dia:4,cMes:9,cDia:15,nota:"Comunicação temática, público apaixonado por animais."},
+ {nome:"Propostas de Natal corporate na mesa",mes:11,dia:5,cMes:9,cDia:1,nota:"CRÍTICO — se não estiver na mesa do cliente até aqui, o ano corporate está perdido."},
+ {nome:"Black Friday",mes:11,dia:27,cMes:11,cDia:1,nota:"Campanha B2C, código de desconto."},
+ {nome:"Natal",mes:12,dia:24,cMes:11,cDia:15,nota:"Pico de vendas B2C e entregas corporate."}
 ];
+function oportunidadeAgora(){
+ const h=new Date();h.setHours(0,0,0,0);
+ const anoRef=h.getFullYear();
+ let cand=[];
+ OPORTUNIDADES.forEach(o=>{
+  [anoRef-1,anoRef,anoRef+1].forEach(ano=>{
+   const evento=new Date(ano,o.mes-1,o.dia);
+   const inicioAno=o.cMes>o.mes?ano-1:ano;
+   const inicio=new Date(inicioAno,o.cMes-1,o.cDia);
+   cand.push({...o,evento,inicio});
+  });
+ });
+ const ativos=cand.filter(c=>c.inicio<=h&&h<=c.evento).sort((a,b)=>a.evento-b.evento);
+ if(ativos.length)return{tipo:"ativo",...ativos[0]};
+ const futuros=cand.filter(c=>c.inicio>h).sort((a,b)=>a.inicio-b.inicio);
+ return futuros.length?{tipo:"futuro",...futuros[0]}:null;
+}
+function diffDias(a,b){return Math.round((b-a)/864e5);}
+const DEFAULT_PROPOSTAS={
+ "RIMA studio":[
+  {icone:"🎬",titulo:"Bastidores: retratos Grünenthal",texto:"Sete retratos, um por um. Mostramos o processo desde o brief aprovado até à entrega, sem revelar dados do cliente."},
+  {icone:"📝",titulo:"De brief a ilustração",texto:"Um documento de três linhas vira uma peça visual completa. O antes e o depois do nosso processo de trabalho."},
+  {icone:"🎞️",titulo:"O que é motion design",texto:"Uma animação de 15 segundos pode valer mais do que um slide inteiro. Explicamos porquê, em linguagem simples."},
+  {icone:"📐",titulo:"Identidade visual em três semanas",texto:"Do primeiro esboço ao manual de marca fechado. Um processo estruturado, sem voltas."}
+ ],
+ "RIMA lab":[
+  {icone:"✏️",titulo:"Reel: processo Entrelinhas",texto:"A mão a desenhar, em tempo real. Um retrato em linha, do primeiro traço ao último."},
+  {icone:"🌿",titulo:"Herbário: da folha ao papel",texto:"Cada print nasce de uma folha real, prensada e desenhada com cuidado. Mostramos o processo completo."},
+  {icone:"🎁",titulo:"Guia de prendas: retrato personalizado",texto:"Não sabe o que oferecer? Um retrato em linha guarda um momento para sempre."},
+  {icone:"🎵",titulo:"Diz-me: a música que vos une",texto:"Uma letra, uma frase, uma data. Tipografia personalizada com significado."}
+ ],
+ "Ricardo Esteves Corga":[
+  {icone:"⏱️",titulo:"Timelapse: do zero ao fim",texto:"Uma ilustração completa, do esboço à cor final, em poucos segundos de vídeo."},
+  {icone:"🖊️",titulo:"Ferramentas do estúdio",texto:"O que uso todos os dias para desenhar. Sem filtros, sem produção."},
+  {icone:"📓",titulo:"Um esboço que nunca mostrei",texto:"Do caderno pessoal para aqui. Ideias soltas, sem pressão de projecto."},
+  {icone:"💭",titulo:"Da ideia ao traço final",texto:"Como uma ideia vaga se transforma numa ilustração acabada. O processo mental, não só o técnico."}
+ ]
+};
 function rEstrategia(){
  const E=D.estrategia;if(!E)return;
- // calendário
+ // calendário: agrupar oportunidades por mês
+ const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
  const mesAtual=new Date().getMonth();
- $("ecal").innerHTML=`<div class="ecalgrid">`+CALCOM.map(([m,tx],i)=>`<div class="ecalm${i===mesAtual?" now":""}"><div class="ecmn">${m}</div><div class="ecmt">${tx}</div></div>`).join("")+`</div>`;
+ const porMes=Array.from({length:12},()=>[]);
+ OPORTUNIDADES.forEach(o=>porMes[o.mes-1].push(o.nome+(o.dia?` (${o.dia})`:"")));
+ $("ecal").innerHTML=`<div class="ecalgrid">`+MESES.map((m,i)=>`<div class="ecalm${i===mesAtual?" now":""}"><div class="ecmn">${m}</div><div class="ecmt">${esc(porMes[i].join(" · ")||"—")}</div></div>`).join("")+`</div>`;
+ // oportunidade a atacar agora — cartão fixo no topo das frentes
+ const op=oportunidadeAgora();
+ let opCard="";
+ if(op){
+  const h=new Date();h.setHours(0,0,0,0);
+  if(op.tipo==="ativo"){
+   const faltam=diffDias(h,op.evento);
+   opCard=`<div class="pcard card fcard2 opnow">
+     <div class="pname">🎯 Atacar agora: ${esc(op.nome)}</div>
+     <div class="accbar" style="background:var(--acc)"></div>
+     <div class="fcorpo" style="margin-top:8px">${esc(op.nota)}</div>
+     <div class="hsub" style="margin-top:6px">${faltam===0?"é hoje":faltam===1?"falta 1 dia":`faltam ${faltam} dias`} · janela aberta desde ${op.inicio.toLocaleDateString("pt-PT")}</div>
+    </div>`;
+  }else{
+   const faltam=diffDias(h,op.inicio);
+   opCard=`<div class="pcard card fcard2 opnow soon">
+     <div class="pname">🎯 A seguir: ${esc(op.nome)}</div>
+     <div class="accbar" style="background:var(--acc2)"></div>
+     <div class="fcorpo" style="margin-top:8px">${esc(op.nota)}</div>
+     <div class="hsub" style="margin-top:6px">janela abre em ${faltam} dia${faltam===1?"":"s"} · ${op.inicio.toLocaleDateString("pt-PT")}</div>
+    </div>`;
+  }
+ }
  // frentes
  const ESTADOS=["ideia","a trabalhar","em pausa","ganha","perdida"];
- $("efrentes").innerHTML=E.frentes.map(f=>`<div class="pcard card fcard2" data-fid="${f.id}">
+ $("efrentes").innerHTML=opCard+E.frentes.map(f=>`<div class="pcard card fcard2" data-fid="${f.id}">
    <div class="pname" contenteditable data-ef="titulo" data-fid="${f.id}">${esc(f.titulo)}</div>
    <select data-ef="estado" data-fid="${f.id}" class="fsel">${ESTADOS.map(s=>`<option ${f.estado===s?"selected":""}>${s}</option>`).join("")}</select>
    <div class="fcorpo" contenteditable data-ef="corpo" data-fid="${f.id}">${esc(f.corpo).replace(/\n/g,"<br>")}</div>
    <button class="ico fdel" data-fdel="${f.id}" title="Apagar">✕</button>
-  </div>`).join("")||`<div class="empty">sem frentes — usa o ＋</div>`;
+  </div>`).join("")||opCard||`<div class="empty">sem frentes — usa o ＋</div>`;
  // ideias
  $("eideias").innerHTML=E.ideias.map(i=>`<div class="irow" data-iid="${i.id}">
    <span class="idot">•</span>
@@ -1663,28 +1742,24 @@ function rRedes(){
  $("rdContas").querySelectorAll("[data-rc]").forEach(el=>el.addEventListener("blur",async()=>{
   const c=R.contas.find(x=>x.id===el.dataset.cid);if(c)c[el.dataset.rc]=el.innerText.trim();await save();
  }));
- const filtro=$("rdFiltro")?$("rdFiltro").value:"";
- const posts=[...R.calendario].filter(p=>!filtro||p.conta===filtro).sort((a,b)=>(a.data||"9999").localeCompare(b.data||"9999"));
- const ESTADOS_POST=["ideia","a gravar","a editar","agendado","publicado"];
- $("rdCal").innerHTML=posts.map(p=>`<div class="recrow" style="grid-template-columns:100px 1fr 120px 1fr 30px">
-   <input type="date" class="pin" data-pf="data" data-pid="${p.id}" value="${p.data||""}" />
-   <span style="display:flex;align-items:center;gap:6px"><i class="pdot" style="background:${CONTAS_COR[p.conta]||"var(--soft)"}"></i><select class="pin" data-pf="conta" data-pid="${p.id}">${["RIMA studio","RIMA lab","Ricardo Esteves Corga"].map(n=>`<option ${p.conta===n?"selected":""}>${n}</option>`).join("")}</select></span>
-   <input class="pin" data-pf="plataforma" data-pid="${p.id}" value="${esc(p.plataforma||"")}" placeholder="plataforma" />
-   <span contenteditable data-pf="tema" data-pid="${p.id}" style="align-self:center">${esc(p.tema||"")}</span>
-   <button class="ico" style="width:24px;height:24px;font-size:11px" data-pdel="${p.id}" title="apagar">✕</button>
-   <select class="pin" data-pf="estado" data-pid="${p.id}" style="grid-column:1/3;margin-top:4px">${ESTADOS_POST.map(s=>`<option ${p.estado===s?"selected":""}>${s}</option>`).join("")}</select>
-  </div>`).join("")||`<div class="empty">sem posts planeados — usa o ＋</div>`;
- $("rdCal").querySelectorAll("[data-pf]").forEach(el=>{
-  const ev=el.tagName==="SELECT"||el.type==="date"?"change":"blur";
-  el.addEventListener(ev,async()=>{
-   const p=R.calendario.find(x=>x.id===el.dataset.pid);if(!p)return;
-   const f=el.dataset.pf;
-   p[f]=el.tagName==="SPAN"?el.innerText.trim():el.value;
-   await save();rRedes();
-  });
- });
- $("rdCal").querySelectorAll("[data-pdel]").forEach(b=>b.addEventListener("click",async()=>{
-  R.calendario=R.calendario.filter(x=>x.id!==b.dataset.pdel);await save();rRedes();
+ const CONTAS_ORDEM=["RIMA studio","RIMA lab","Ricardo Esteves Corga"];
+ $("rdProp").innerHTML=CONTAS_ORDEM.map(nome=>{
+  const arr=R.propostas[nome]||[null,null,null,null];
+  return `<div class="propsec">
+    <div class="propsech"><i class="pdot" style="background:${CONTAS_COR[nome]}"></i>${esc(nome)}</div>
+    <div class="propgrid">
+     ${arr.map((p,i)=>p?`<div class="propcard card">
+        <button class="ico propx" data-propdel="${esc(nome)}|${i}" title="descartar">✕</button>
+        <div class="propimg" style="background:${CONTAS_COR[nome]}22">${p.icone}</div>
+        <div class="propt">${esc(p.titulo)}</div>
+        <div class="propd">${esc(p.texto)}</div>
+       </div>`:`<div class="propcard card vazio">— vazio —<span class="hsub" style="margin-top:4px">pede "novos posts"</span></div>`).join("")}
+    </div>
+   </div>`;
+ }).join("");
+ $("rdProp").querySelectorAll("[data-propdel]").forEach(b=>b.addEventListener("click",async()=>{
+  const [nome,i]=b.dataset.propdel.split("|");
+  R.propostas[nome][+i]=null;await save();rRedes();
  }));
  $("rdIdeias").innerHTML=R.ideias.map(i=>`<div class="irow" data-iid2="${i.id}">
    <i class="pdot" style="background:${CONTAS_COR[i.conta]||"var(--soft)"};margin-top:5px"></i>
@@ -1709,15 +1784,10 @@ function rRedes(){
  $("rdPrin").innerHTML=R.principios.map((p,i)=>`<div class="irow"><span class="idot" style="color:var(--acc)">${i+1}</span><div class="icorpo" style="font-size:12.5px" contenteditable data-rp="${i}">${esc(p)}</div></div>`).join("");
  $("rdPrin").querySelectorAll("[data-rp]").forEach(el=>el.addEventListener("blur",async()=>{R.principios[+el.dataset.rp]=el.innerText.trim();await save();}));
 }
-function addPost(){
- D.redes.calendario.unshift({id:"p"+Date.now(),data:hoje(),conta:"RIMA lab",plataforma:"Instagram",tema:"",estado:"ideia"});
- save().then(rRedes);
-}
 function addIdeiaRD(){
  D.redes.ideias.unshift({id:"ri"+Date.now(),conta:"RIMA lab",titulo:"Nova ideia",nota:""});
  save().then(rRedes);
 }
-document.addEventListener("change",e=>{if(e.target.id==="rdFiltro")rRedes();});
 
 /* ============ preçário serviços ============ */
 function rServ(){
