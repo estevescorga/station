@@ -579,6 +579,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="msec"><div class="msech" style="display:flex;justify-content:space-between;align-items:center">documentos<button class="ico" style="width:26px;height:26px;font-size:14px" title="Adicionar documento" onclick="addDocFile()">+</button></div>
    <div class="doclist" id="dBox" style="max-height:460px"></div>
   </div>
+  <div class="msec">
+   <button class="ico" style="width:auto;padding:0 16px;height:34px;font-size:11px;color:var(--acc)" id="mDelBtn" title="Apagar projecto">🗑 Apagar projecto</button>
+  </div>
  </div>
 </div>
 
@@ -2024,6 +2027,13 @@ function renderP(){
  renderBudget(p);
  rTaskList($("mTasks"),D.tarefas.filter(t=>t.categoria===p.categoria&&t.projecto===p.nome&&t.estado!=="arquivada"));
  rDocs();
+ const delBtn=$("mDelBtn");
+ if(delBtn)delBtn.onclick=()=>{
+  if(!confirm(`Apagar o projecto "${p.nome}" definitivamente? Isto não pode ser desfeito no Station.`))return;
+  const ds=docs.filter(d=>d.projecto===p.nome);
+  const nTarefas=D.tarefas.filter(t=>t.projecto===p.nome&&t.estado!=="arquivada").length;
+  ask(`Apagar o projecto "${p.nome}" (${p.categoria}, id ${p.id}) do Station.${ds.length?` Tem ${ds.length} documento(s) associado(s) — confirma que já estão guardados na pasta certa da Drive (ou guarda-os lá agora se ainda não estiverem) antes de remover.`:" Sem documentos associados a verificar."}${nTarefas?` Tem ${nTarefas} tarefa(s) ativa(s) — decide se arquivam ou se apagam também.`:""} Os registos de contabilidade ligados a este projecto mantêm-se, só perdem a ligação ao projecto. Depois de confirmares que está tudo seguro, remove o projecto do station-data.json.`);
+ };
 }
 function renderBudget(p){
  const box=$("mBudget");if(!box)return;
