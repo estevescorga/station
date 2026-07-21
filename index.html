@@ -283,6 +283,8 @@ body.paused #pauseTint{opacity:1;}
 .rrow .q{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--soft);}
 .rrow .n{font-size:11.5px;color:var(--soft);display:block;margin-top:2px;}
 .rrow .tk{font-size:12.5px;display:block;margin-top:3px;padding-left:12px;position:relative;}
+.rrow .tk.tkfora{opacity:.5;text-decoration:line-through;text-decoration-color:var(--soft);}
+.rrow .tk.tkdone{opacity:.5;}
 .rrow .tk::before{content:"·";position:absolute;left:2px;color:var(--acc);}
 .chk{width:20px;height:20px;border-radius:7px;border:none;cursor:pointer;background:var(--bg);box-shadow:inset 3px 3px 6px var(--sh-d),inset -3px -3px 6px var(--sh-l);position:relative;}
 .chk.c::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--ok);font-size:12px;font-weight:700;}
@@ -1200,6 +1202,14 @@ function tick(){
 }
 
 /* ============ HOJE ============ */
+function tkLabel(ref){
+ // ref pode ser um id de tarefa (ex: "g13") ou um título já em texto
+ const t=(D.tarefas||[]).find(x=>x.id===ref);
+ if(!t)return `<span class="tk">${esc(ref)}</span>`;
+ const foraDeHoje=t.data&&t.data!==hoje();
+ const concluida=t.estado==="concluída";
+ return `<span class="tk${foraDeHoje?" tkfora":""}${concluida?" tkdone":""}" title="${foraDeHoje?"já não é de hoje ("+t.data+")":concluida?"concluída":""}">${esc(t.titulo)}${foraDeHoje?" ⤳":""}${concluida?" ✓":""}</span>`;
+}
 function rHoje(){
  const el=$("rotList");el.innerHTML="";
  const its=rot?rot.itens:null;
@@ -1217,7 +1227,7 @@ function rHoje(){
   const cur=m!==null&&nm>=m&&nm<nx;
   el.insertAdjacentHTML("beforeend",`<div class="rrow${it.feito?" done":""}${cur?" cur":""}">
    <span class="q">${esc(it.q)}</span>
-   <span><span class="t">${esc(it.t)}</span>${it.n?`<span class="n">${esc(it.n)}</span>`:""}${(it.tarefas||[]).map(t=>`<span class="tk">${esc(t)}</span>`).join("")}</span>
+   <span><span class="t">${esc(it.t)}</span>${it.n?`<span class="n">${esc(it.n)}</span>`:""}${(it.tarefas||[]).map(t=>tkLabel(t)).join("")}</span>
    <button class="chk${it.feito?" c":""}" data-i="${i}" aria-label="concluir"></button></div>`);
  });
  el.querySelectorAll(".chk").forEach(b=>b.addEventListener("click",async()=>{s[+b.dataset.i].feito=!s[+b.dataset.i].feito;await saveRot();rHoje();}));
