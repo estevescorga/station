@@ -43,7 +43,15 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .chip.hot{color:var(--acc);font-weight:600;}
 
 /* header */
-.head{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;margin-bottom:20px;}
+.head{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+@media(max-width:700px){
+ .head{padding:14px 16px;}
+ .head h1{font-size:19px;}
+ .fraseTop{display:block;width:100%;margin-left:0;font-size:9.5px;}
+ .glink{width:30px;height:30px;font-size:11px;}
+ .clock .d{font-size:8.5px;}
+ .clock .h{font-size:15px;}
+}
 .head h1{font-size:16px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;}
 .head .sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--soft);letter-spacing:.1em;text-transform:uppercase;margin-top:3px;}
 .clock{text-align:right;font-family:'IBM Plex Mono',monospace;}
@@ -53,6 +61,7 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 /* nav ambientes */
 .nav{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px;}
 .nav button{font-family:'Inter',sans-serif;font-size:11.5px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;padding:11px 20px;border:none;cursor:pointer;color:var(--soft);background:var(--bg);border-radius:14px;box-shadow:3px 3px 7px var(--sh-d),-6px -6px 12px var(--sh-l);transition:all .25s;}
+@media(max-width:700px){.nav{gap:8px;}.nav button{padding:9px 13px;font-size:10px;letter-spacing:.06em;}}
 .nav button:hover{color:var(--txt);}
 .nav button.on{box-shadow:inset 3px 3px 7px var(--sh-d),inset -4px -4px 9px var(--sh-l);color:var(--acc);}
 
@@ -107,6 +116,7 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .propsec{margin-bottom:22px;}
 .propsech{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--txt);margin-bottom:10px;font-weight:600;}
 .propgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
+@media(max-width:700px){.propgrid{grid-template-columns:repeat(2,1fr);gap:10px;}}
 .propcard{position:relative;padding:14px;}
 .propcard.vazio{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:150px;color:var(--soft);font-size:12px;text-align:center;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
 .propimg{width:100%;aspect-ratio:1.2/1;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:10px;}
@@ -158,6 +168,7 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .ovl{display:none;position:fixed;inset:0;background:rgba(40,42,50,.45);z-index:50;padding:30px 14px;overflow:auto;}
 .ovl.on{display:flex;align-items:flex-start;justify-content:center;}
 .modal{width:100%;max-width:840px;padding:26px 30px 30px;box-shadow:0 24px 60px rgba(20,18,14,.38),0 6px 18px rgba(20,18,14,.22) !important;}
+@media(max-width:700px){.modal{padding:18px 14px 20px;border-radius:14px;} .ovl{padding:14px 6px;} .mhead h3{font-size:16px;}}
 .mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
 .mhead h3{font-size:17px;font-weight:700;}
 .modal .tlist{padding:0;}
@@ -360,11 +371,12 @@ body.paused #pauseTint{opacity:1;}
 .trow input[type=date].px2{color:#C7833C;}
 .trow input[type=date]{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:4px 5px;border:none;border-radius:8px;background:var(--bg);color:var(--soft);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);width:104px;}
 .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+@media(max-width:700px){.filters{gap:6px;}.filters select{font-size:9px !important;padding:6px 8px !important;}}
 .filters select{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:8px 12px;border:none;border-radius:12px;background:var(--bg);color:var(--txt);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);cursor:pointer;}
 .tlist{padding:6px 0;}
 .trow{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;padding:11px 16px;align-items:center;font-size:13.5px;border-bottom:1px solid var(--line);}
 .tctrl{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;}
-@media(max-width:700px){.trow{grid-template-columns:34px minmax(0,1fr);} .tctrl{grid-column:2;justify-content:flex-start;flex-wrap:wrap;} .trow input[type=date]{width:96px;}}
+@media(max-width:700px){.trow{grid-template-columns:34px minmax(0,1fr);} .tctrl{grid-column:2;justify-content:flex-start;flex-wrap:wrap;row-gap:6px;} .trow input[type=date]{width:96px;} .tctrl select.pin{font-size:9px;padding:4px 6px;} .datechip{height:22px;font-size:9px;padding:0 7px;}}
 .trow:last-child{border-bottom:none;}
 .trow.done{opacity:.4;}
 .trow.done .tt{text-decoration:line-through;}
@@ -375,6 +387,7 @@ body.paused #pauseTint{opacity:1;}
 .trow .meta.urg{color:var(--acc);font-weight:700;}
 .trow select{font-family:'IBM Plex Mono',monospace;font-size:9.5px;padding:5px 7px;border:none;border-radius:9px;background:var(--bg);color:var(--soft);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);cursor:pointer;}
 .addrow{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+@media(max-width:700px){.addrow{flex-wrap:wrap;}.addrow input,.addrow select{font-size:11px;padding:8px 10px;min-width:0;}.addrow .g2{width:100%;}}
 .addrow input,.addrow select{font-size:12.5px;padding:10px 13px;border:none;border-radius:12px;background:var(--bg);color:var(--txt);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);font-family:'Inter',sans-serif;}
 .addrow input::placeholder{color:var(--soft);}
 .addrow .g2{flex:2;min-width:150px;}
@@ -396,6 +409,7 @@ body.paused #pauseTint{opacity:1;}
 .fin{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:22px;}
 .vgrid{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:22px;}
 @media(max-width:760px){.vgrid{grid-template-columns:1fr;}}
+@media(max-width:700px){.pgrid{grid-template-columns:1fr !important;}}
 .vrow{display:grid;grid-template-columns:1.1fr 1fr .7fr .7fr .7fr;gap:10px;align-items:center;padding:8px 4px;border-bottom:1px solid var(--line);font-size:13px;}
 .vrow:last-child{border-bottom:none;}
 .vrow.vhead{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);border-bottom:1px solid var(--line);}
@@ -444,7 +458,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 <div class="head card">
   <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h1 style="margin:0">STATION</h1><span id="hFraseTop" class="fraseTop"></span><button class="ico" id="btnFrase" style="width:16px;height:16px;font-size:8px;opacity:.4" title="Adicionar frase" onclick="addFrase()">+</button></div>
-  <div style="display:flex;align-items:center;gap:14px">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <a class="ico glink" href="https://claude.ai/chat/d093794a-2795-4f78-89f1-8d16eabb1cd3" target="_blank" rel="noopener" title="Conversa GOTEN" id="gotenLink" style="color:var(--acc)">✦</a>
     <a class="ico glink" href="https://calendar.google.com" target="_blank" rel="noopener" title="Google Calendar">C</a>
     <a class="ico glink" href="https://tasks.google.com" target="_blank" rel="noopener" title="Google Tasks">T</a>
@@ -453,6 +467,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <a class="ico glink" href="https://web.whatsapp.com" target="_blank" rel="noopener" title="WhatsApp Web">W</a>
     <a class="ico glink" href="https://news.google.com" target="_blank" rel="noopener" title="Google Notícias">N</a>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Atualizar da nuvem" onclick="pullCloud()">☁</button>
+    <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
     <div class="clock"><div class="d" id="cD">—</div><div class="h" id="cH">—</div></div>
   </div>
 </div>
@@ -583,6 +598,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 
 <!-- ============ TAREFAS (global, filtros) ============ -->
+<div class="view" id="v-PESSOAL">
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Dia a dia · a melhorar em mim<button class="ico" style="width:28px;height:28px" title="Adicionar" onclick="addPessoal('diaadia')">＋</button></h2>
+  <div class="card" style="padding:10px 0" id="pDiaadia"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Treino · habilidades a desenvolver<button class="ico" style="width:28px;height:28px" title="Adicionar" onclick="addPessoal('treino')">＋</button></h2>
+  <div class="card" style="padding:10px 0" id="pTreino"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Frases motivacionais<button class="ico" style="width:28px;height:28px" title="Adicionar frase" onclick="addFrase()">＋</button></h2>
+  <div class="card" style="padding:10px 0" id="pFrases"></div>
+</div>
+
 <div class="view" id="v-ESTRATEGIA">
   <h2 class="sec">Calendário comercial</h2>
   <div class="card" style="padding:16px" id="ecal"></div>
@@ -1018,6 +1042,26 @@ async function load(){
   ]
  };
  if(!D.redes.propostas)D.redes.propostas=DEFAULT_PROPOSTAS;
+ if(!D.pessoal)D.pessoal={
+  diaadia:[
+   "Endireitar as costas, várias vezes ao dia",
+   "Mais confiança no meu trabalho, sem pedir desculpa pelo valor que apresento",
+   "Espírito mais seguro e livre",
+   "Mais dedicado, forte e com espírito de sacrifício",
+   "Fazer mais exercício",
+   "Respeitar a sesta e o sono, são combustível e não luxo",
+   "Uma coisa de cada vez, fechar antes de abrir",
+   "Dizer não sem culpa quando o prato está cheio",
+   "Beber mais água durante o dia de trabalho"
+  ],
+  treino:[
+   "Falar de preços sem hesitar, treinar em voz alta antes de reuniões",
+   "Follow-up comercial como hábito, não como exceção",
+   "Desenho de storyboard rápido, timing e composição",
+   "Inglês falado para clientes internacionais",
+   "Gravar e editar reels curtos sem perfecionismo"
+  ]
+ };
  if(D.redes.calendario)delete D.redes.calendario;
  if(!D.precario)D.precario={niveis:{baixo:3500,medio:7000,alto:13000},horasDia:5,diasSemana:5};
  (D.projectos||[]).forEach(p=>{if(p.cliente===undefined)p.cliente=false;if(p.marca===undefined)p.marca=null;if(p.prioridade===undefined)p.prioridade=2;if(p.horasPrevistas===undefined)p.horasPrevistas=null;if(p.horasGastas===undefined)p.horasGastas=0;if(p.orcamento===undefined)p.orcamento=null;if(p.adjudicado===undefined)p.adjudicado=true;});
@@ -1189,7 +1233,7 @@ function fraseDoDia(){
 }
 function addFrase(){
  const nv=prompt("Nova frase de motivação:");
- if(nv&&nv.trim()){D.frases.push(nv.trim());D.fraseCiclo=null;save().then(rHome);}
+ if(nv&&nv.trim()){D.frases.push(nv.trim());D.fraseCiclo=null;save().then(()=>{rHome();if($("v-PESSOAL").classList.contains("on"))rPessoal();});}
 }
 function rSearchTasks(q,elId){
  const el=$(elId||"hSearchRes");if(!el)return;
@@ -1727,6 +1771,34 @@ function bindEstrategia(){
 }
 function addFrente(){D.estrategia.frentes.unshift({id:"f"+Date.now(),titulo:"Nova frente",estado:"ideia",corpo:"Descreve a oportunidade em 2-3 parágrafos."});save().then(rEstrategia);}
 function addIdeia(){D.estrategia.ideias.unshift({id:"i"+Date.now(),titulo:"Nova ideia",corpo:"Descrição crua."});save().then(rEstrategia);}
+
+/* ============ pessoal (secção @) ============ */
+function rPessoal(){
+ const P=D.pessoal;if(!P)return;
+ const lista=(arr,boxId,key)=>{
+  $(boxId).innerHTML=arr.map((tx,i)=>`<div class="irow"><span class="idot" style="color:var(--acc2)">•</span><div class="icorpo" style="font-size:12.5px;flex:1" contenteditable data-pkey="${key}" data-pi="${i}">${esc(tx)}</div><button class="ico fdel" data-pdel="${key}|${i}" title="Apagar">✕</button></div>`).join("")||`<div class="empty">vazio — usa o ＋</div>`;
+ };
+ lista(P.diaadia,"pDiaadia","diaadia");
+ lista(P.treino,"pTreino","treino");
+ $("pFrases").innerHTML=(D.frases||[]).map((f,i)=>`<div class="irow"><span class="idot" style="color:var(--acc)">${i+1}</span><div class="icorpo" style="font-size:12.5px;flex:1;font-family:'IBM Plex Mono',monospace" contenteditable data-pkey="frases" data-pi="${i}">${esc(f)}</div><button class="ico fdel" data-pdel="frases|${i}" title="Apagar">✕</button></div>`).join("")||`<div class="empty">sem frases</div>`;
+ document.querySelectorAll("#v-PESSOAL [data-pkey]").forEach(el=>el.addEventListener("blur",async()=>{
+  const k=el.dataset.pkey,i=+el.dataset.pi,v=el.innerText.trim();
+  if(k==="frases"){if(v)D.frases[i]=v;}
+  else{if(v)D.pessoal[k][i]=v;}
+  await save();
+ }));
+ document.querySelectorAll("#v-PESSOAL [data-pdel]").forEach(b=>b.addEventListener("click",async()=>{
+  const [k,i]=b.dataset.pdel.split("|");
+  if(!confirm("Apagar este item?"))return;
+  if(k==="frases"){D.frases.splice(+i,1);D.fraseCiclo=null;}
+  else D.pessoal[k].splice(+i,1);
+  await save();rPessoal();
+ }));
+}
+function addPessoal(key){
+ const nv=prompt(key==="treino"?"Nova habilidade a treinar:":"Novo aspeto do dia a dia a melhorar:");
+ if(nv&&nv.trim()){D.pessoal[key].unshift(nv.trim());save().then(rPessoal);}
+}
 
 /* ============ redes sociais ============ */
 const CONTAS_COR={"RIMA studio":"#0E7C72","RIMA lab":"#C74A3C","Ricardo Esteves Corga":"#8AA86A"};
@@ -2483,6 +2555,13 @@ function rCom(){
 }
 
 /* ============ nav ============ */
+function goPessoal(){
+ document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));
+ cat=null;document.body.dataset.theme="HOJE";
+ document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+ $("v-PESSOAL").classList.add("on");
+ rPessoal();
+}
 $("nav").addEventListener("click",e=>{
  const b=e.target.closest("button");if(!b)return;
  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));
