@@ -1185,6 +1185,18 @@ function tick(){
   base+=` <span style="color:#B0402F;font-weight:700">· ⏸ em pausa desde ${ini} (${min} min)</span>`;
  }
  $("nowTxt").innerHTML=base;
+ // manter o destaque da lista diária sincronizado com o bloco atual
+ const rl=$("rotList");
+ if(rl){
+  const rows=rl.querySelectorAll(".rrow");
+  if(rows.length===s.length){
+   s.forEach((it,i)=>{
+    const m=min(it.q),nx=i<s.length-1?min(s[i+1].q):1440;
+    const cur=m!==null&&nm>=m&&nm<nx;
+    rows[i].classList.toggle("cur",cur);
+   });
+  }
+ }
 }
 
 /* ============ HOJE ============ */
