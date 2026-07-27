@@ -84,6 +84,16 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 #almocoBtn{position:fixed;right:18px;bottom:18px;z-index:75;box-shadow:0 8px 22px rgba(20,18,14,.22),0 2px 8px rgba(20,18,14,.14);}
 @media(max-width:700px){#almocoBtn{right:10px;bottom:10px;font-size:10px;padding:8px 12px;}}
 .ditem.on{box-shadow:inset 0 0 0 1.5px var(--acc2);}
+.fixrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+.fixchip{display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:12.5px;padding:9px 16px;border-radius:12px;box-shadow:3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);transition:all .2s;}
+.fixchip:active{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
+.fixchip .pdot{width:8px;height:8px;flex-shrink:0;}
+.balanco{margin-top:14px;padding:14px 16px;border-radius:14px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
+.balh{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);margin-bottom:10px;}
+.balgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;}
+.balgrid>div{display:flex;flex-direction:column;gap:3px;}
+.ball{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft);}
+.balv{font-size:16px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
 .notaedit{outline:none;min-height:180px;white-space:pre-wrap;border-radius:12px;padding:12px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
 .notaedit:focus{box-shadow:inset 0 0 0 1.5px var(--acc2),inset 2px 2px 6px var(--sh-d);}
 [data-dtit]{outline:none;border-radius:6px;}
@@ -511,7 +521,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <button data-v="RIMA">Rima</button>
   <button data-v="GESTAO">Gestão</button>
   <button data-v="REGISTOS">Registos</button>
-  <button data-v="ESTRATEGIA">Estratégia</button>
+  <button data-v="COMERCIAL">Comercial</button>
   <button data-v="REDES">Redes</button>
   <button data-v="TAREFAS">Tarefas</button>
   <button data-v="MUSICA">Música</button>
@@ -587,6 +597,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <!-- ============ CATEGORIAS (montra) ============ -->
 <div class="view" id="v-CAT">
   <div id="catNovo" style="margin-bottom:16px"></div>
+  <div id="pFixos"></div>
   <h2 class="sec">Prioridade alta</h2>
   <div class="pgrid pzone" id="pGridAlta" data-pri="3"></div>
   <h2 class="sec">Prioridade média</h2>
@@ -672,7 +683,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="card" style="padding:10px 0" id="pFrases"></div>
 </div>
 
-<div class="view" id="v-ESTRATEGIA">
+<div class="view" id="v-COMERCIAL">
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Tarefas comerciais<button class="ico" style="width:28px;height:28px" title="Nova tarefa comercial" onclick="addTarefaComercial()">＋</button></h2>
+  <div class="card" style="padding:6px 0;margin-bottom:6px" id="cmTarefas"></div>
   <h2 class="sec">Calendário comercial</h2>
   <div class="card" style="padding:16px" id="ecal"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Frentes de ataque<button class="ico" style="width:28px;height:28px" title="Nova frente" onclick="addFrente()">＋</button></h2>
@@ -1455,7 +1468,13 @@ function rCat(){
    :`<button class="ico" title="Novo projecto em ${esc(cat)}" onclick="novoProjectoLocal()">＋</button>`;
  }
  const zonas=[["pGridAlta",3],["pGridMedia",2],["pGridBaixa",1]];
- const todos=(D.projectos||[]).filter(p=>p.categoria===cat&&p.estado!=="arquivado");
+ const ativos=(D.projectos||[]).filter(p=>p.categoria===cat&&p.estado!=="arquivado");
+ const fixos=ativos.filter(p=>p.fixo);
+ const todos=ativos.filter(p=>!p.fixo);
+ const fx=$("pFixos");
+ if(fx)fx.innerHTML=fixos.length
+  ?`<div class="fixrow">`+fixos.map(p=>`<button class="fixchip" data-pc="${p.id}"><i class="pdot" style="background:${p.cor||"var(--acc)"}"></i>${esc(p.nome)}</button>`).join("")+`</div>`
+  :"";
  zonas.forEach(([gid,pri])=>{
   const g=$(gid);if(!g)return;g.innerHTML="";
   const ps=todos.filter(p=>(p.prioridade||2)===pri)
@@ -1484,6 +1503,7 @@ function rCat(){
    </div>`);
   });
  });
+ document.querySelectorAll(".fixchip").forEach(b=>b.addEventListener("click",()=>openP(b.dataset.pc)));
  // drag entre zonas e dentro da zona
  document.querySelectorAll(".pzone .pcard").forEach(c=>{
   c.addEventListener("click",()=>{if(!c._drag)openP(c.dataset.pc);});
@@ -1847,6 +1867,7 @@ const DEFAULT_PROPOSTAS={
 };
 function rEstrategia(){
  const E=D.estrategia;if(!E)return;
+ rTarefasComerciais();
  // calendário: agrupar oportunidades por mês
  const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
  const mesAtual=new Date().getMonth();
@@ -1907,6 +1928,19 @@ function bindEstrategia(){
  document.querySelectorAll("[data-ep]").forEach(el=>el.addEventListener("blur",async()=>{E.principios[+el.dataset.ep]=el.innerText.trim();await save();}));
  document.querySelectorAll("[data-fdel]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Apagar esta frente?"))return;E.frentes=E.frentes.filter(x=>x.id!==b.dataset.fdel);await save();rEstrategia();}));
  document.querySelectorAll("[data-idel]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Apagar esta ideia?"))return;E.ideias=E.ideias.filter(x=>x.id!==b.dataset.idel);await save();rEstrategia();}));
+}
+function rTarefasComerciais(){
+ const box=$("cmTarefas");if(!box)return;
+ const ts=(D.tarefas||[]).filter(t=>t.projecto==="Comercial"&&t.estado!=="arquivada")
+  .sort((a,b)=>(a.estado==="concluída"?1:0)-(b.estado==="concluída"?1:0)||(a.data||a.prazo||"9999").localeCompare(b.data||b.prazo||"9999"));
+ rTaskList(box,ts);
+}
+async function addTarefaComercial(){
+ const t=prompt("Nova tarefa comercial:");
+ if(!t||!t.trim())return;
+ D.tarefas.push({id:"t"+Date.now(),categoria:"RIMA",projecto:"Comercial",titulo:t.trim(),
+  estado:"ativa",data:hoje(),prazo:null,responsavel:"Ricardo"});
+ await save();rEstrategia();rAll();
 }
 function addFrente(){D.estrategia.frentes.unshift({id:"f"+Date.now(),titulo:"Nova frente",estado:"ideia",corpo:"Descreve a oportunidade em 2-3 parágrafos."});save().then(rEstrategia);}
 function addIdeia(){D.estrategia.ideias.unshift({id:"i"+Date.now(),titulo:"Nova ideia",corpo:"Descrição crua."});save().then(rEstrategia);}
@@ -2327,6 +2361,29 @@ function rMTasksGrouped(p){
   mTaskAcc[h.dataset.mtg]=!mTaskAcc[h.dataset.mtg];rMTasksGrouped(p);
  }));
 }
+function balancoFinal(p,orc,hEst,hg,alvoH){
+ const st=estadoP(p);
+ if(st!=="concluído"||!orc||hg<=0)return "";
+ const real=orc/hg;
+ const desvio=hEst?((hg-hEst)/hEst*100):null;   // >0 = demorou mais do que o orçamento previa
+ const acima=real>=alvoH;
+ const fmtPct=v=>`${v>0?"+":""}${v.toFixed(0)}%`;
+ return `<div class="balanco">
+   <div class="balh">balanço final</div>
+   <div class="balgrid">
+    <div><span class="ball">orçamentado</span><span class="balv">€${orc.toLocaleString("pt-PT")}</span></div>
+    <div><span class="ball">horas reais</span><span class="balv">${hg.toFixed(1)}h</span></div>
+    <div><span class="ball">€/hora real</span><span class="balv ${acima?"good":"bad"}">${real.toFixed(0)}€</span></div>
+    <div><span class="ball">alvo do nível</span><span class="balv">${alvoH.toFixed(0)}€</span></div>
+   </div>
+   <div class="hsub" style="margin-top:10px">${
+     desvio===null?"":
+     Math.abs(desvio)<8?`Bateu certo com o previsto (${hEst.toFixed(1)}h estimadas).`
+     :desvio>0?`Demorou <b>${fmtPct(desvio)}</b> mais do que o orçamento previa (${hEst.toFixed(1)}h estimadas). ${acima?"Ainda assim ficou acima do alvo.":"Para um trabalho igual, orçamentar mais."}`
+     :`Demorou <b>${fmtPct(desvio)}</b> menos do que o previsto (${hEst.toFixed(1)}h estimadas). Margem melhor do que o esperado.`
+   }</div>
+  </div>`;
+}
 function renderBudget(p){
  const box=$("mBudget");if(!box)return;
  // orçamento: se há registo ligado, o valor vem de lá (fonte única)
@@ -2338,6 +2395,7 @@ function renderBudget(p){
  const pr=D.precario,hm=pr.horasDia*pr.diasSemana*4.33;
  const eurH={baixo:pr.niveis.baixo/hm,medio:pr.niveis.medio/hm,alto:pr.niveis.alto/hm};
  const nivel=p.nivel||"medio";
+ const alvoH=eurH[nivel];
  const hEst=orc?orc/eurH[nivel]:null; // previstas: derivadas do orçamento, não manuais
  // gastas: somadas do tracker (fecho do dia), não manuais
  const hg=Object.values(trk||{}).reduce((s,dia)=>s+((dia.horas&&dia.horas[p.nome])||0),0);
@@ -2348,6 +2406,7 @@ function renderBudget(p){
    <label class="mono">nível cliente <select data-bf="nivel">${["baixo","medio","alto"].map(n=>`<option value="${n}" ${nivel===n?"selected":""}>${n}</option>`).join("")}</select></label>
   </div>
   ${hEst?`<div class="hsub" style="margin-bottom:8px">orçamento: <b>${hEst.toFixed(1)}h disponíveis</b> · ${hg.toFixed(1)}h usadas (tracker) · ${Math.max(0,hEst-hg).toFixed(1)}h restantes</div>`:""}
+  ${balancoFinal(p,orc,hEst,hg,alvoH)}
   ${hEst?`<div class="pbar" style="margin-bottom:10px"><div style="width:${pct}%;background:${over?"var(--acc)":"var(--acc2)"}"></div></div>${over?`<div class="hsub" style="margin-bottom:12px;color:var(--acc)">acima do previsto</div>`:""}`:""}`;
  box.querySelectorAll("[data-bf]").forEach(el=>el.addEventListener("change",async()=>{
   const f=el.dataset.bf;
@@ -2925,7 +2984,7 @@ $("nav").addEventListener("click",e=>{
   if(v==="GESTAO"){rCom();rDesp();}
   if(v==="REGISTOS")rConta();
   if(v==="PRECARIO"){rPrec();rServ();}
-  if(v==="ESTRATEGIA")rEstrategia();
+  if(v==="COMERCIAL")rEstrategia();
   if(v==="REDES")rRedes();
   if(v==="TRACKER")rTracker();
  }
