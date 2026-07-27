@@ -94,6 +94,10 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .balgrid>div{display:flex;flex-direction:column;gap:3px;}
 .ball{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft);}
 .balv{font-size:16px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+.lacuna{display:flex;align-items:center;gap:14px;padding:12px 16px;margin-bottom:10px;border-radius:14px;background:var(--bg);box-shadow:0 0 0 1.5px var(--acc),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
+.lactxt{font-size:12.5px;line-height:1.5;}
+.lacuna .btn{flex-shrink:0;font-size:10px;padding:7px 12px;}
+@media(max-width:700px){.lacuna{flex-direction:column;align-items:stretch;gap:10px;}}
 .notaedit{outline:none;min-height:180px;white-space:pre-wrap;border-radius:12px;padding:12px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
 .notaedit:focus{box-shadow:inset 0 0 0 1.5px var(--acc2),inset 2px 2px 6px var(--sh-d);}
 [data-dtit]{outline:none;border-radius:6px;}
@@ -505,7 +509,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <a class="ico glink" href="https://mail.google.com" target="_blank" rel="noopener" title="Gmail">G</a>
     <a class="ico glink" href="https://web.whatsapp.com" target="_blank" rel="noopener" title="WhatsApp Web">W</a>
     <a class="ico glink" href="https://news.google.com" target="_blank" rel="noopener" title="Google Notícias">N</a>
-    <button class="ico" style="width:30px;height:30px;font-size:13px" title="Atualizar da nuvem" onclick="pullCloud()">☁</button>
+    <button class="ico" style="width:30px;height:30px" title="Puxar dados da nuvem" onclick="pullCloud()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13v8l-4-4"/><path d="m12 21 4-4"/><path d="M4.4 16.1A5 5 0 0 1 6 6.3a7 7 0 0 1 13.4 2.1 4.5 4.5 0 0 1 .2 8.6"/></svg></button>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
     <button class="ico" style="width:30px;height:30px" title="Preçário" onclick="goPrecario()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Notas práticas RIMA" onclick="goNotasRima()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></button>
@@ -685,6 +689,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <div class="view" id="v-COMERCIAL">
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Tarefas comerciais<button class="ico" style="width:28px;height:28px" title="Nova tarefa comercial" onclick="addTarefaComercial()">＋</button></h2>
+  <div id="cmAvisos"></div>
   <div class="card" style="padding:6px 0;margin-bottom:6px" id="cmTarefas"></div>
   <h2 class="sec">Calendário comercial</h2>
   <div class="card" style="padding:16px" id="ecal"></div>
@@ -1459,6 +1464,7 @@ function estadoP(p){
  if(p.prazo&&p.prazo<hoje())return"atrasado";
  return p.estado;
 }
+const PROJECTOS_FIXOS=["inbox","com","Inbox","Comercial"];
 function rCat(){
  if(!cat)return;
  const cn=$("catNovo");
@@ -1469,8 +1475,9 @@ function rCat(){
  }
  const zonas=[["pGridAlta",3],["pGridMedia",2],["pGridBaixa",1]];
  const ativos=(D.projectos||[]).filter(p=>p.categoria===cat&&p.estado!=="arquivado");
- const fixos=ativos.filter(p=>p.fixo);
- const todos=ativos.filter(p=>!p.fixo);
+ const ehFixo=p=>PROJECTOS_FIXOS.includes(p.id)||PROJECTOS_FIXOS.includes(p.nome);
+ const fixos=ativos.filter(ehFixo);
+ const todos=ativos.filter(x=>!ehFixo(x));
  const fx=$("pFixos");
  if(fx)fx.innerHTML=fixos.length
   ?`<div class="fixrow">`+fixos.map(p=>`<button class="fixchip" data-pc="${p.id}"><i class="pdot" style="background:${p.cor||"var(--acc)"}"></i>${esc(p.nome)}</button>`).join("")+`</div>`
@@ -1867,6 +1874,7 @@ const DEFAULT_PROPOSTAS={
 };
 function rEstrategia(){
  const E=D.estrategia;if(!E)return;
+ rAvisosComerciais();
  rTarefasComerciais();
  // calendário: agrupar oportunidades por mês
  const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
@@ -1928,6 +1936,61 @@ function bindEstrategia(){
  document.querySelectorAll("[data-ep]").forEach(el=>el.addEventListener("blur",async()=>{E.principios[+el.dataset.ep]=el.innerText.trim();await save();}));
  document.querySelectorAll("[data-fdel]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Apagar esta frente?"))return;E.frentes=E.frentes.filter(x=>x.id!==b.dataset.fdel);await save();rEstrategia();}));
  document.querySelectorAll("[data-idel]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Apagar esta ideia?"))return;E.ideias=E.ideias.filter(x=>x.id!==b.dataset.idel);await save();rEstrategia();}));
+}
+function lacunasComerciais(){
+ // para cada oportunidade cuja janela está aberta ou abre em breve,
+ // verifica se existe tarefa comercial ativa a apontar para ela
+ const h0=new Date();h0.setHours(0,0,0,0);
+ const anoRef=h0.getFullYear();
+ const cand=[];
+ OPORTUNIDADES.forEach(o=>{
+  [anoRef-1,anoRef,anoRef+1].forEach(ano=>{
+   const evento=new Date(ano,o.mes-1,o.dia);
+   const inicioAno=o.cMes>o.mes?ano-1:ano;
+   const inicio=new Date(inicioAno,o.cMes-1,o.cDia);
+   // relevante: janela aberta, ou abre nos próximos 21 dias
+   const abreEm=diffDias(h0,inicio);
+   if((inicio<=h0&&h0<=evento)||(abreEm>0&&abreEm<=21))cand.push({...o,evento,inicio,abreEm});
+  });
+ });
+ if(!cand.length)return [];
+ // palavras-chave de cada oportunidade para procurar nas tarefas
+ const ativas=(D.tarefas||[]).filter(t=>t.estado!=="concluída"&&t.estado!=="arquivada");
+ const norm=s=>(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+ return cand.filter(o=>{
+  const chaves=norm(o.nome).split(/[\s()\/]+/).filter(w=>w.length>3);
+  return !ativas.some(t=>{
+   const tt=norm(t.titulo);
+   return chaves.some(k=>tt.includes(k));
+  });
+ }).sort((a,b)=>a.evento-b.evento);
+}
+function rAvisosComerciais(){
+ const box=$("cmAvisos");if(!box)return;
+ const lac=lacunasComerciais();
+ if(!lac.length){box.innerHTML="";return;}
+ const h0=new Date();h0.setHours(0,0,0,0);
+ box.innerHTML=lac.map(o=>{
+  const dEvento=diffDias(h0,o.evento);
+  const aberta=o.inicio<=h0;
+  const txt=aberta
+   ?`A janela de <b>${esc(o.nome)}</b> já está aberta e faltam <b>${dEvento} dia${dEvento===1?"":"s"}</b> para a data. Não há nenhuma tarefa a apontar para lá.`
+   :`<b>${esc(o.nome)}</b>: a janela abre em <b>${o.abreEm} dia${o.abreEm===1?"":"s"}</b> e ainda não existe nenhuma tarefa preparada.`;
+  return `<div class="lacuna">
+    <div style="flex:1;min-width:0"><div class="lactxt">${txt}</div><div class="hsub" style="margin-top:3px">${esc(o.nota)}</div></div>
+    <button class="btn" data-lac="${esc(o.nome)}">criar tarefa</button>
+   </div>`;
+ }).join("");
+ box.querySelectorAll("[data-lac]").forEach(b=>b.addEventListener("click",async()=>{
+  const nome=b.dataset.lac;
+  const o=lacunasComerciais().find(x=>x.nome===nome);
+  const sug=prompt("Tarefa para esta oportunidade:",`Preparar ${nome}`);
+  if(!sug||!sug.trim())return;
+  const prazo=o?isoLocal(o.evento):null;
+  D.tarefas.push({id:"t"+Date.now(),categoria:"RIMA",projecto:"Comercial",titulo:sug.trim(),
+   estado:"ativa",data:hoje(),prazo,responsavel:"Ricardo"});
+  await save();rEstrategia();rAll();
+ }));
 }
 function rTarefasComerciais(){
  const box=$("cmTarefas");if(!box)return;
