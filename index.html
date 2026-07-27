@@ -47,7 +47,11 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 @media(max-width:700px){
  .head{padding:14px 16px;}
  .head h1{font-size:19px;}
- .fraseTop{display:block;width:100%;margin-left:0;font-size:9.5px;}
+ .urgrow{position:relative;}
+.urgrow .grip{cursor:grab;color:var(--soft);opacity:.3;font-size:11px;line-height:1;padding-right:2px;user-select:none;}
+.urgrow:hover .grip{opacity:.7;}
+.urgrow.dropmark{box-shadow:inset 0 2px 0 var(--acc2);}
+.fraseTop{display:block;width:100%;margin-left:0;font-size:9.5px;}
  .glink{width:30px;height:30px;font-size:11px;}
  .clock .d{font-size:8.5px;}
  .clock .h{font-size:15px;}
@@ -128,6 +132,10 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .idot{color:var(--acc2);font-weight:700;padding-top:1px;}
 .ititulo{font-weight:600;font-size:13px;outline:none;}
 .icorpo{font-size:11.5px;color:var(--soft);line-height:1.5;margin-top:2px;outline:none;}
+.urgrow{position:relative;}
+.urgrow .grip{cursor:grab;color:var(--soft);opacity:.3;font-size:11px;line-height:1;padding-right:2px;user-select:none;}
+.urgrow:hover .grip{opacity:.7;}
+.urgrow.dropmark{box-shadow:inset 0 2px 0 var(--acc2);}
 .fraseTop{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--soft);letter-spacing:.02em;margin-left:12px;font-weight:400;}
 .tt.editing{outline:none;box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:5px;padding:1px 4px;cursor:text;}
 .finmini{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
@@ -459,7 +467,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
  </div>
 </div>
 <div class="head card">
-  <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h1 style="margin:0">STATION</h1><span id="hFraseTop" class="fraseTop"></span><button class="ico" id="btnFrase" style="width:16px;height:16px;font-size:8px;opacity:.4" title="Adicionar frase" onclick="addFrase()">+</button></div>
+  <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h1 style="margin:0">STATION</h1><span id="hFraseTop" class="fraseTop"></span></div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <a class="ico glink" href="https://claude.ai/chat/d093794a-2795-4f78-89f1-8d16eabb1cd3" target="_blank" rel="noopener" title="Conversa GOTEN" id="gotenLink" style="color:var(--acc)">✦</a>
     <a class="ico glink" href="https://calendar.google.com" target="_blank" rel="noopener" title="Google Calendar">C</a>
@@ -470,6 +478,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <a class="ico glink" href="https://news.google.com" target="_blank" rel="noopener" title="Google Notícias">N</a>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Atualizar da nuvem" onclick="pullCloud()">☁</button>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
+    <button class="ico" style="width:30px;height:30px;font-size:13px" title="Notas para melhorar a Station" onclick="openNotas()">💡</button>
     <div class="clock"><div class="d" id="cD">—</div><div class="h" id="cH">—</div></div>
   </div>
 </div>
@@ -551,6 +560,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ CATEGORIAS (montra) ============ -->
 <div class="view" id="v-CAT">
+  <div id="catNovo" style="margin-bottom:16px"></div>
   <h2 class="sec">Prioridade alta</h2>
   <div class="pgrid pzone" id="pGridAlta" data-pri="3"></div>
   <h2 class="sec">Prioridade média</h2>
@@ -578,6 +588,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 
 <!-- ============ MODAL DE PROJECTO ============ -->
+<div class="ovl" id="nOvl">
+ <div class="modal card" style="max-width:620px">
+  <div class="mhead">
+   <h3>💡 Notas · melhorias da Station</h3>
+   <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
+  </div>
+  <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
+  <textarea id="nTxt" style="width:100%;min-height:340px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;padding:14px;border:none;border-radius:14px;background:var(--bg);color:var(--txt);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);resize:vertical"></textarea>
+  <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
+   <button class="ico" style="width:auto;padding:0 16px;height:32px;font-size:11px" onclick="copiarNotas()">📋 copiar tudo</button>
+   <span class="hsub" id="nStatus"></span>
+  </div>
+ </div>
+</div>
+
 <div class="ovl" id="pOvl">
  <div class="modal card">
   <div class="mhead">
@@ -1044,6 +1069,8 @@ async function load(){
   ]
  };
  if(!D.redes.propostas)D.redes.propostas=DEFAULT_PROPOSTAS;
+ if(D.notas===undefined)D.notas="";
+ if(!D.ordemUrgente)D.ordemUrgente=[];
  if(!D.pessoal)D.pessoal={
   diaadia:[
    "Endireitar as costas, várias vezes ao dia",
@@ -1306,19 +1333,28 @@ function rHome(){
   if(t.data===hoje())s+=6;
   return s;
  }
+ const ordem=D.ordemUrgente||[];
  const urg=D.tarefas.filter(t=>{
   if(["arquivada","concluída"].includes(t.estado))return false;
   const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
   return (dl!==null&&dl<=14)||t.data===hoje();
- }).sort((a,b)=>scoreT(b)-scoreT(a)).slice(0,10);
+ }).sort((a,b)=>{
+  const ia=ordem.indexOf(a.id),ib=ordem.indexOf(b.id);
+  if(ia!==-1&&ib!==-1)return ia-ib;      // ambos ordenados à mão
+  if(ia!==-1)return -1;                   // ordenados à mão vêm primeiro
+  if(ib!==-1)return 1;
+  return scoreT(b)-scoreT(a);             // resto por pontuação automática
+ }).slice(0,10);
  $("hUrg").innerHTML=urg.map(t=>{
   const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
   const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
-  return `<div class="hitem"><button class="hchk" data-hc="${t.id}" aria-label="concluir"></button><span ${pid?`data-op="${pid}" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;min-width:0"`:"style=\"display:flex;align-items:center;gap:6px;flex:1;min-width:0\""}><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo)}</span></span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?(dl<0?`${-dl}d atraso`:`${dl}d`):"hoje"}</span></div>`;
+  const manual=ordem.indexOf(t.id)!==-1;
+  return `<div class="hitem urgrow" draggable="true" data-urg="${t.id}"><span class="grip" title="arrastar para priorizar">⠿</span><button class="hchk" data-hc="${t.id}" aria-label="concluir"></button><span ${pid?`data-op="${pid}" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;min-width:0"`:"style=\"display:flex;align-items:center;gap:6px;flex:1;min-width:0\""}><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap${manual?";font-weight:600":""}">${esc(t.titulo)}</span></span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?(dl<0?`${-dl}d atraso`:`${dl}d`):"hoje"}</span></div>`;
  }).join("")||`<div class="hsub">nada urgente</div>`;
  $("hUrg").querySelectorAll("[data-hc]").forEach(b=>b.addEventListener("click",async e=>{
   e.stopPropagation();const t=D.tarefas.find(x=>x.id===b.dataset.hc);if(!t)return;t.estado="concluída";await save();rHome();rAll();
  }));
+ bindUrgDrag(urg);
  // inbox / genéricas
  const gen=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&!["concluída","arquivada"].includes(t.estado));
  $("hInbox").innerHTML=gen.map(t=>`<div class="hitem"><button class="hchk" data-hc2="${t.id}" aria-label="concluir"></button><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo)}</span></div>`).join("")||`<div class="hsub">inbox limpa</div>`;
@@ -1360,6 +1396,12 @@ function estadoP(p){
 }
 function rCat(){
  if(!cat)return;
+ const cn=$("catNovo");
+ if(cn){
+  cn.innerHTML=cat==="RIMA"
+   ?`<div class="hsub">projectos RIMA criam-se pelo chat (envolvem orçamento, pastas e contabilidade)</div>`
+   :`<button class="ico" style="width:auto;padding:0 16px;height:34px;font-size:11px" onclick="novoProjectoLocal()">＋ novo projecto em ${esc(cat)}</button>`;
+ }
  const zonas=[["pGridAlta",3],["pGridMedia",2],["pGridBaixa",1]];
  const todos=(D.projectos||[]).filter(p=>p.categoria===cat&&p.estado!=="arquivado");
  zonas.forEach(([gid,pri])=>{
@@ -1794,6 +1836,93 @@ function bindEstrategia(){
 function addFrente(){D.estrategia.frentes.unshift({id:"f"+Date.now(),titulo:"Nova frente",estado:"ideia",corpo:"Descreve a oportunidade em 2-3 parágrafos."});save().then(rEstrategia);}
 function addIdeia(){D.estrategia.ideias.unshift({id:"i"+Date.now(),titulo:"Nova ideia",corpo:"Descrição crua."});save().then(rEstrategia);}
 
+function bindUrgDrag(listaVisivel){
+ const box=$("hUrg");if(!box)return;
+ let src=null;
+ box.querySelectorAll("[data-urg]").forEach(row=>{
+  row.addEventListener("dragstart",e=>{src=row.dataset.urg;row.style.opacity=".4";e.dataTransfer.effectAllowed="move";});
+  row.addEventListener("dragend",()=>{row.style.opacity="";box.querySelectorAll(".urgrow").forEach(r=>r.classList.remove("dropmark"));});
+  row.addEventListener("dragover",e=>{e.preventDefault();if(row.dataset.urg!==src)row.classList.add("dropmark");});
+  row.addEventListener("dragleave",()=>row.classList.remove("dropmark"));
+  row.addEventListener("drop",async e=>{
+   e.preventDefault();row.classList.remove("dropmark");
+   const dest=row.dataset.urg;
+   if(!src||src===dest)return;
+   // ordem base = a ordem atualmente visível
+   let ord=listaVisivel.map(t=>t.id);
+   ord=ord.filter(id=>id!==src);
+   ord.splice(ord.indexOf(dest),0,src);
+   D.ordemUrgente=ord;
+   await save();rHome();
+  });
+ });
+}
+
+/* ============ notas da plataforma (💡) ============ */
+let nTimer=null;
+function openNotas(){
+ $("nTxt").value=D.notas||"";
+ $("nStatus").innerHTML="&nbsp;";
+ $("nOvl").classList.add("on");
+ setTimeout(()=>$("nTxt").focus(),50);
+}
+function closeNotas(){$("nOvl").classList.remove("on");}
+document.addEventListener("input",e=>{
+ if(e.target.id!=="nTxt")return;
+ D.notas=e.target.value;
+ $("nStatus").textContent="a gravar…";
+ clearTimeout(nTimer);
+ nTimer=setTimeout(async()=>{await save();$("nStatus").textContent="gravado";},800);
+});
+
+/* ============ notas de melhorias (lâmpada) ============ */
+function openNotas(){
+ $("nTxt").value=D.notasStation||"";
+ $("nStatus").textContent="";
+ $("nOvl").classList.add("on");
+ setTimeout(()=>$("nTxt").focus(),80);
+}
+function closeNotas(){$("nOvl").classList.remove("on");}
+let notasTimer=null;
+document.addEventListener("input",e=>{
+ if(e.target.id!=="nTxt")return;
+ clearTimeout(notasTimer);
+ $("nStatus").textContent="a gravar…";
+ notasTimer=setTimeout(async()=>{
+  D.notasStation=$("nTxt").value;
+  await save();
+  $("nStatus").textContent="gravado";
+  setTimeout(()=>{if($("nStatus"))$("nStatus").textContent="";},1600);
+ },700);
+});
+function copiarNotas(){
+ const t=$("nTxt");t.select();t.setSelectionRange(0,999999);
+ try{navigator.clipboard.writeText(t.value);}catch(e){try{document.execCommand("copy");}catch(e2){}}
+ $("nStatus").textContent="copiado";
+ setTimeout(()=>{if($("nStatus"))$("nStatus").textContent="";},1600);
+}
+
+/* ============ novo projecto local (CASA / ARTE / MUSICA) ============ */
+const PAL_LOCAL=["#C74A3C","#3AAFA9","#D99A3C","#6B92E5","#A87CA8","#7FA88B","#B85C7A","#5C8AA8","#8A7B63","#6E8F5A","#7A3C8F","#4AA3C7"];
+async function novoProjectoLocal(){
+ if(!cat||cat==="RIMA")return;
+ const nome=prompt(`Novo projecto em ${cat}:`);
+ if(!nome||!nome.trim())return;
+ const nm=nome.trim();
+ if((D.projectos||[]).some(p=>p.categoria===cat&&p.nome.toLowerCase()===nm.toLowerCase())){
+  alert("Já existe um projecto com esse nome nesta categoria.");return;
+ }
+ const id=nm.toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,10)+Date.now().toString().slice(-4);
+ const usadas=new Set((D.projectos||[]).map(p=>p.cor));
+ const cor=PAL_LOCAL.find(c=>!usadas.has(c))||PAL_LOCAL[Math.floor(Math.random()*PAL_LOCAL.length)];
+ D.projectos.push({
+  id,categoria:cat,nome:nm,estado:"em curso",cliente:false,marca:null,
+  prioridade:2,inicio:hoje(),prazo:null,horasPrevistas:null,horasGastas:0,
+  orcamento:null,adjudicado:true,cor
+ });
+ await save();rCat();rHome();
+}
+
 /* ============ pessoal (secção @) ============ */
 function rPessoal(){
  const P=D.pessoal;if(!P)return;
@@ -2082,6 +2211,7 @@ let mP=null;
 function openP(id){mP=id;sel=null;renderP();$("pOvl").classList.add("on");}
 function closeP(){mP=null;sel=null;ttsStop();$("pOvl").classList.remove("on");}
 $("pOvl").addEventListener("click",e=>{if(e.target.id==="pOvl")closeP();});
+$("nOvl").addEventListener("click",e=>{if(e.target.id==="nOvl")closeNotas();});
 $("askPanel").addEventListener("click",e=>{if(e.target.id==="askPanel")askPanelClose();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&mP)closeP();});
 $("mNew").addEventListener("keydown",e=>{if(e.key==="Enter")mAdd();});
