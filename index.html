@@ -47,11 +47,7 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 @media(max-width:700px){
  .head{padding:14px 16px;}
  .head h1{font-size:19px;}
- .urgrow{position:relative;}
-.urgrow .grip{cursor:grab;color:var(--soft);opacity:.3;font-size:11px;line-height:1;padding-right:2px;user-select:none;}
-.urgrow:hover .grip{opacity:.7;}
-.urgrow.dropmark{box-shadow:inset 0 2px 0 var(--acc2);}
-.fraseTop{display:block;width:100%;margin-left:0;font-size:9.5px;}
+ .fraseTop{display:block;width:100%;margin-left:0;font-size:9.5px;}
  .glink{width:30px;height:30px;font-size:11px;}
  .clock .d{font-size:8.5px;}
  .clock .h{font-size:15px;}
@@ -1069,7 +1065,8 @@ async function load(){
   ]
  };
  if(!D.redes.propostas)D.redes.propostas=DEFAULT_PROPOSTAS;
- if(D.notas===undefined)D.notas="";
+ if(D.notasStation===undefined)D.notasStation=D.notas||"";
+ if(D.notas!==undefined)delete D.notas;
  if(!D.ordemUrgente)D.ordemUrgente=[];
  if(!D.pessoal)D.pessoal={
   diaadia:[
@@ -1857,23 +1854,6 @@ function bindUrgDrag(listaVisivel){
   });
  });
 }
-
-/* ============ notas da plataforma (💡) ============ */
-let nTimer=null;
-function openNotas(){
- $("nTxt").value=D.notas||"";
- $("nStatus").innerHTML="&nbsp;";
- $("nOvl").classList.add("on");
- setTimeout(()=>$("nTxt").focus(),50);
-}
-function closeNotas(){$("nOvl").classList.remove("on");}
-document.addEventListener("input",e=>{
- if(e.target.id!=="nTxt")return;
- D.notas=e.target.value;
- $("nStatus").textContent="a gravar…";
- clearTimeout(nTimer);
- nTimer=setTimeout(async()=>{await save();$("nStatus").textContent="gravado";},800);
-});
 
 /* ============ notas de melhorias (lâmpada) ============ */
 function openNotas(){
