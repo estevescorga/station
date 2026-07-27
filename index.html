@@ -70,6 +70,10 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .btn:hover{color:var(--txt);}
 .btn:active{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
 .btn svg{flex-shrink:0;}
+.btn.on{color:var(--acc);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
+.trkper{font-size:10px;padding:6px 12px;text-transform:lowercase;letter-spacing:.04em;}
+.trkresumo{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--soft);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);}
+.trkval{font-size:11px;margin-left:8px;white-space:nowrap;}
 .notaedit{outline:none;min-height:180px;white-space:pre-wrap;border-radius:12px;padding:12px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
 .notaedit:focus{box-shadow:inset 0 0 0 1.5px var(--acc2),inset 2px 2px 6px var(--sh-d);}
 [data-dtit]{outline:none;border-radius:6px;}
@@ -187,7 +191,8 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .modal .doclist,.modal .docview{box-shadow:inset 3px 3px 8px var(--sh-d),inset -3px -3px 8px var(--sh-l);border-radius:14px;}
 
 /* tracker */
-.trkrow{display:grid;grid-template-columns:74px 52px 44px 76px 52px 60px 1fr;gap:10px;padding:9px 16px;align-items:center;font-size:12px;border-bottom:1px solid var(--line);}
+.trkrow{display:grid;grid-template-columns:74px 52px 44px 76px 52px 60px minmax(0,1fr);gap:10px;padding:9px 16px;align-items:start;font-size:12px;border-bottom:1px solid var(--line);}
+.trkrow>span{min-width:0;overflow-wrap:anywhere;line-height:1.45;}
 .trkrow:last-child{border-bottom:none;}
 .trkrow.trkhead{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft);}
 .trkrow .sub2{display:block;}
@@ -482,6 +487,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <a class="ico glink" href="https://news.google.com" target="_blank" rel="noopener" title="Google Notícias">N</a>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Atualizar da nuvem" onclick="pullCloud()">☁</button>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
+    <button class="ico" style="width:30px;height:30px" title="Tracker" onclick="goTracker()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Notas para melhorar a Station" onclick="openNotas()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></button>
     <div class="clock"><div class="d" id="cD">—</div><div class="h" id="cH">—</div></div>
   </div>
@@ -497,7 +503,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <button data-v="REDES">Redes</button>
   <button data-v="TAREFAS">Tarefas</button>
   <button data-v="PRECARIO">Preçário</button>
-  <button data-v="TRACKER">Tracker</button>
   <button data-v="MUSICA">Música</button>
   <button data-v="ARTE">Arte</button>
   <button data-v="CASA">Casa</button>
@@ -516,7 +521,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <div class="rot card" id="rotList"></div>
     <div class="hcol">
       <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
-      <div class="card hcard"><h5>urgente</h5><div id="hUrg"></div></div>
+      <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div></div>
       <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
       <div class="card hcard"><h5>emails</h5><div id="hMail"></div></div>
       <div class="card hcard">
@@ -552,10 +557,16 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <!-- ============ TRACKER ============ -->
 <div class="view" id="v-TRACKER">
   <div class="fin" id="trkHoje"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">Investimento de tempo
+   <span style="display:flex;gap:6px">
+    <button class="btn trkper on" data-per="7">semana</button>
+    <button class="btn trkper" data-per="30">mês</button>
+    <button class="btn trkper" data-per="0">sempre</button>
+   </span>
+  </h2>
+  <div class="card" style="padding:14px 20px" id="trkProj"></div>
   <h2 class="sec">Tracker diário</h2>
   <div class="card" style="padding:6px 0;overflow-x:auto" id="trkTab"></div>
-  <h2 class="sec">Horas por projecto · últimos 7 dias</h2>
-  <div class="card" style="padding:14px 20px" id="trkProj"></div>
   <div class="vgrid" style="margin-top:18px">
    <div class="card" style="padding:14px 20px"><h5 style="margin-bottom:10px">sono · últimos 14 dias</h5><div id="trkSono"></div></div>
    <div class="card" style="padding:14px 20px"><h5 style="margin-bottom:10px">resumo mensal</h5><div id="trkMes"></div></div>
@@ -1285,6 +1296,13 @@ function fraseDoDia(){
  }
  return fr[fc.ordem[fc.pos]]||fr[0];
 }
+async function addTarefaRapida(){
+ const t=prompt("Nova tarefa para hoje:");
+ if(!t||!t.trim())return;
+ D.tarefas.push({id:"t"+Date.now(),categoria:"RIMA",projecto:"Inbox",titulo:t.trim(),
+  estado:"ativa",data:hoje(),prazo:null,responsavel:"Ricardo"});
+ await save();rHome();rAll();setSt("tarefa criada para hoje");
+}
 function addFrase(){
  const nv=prompt("Nova frase de motivação:");
  if(nv&&nv.trim()){D.frases.push(nv.trim());D.fraseCiclo=null;save().then(()=>{rHome();if($("v-PESSOAL").classList.contains("on"))rPessoal();});}
@@ -1509,6 +1527,38 @@ function estimativaHoje(){
  });
  return {bloco:minutos/60,pausa:pmin/60,liquido:Math.max(0,(minutos-pmin)/60)};
 }
+let trkPeriodo=7; // 7 = semana, 30 = mês, 0 = sempre
+function rTrkProj(){
+ const box=$("trkProj");if(!box)return;
+ const dias=trkPeriodo===0?Object.keys(trk):Object.keys(trk).filter(d=>d>=isoLocal(new Date(Date.now()-(trkPeriodo-1)*864e5)));
+ const tot={};
+ dias.forEach(d=>Object.entries((trk[d]||{}).horas||{}).forEach(([k,v])=>tot[k]=(tot[k]||0)+v));
+ const ent=Object.entries(tot).sort((a,b)=>b[1]-a[1]);
+ if(!ent.length){box.innerHTML=`<div class="empty">sem horas registadas neste período</div>`;return;}
+ const max=ent[0][1];
+ const totalH=ent.reduce((s,[,v])=>s+v,0);
+ const diasComRegisto=dias.filter(d=>Object.keys((trk[d]||{}).horas||{}).length).length;
+ const pr=D.precario,hm=pr.horasDia*pr.diasSemana*4.33;
+ const eurH={baixo:pr.niveis.baixo/hm,medio:pr.niveis.medio/hm,alto:pr.niveis.alto/hm};
+ box.innerHTML=`<div class="trkresumo"><span><b>${totalH.toFixed(1)}h</b> no total</span><span>${diasComRegisto} dia${diasComRegisto===1?"":"s"} com registo</span><span>média <b>${diasComRegisto?(totalH/diasComRegisto).toFixed(1):"0"}h</b>/dia registado</span></div>`+
+  ent.map(([k,v])=>{
+   const pj=D.projectos.find(x=>x.nome===k);
+   const orc=pj&&pj.orcamento?pj.orcamento:null;
+   const alvo=pj?eurH[pj.nivel||"medio"]:null;
+   // €/h real só faz sentido com orçamento e sobre o total de horas do projecto (todas, não só do período)
+   let hTotProj=0;
+   Object.values(trk).forEach(r=>{hTotProj+=((r.horas||{})[k]||0);});
+   const real=orc&&hTotProj>0?orc/hTotProj:null;
+   const abaixo=real!==null&&alvo!==null&&real<alvo;
+   return `<div class="grow"><div class="gl">${esc(k)}</div><div class="gtrack"><div class="gbar" style="left:0;width:${v/max*100}%;background:${(pj&&pj.cor)||"var(--acc2)"}"></div></div><span class="mono trkval">${v.toFixed(1)}h${real!==null?` · <span class="${abaixo?"bad":"good"}" title="€/hora real sobre ${hTotProj.toFixed(1)}h totais${alvo?` · alvo ${alvo.toFixed(0)}€/h`:""}">${real.toFixed(0)}€/h</span>`:""}</span></div>`;
+  }).join("");
+}
+document.addEventListener("click",e=>{
+ const b=e.target.closest(".trkper");if(!b)return;
+ trkPeriodo=+b.dataset.per;
+ document.querySelectorAll(".trkper").forEach(x=>x.classList.toggle("on",x===b));
+ rTrkProj();
+});
 function rTracker(){
  // camada 1: cartões do dia
  const est=estimativaHoje();
@@ -1532,16 +1582,7 @@ function rTracker(){
     <span class="mono">${r.pausas??""}</span>
     <span style="font-size:11px">${hs||"—"}${r.notas?`<span class="sub2">${esc(r.notas)}</span>`:""}</span></div>`;
   }).join("")||`<div class="empty">sem registos ainda — o fecho do dia (⏻) alimenta esta tabela</div>`);
- // somatório 7 dias
- const corte=isoLocal(new Date(Date.now()-6*864e5));
- const tot={};
- Object.entries(trk).filter(([d])=>d>=corte).forEach(([,r])=>{Object.entries(r.horas||{}).forEach(([k,v])=>tot[k]=(tot[k]||0)+v);});
- const ent=Object.entries(tot).sort((a,b)=>b[1]-a[1]);
- const max=ent.length?ent[0][1]:1;
- $("trkProj").innerHTML=ent.map(([k,v])=>{
-  const pj=D.projectos.find(x=>x.nome===k);
-  return `<div class="grow"><div class="gl">${esc(k)}</div><div class="gtrack"><div class="gbar" style="left:0;width:${v/max*100}%;background:${(pj&&pj.cor)||"var(--acc2)"}"></div></div><span class="mono" style="font-size:11px;margin-left:8px">${v.toFixed(1)}h</span></div>`;
- }).join("")||`<div class="empty">sem horas registadas nos últimos 7 dias</div>`;
+ rTrkProj();
  // gráfico de sono: sparkline 14 dias
  const d14=[];
  for(let i=13;i>=0;i--){const d=isoLocal(new Date(Date.now()-i*864e5));d14.push([d,(trk[d]||{}).sono??null]);}
@@ -2719,6 +2760,13 @@ function rCom(){
 }
 
 /* ============ nav ============ */
+function goTracker(){
+ document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));
+ cat=null;document.body.dataset.theme="HOJE";
+ document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+ $("v-TRACKER").classList.add("on");
+ rTracker();
+}
 function goPessoal(){
  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));
  cat=null;document.body.dataset.theme="HOJE";
