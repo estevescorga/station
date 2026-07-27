@@ -66,6 +66,14 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .nav button.on{box-shadow:inset 3px 3px 7px var(--sh-d),inset -4px -4px 9px var(--sh-l);color:var(--acc);}
 
 /* icon buttons */
+.btn{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'Inter',sans-serif;font-size:11.5px;padding:9px 16px;border-radius:12px;box-shadow:4px 4px 8px var(--sh-d),-5px -5px 10px var(--sh-l);display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
+.btn:hover{color:var(--txt);}
+.btn:active{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
+.btn svg{flex-shrink:0;}
+.notaedit{outline:none;min-height:180px;white-space:pre-wrap;border-radius:12px;padding:12px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
+.notaedit:focus{box-shadow:inset 0 0 0 1.5px var(--acc2),inset 2px 2px 6px var(--sh-d);}
+[data-dtit]{outline:none;border-radius:6px;}
+[data-dtit]:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);padding:1px 4px;}
 .ico{width:38px;height:38px;border-radius:50%;border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-size:15px;box-shadow:4px 4px 8px var(--sh-d),-5px -5px 10px var(--sh-l);display:inline-flex;align-items:center;justify-content:center;transition:all .2s;}
 .ico:hover{color:var(--acc);}
 .ico:active{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
@@ -458,7 +466,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div style="padding:14px">
    <div class="hsub" style="margin-bottom:8px">Copia e cola na conversa GOTEN:</div>
    <textarea id="askText" rows="9" readonly></textarea>
-   <button class="ico" style="width:100%;margin-top:10px;font-size:11px" onclick="askCopy()">📋 copiar</button>
+   <button class="btn" style="width:100%;margin-top:10px" onclick="askCopy()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>copiar</button>
   </div>
  </div>
 </div>
@@ -474,7 +482,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <a class="ico glink" href="https://news.google.com" target="_blank" rel="noopener" title="Google Notícias">N</a>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Atualizar da nuvem" onclick="pullCloud()">☁</button>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
-    <button class="ico" style="width:30px;height:30px;font-size:13px" title="Notas para melhorar a Station" onclick="openNotas()">💡</button>
+    <button class="ico" style="width:30px;height:30px" title="Notas para melhorar a Station" onclick="openNotas()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></button>
     <div class="clock"><div class="d" id="cD">—</div><div class="h" id="cH">—</div></div>
   </div>
 </div>
@@ -593,7 +601,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
   <textarea id="nTxt" style="width:100%;min-height:340px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;padding:14px;border:none;border-radius:14px;background:var(--bg);color:var(--txt);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);resize:vertical"></textarea>
   <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
-   <button class="ico" style="width:auto;padding:0 16px;height:32px;font-size:11px" onclick="copiarNotas()">📋 copiar tudo</button>
+   <button class="btn" onclick="copiarNotas()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>copiar tudo</button>
    <span class="hsub" id="nStatus"></span>
   </div>
  </div>
@@ -614,7 +622,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
      <button class="ico" title="Adicionar" onclick="mAdd()">+</button>
    </div>
   </div>
-  <div class="msec"><div class="msech" style="display:flex;justify-content:space-between;align-items:center">documentos<button class="ico" style="width:26px;height:26px;font-size:14px" title="Adicionar documento" onclick="addDocFile()">+</button></div>
+  <div class="msec"><div class="msech" style="display:flex;justify-content:space-between;align-items:center">documentos<span style="display:flex;gap:6px"><button class="ico" style="width:26px;height:26px" title="Nova nota" onclick="addDocNota()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button><button class="ico" style="width:26px;height:26px;font-size:14px" title="Carregar ficheiro" onclick="addDocFile()">+</button></span></div>
    <div class="doclist" id="dBox" style="max-height:460px"></div>
   </div>
  </div>
@@ -1397,7 +1405,7 @@ function rCat(){
  if(cn){
   cn.innerHTML=cat==="RIMA"
    ?`<div class="hsub">projectos RIMA criam-se pelo chat (envolvem orçamento, pastas e contabilidade)</div>`
-   :`<button class="ico" style="width:auto;padding:0 16px;height:34px;font-size:11px" onclick="novoProjectoLocal()">＋ novo projecto em ${esc(cat)}</button>`;
+   :`<button class="ico" title="Novo projecto em ${esc(cat)}" onclick="novoProjectoLocal()">＋</button>`;
  }
  const zonas=[["pGridAlta",3],["pGridMedia",2],["pGridBaixa",1]];
  const todos=(D.projectos||[]).filter(p=>p.categoria===cat&&p.estado!=="arquivado");
@@ -2406,7 +2414,7 @@ function datePopHTML(key,selIso){
    ${buildMonthGrid(st.y,st.m,selIso)}
    <div class="calh mini" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><span>${new Date(nY,nM,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span></div>
    ${buildMonthGrid(nY,nM,selIso)}
-   <button class="ico" data-dpclear="${key}" style="width:100%;margin-top:8px;font-size:10px;height:26px">limpar data</button>
+   <button class="btn" data-dpclear="${key}" style="width:100%;margin-top:8px;font-size:10px;padding:6px 10px">limpar data</button>
   </div>`;
 }
 function dateChip(key,label,selIso,cls){
@@ -2618,10 +2626,26 @@ function rDocs(){
     <button class="ico" title="Editar via chat" onclick="askDoc()">✎</button>
     <button class="ico" title="Arquivar" onclick="arqDoc()">⬇</button>
    </div>
-   <h3 style="font-size:15px;margin-bottom:4px">${esc(d.titulo)}</h3>
+   <h3 style="font-size:15px;margin-bottom:4px" contenteditable data-dtit="${d.id}" title="clica para editar o título">${esc(d.titulo)}</h3>
    <div class="dm">${esc(d.projecto||"—")} · ${esc(d.caderno||"geral")} · ${esc(d.criado||"")}</div>
-   ${d.img?`<img src="${d.img}" style="max-width:100%;border-radius:10px;margin-top:8px"/>`:`<div class="dbody" id="dBody">${esc(d.corpo||"")}</div>`}
+   ${d.img
+     ?`<img src="${d.img}" style="max-width:100%;border-radius:10px;margin-top:8px"/>`
+     :`<div class="dbody notaedit" id="dBody" contenteditable data-dedit="${d.id}">${esc(d.corpo||"")}</div><div class="hsub" id="dSave" style="margin-top:6px">&nbsp;</div>`}
   </div>`;
+  const te=l.querySelector("[data-dtit]");
+  if(te)te.addEventListener("blur",async()=>{
+   const doc=docs.find(x=>x.id===te.dataset.dtit);if(!doc)return;
+   const nt=te.textContent.trim();
+   if(nt&&nt!==doc.titulo){doc.titulo=nt;await saveDocs();}
+  });
+  const be=$("dBody");
+  if(be&&!d.img){
+   be.addEventListener("blur",async()=>{
+    const doc=docs.find(x=>x.id===be.dataset.dedit);if(!doc)return;
+    const novo=be.innerText;
+    if(novo!==doc.corpo){doc.corpo=novo;await saveDocs();if($("dSave"))$("dSave").textContent="gravado";setTimeout(()=>{if($("dSave"))$("dSave").innerHTML="&nbsp;";},1500);}
+   });
+  }
   return;
  }
  const vis=docs.filter(x=>!x.arquivado&&p&&(x.projecto===p.nome||(!x.projecto&&x.categoria===p.categoria)));
@@ -2646,6 +2670,14 @@ function ttsPlay(){
  }catch(e){setSt("leitura indisponível");}
 }
 function ttsStop(){try{speechSynthesis.cancel();}catch(e){}}
+async function addDocNota(){
+ const pj=D.projectos.find(x=>x.id===mP);if(!pj)return;
+ const t=prompt("Título da nota:");
+ if(!t||!t.trim())return;
+ const doc={id:"d"+Date.now(),titulo:t.trim(),categoria:pj.categoria,projecto:pj.nome,
+  caderno:"notas",criado:hoje(),corpo:"",img:null};
+ docs.push(doc);await saveDocs();sel=doc.id;rDocs();setSt("nota criada");
+}
 function addDocFile(){
  const pj=D.projectos.find(x=>x.id===mP);if(!pj)return;
  const inp=document.createElement("input");
