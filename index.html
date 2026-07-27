@@ -81,6 +81,8 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .trkper{font-size:10px;padding:6px 12px;text-transform:lowercase;letter-spacing:.04em;}
 .trkresumo{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--soft);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);}
 .trkval{font-size:11px;margin-left:8px;white-space:nowrap;}
+#extraBtn{position:fixed;right:18px;bottom:64px;z-index:75;box-shadow:0 8px 22px rgba(20,18,14,.22),0 2px 8px rgba(20,18,14,.14);}
+@media(max-width:700px){#extraBtn{right:10px;bottom:52px;font-size:10px;padding:8px 12px;}}
 #almocoBtn{position:fixed;right:18px;bottom:18px;z-index:75;box-shadow:0 8px 22px rgba(20,18,14,.22),0 2px 8px rgba(20,18,14,.14);}
 @media(max-width:700px){#almocoBtn{right:10px;bottom:10px;font-size:10px;padding:8px 12px;}}
 .ditem.on{box-shadow:inset 0 0 0 1.5px var(--acc2);}
@@ -546,7 +548,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <div class="rot card" id="rotList"></div>
     <div class="hcol">
       <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
-      <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div></div>
+      <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
+      <div class="card hcard"><h5>em espera</h5><div id="hEspera"></div></div>
       <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
       <div class="card hcard"><h5>emails</h5><div id="hMail"></div></div>
       <div class="card hcard">
@@ -629,6 +632,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 
 <!-- ============ MODAL DE PROJECTO ============ -->
+<button class="btn" id="extraBtn" onclick="registarExtra()" title="Registar tempo em algo não planeado"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>extra</button>
 <button class="btn" id="almocoBtn" onclick="iniciarAlmoco()" title="Marca o início da pausa de almoço"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h1a2 2 0 0 0 2-2V2"/><path d="M6 11v11"/><path d="M17 2v20"/><path d="M17 8c1.7 0 3-1.3 3-3s-1.3-3-3-3"/></svg>almoço</button>
 
 <div id="timerBar"></div>
@@ -1404,8 +1408,8 @@ function rHome(){
   return s;
  }
  const ordem=D.ordemUrgente||[];
- const urg=D.tarefas.filter(t=>{
-  if(["arquivada","concluída"].includes(t.estado))return false;
+ const urgTodas=D.tarefas.filter(t=>{
+  if(["arquivada","concluída","em espera"].includes(t.estado))return false;
   const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
   return (dl!==null&&dl<=14)||t.data===hoje();
  }).sort((a,b)=>{
@@ -1414,13 +1418,29 @@ function rHome(){
   if(ia!==-1)return -1;                   // ordenados à mão vêm primeiro
   if(ib!==-1)return 1;
   return scoreT(b)-scoreT(a);             // resto por pontuação automática
- }).slice(0,10);
- $("hUrg").innerHTML=urg.map(t=>{
+ });
+ const urg=urgTodas.filter(t=>(t.responsavel||"Ricardo")!=="Marta").slice(0,10);
+ const urgM=urgTodas.filter(t=>(t.responsavel||"Ricardo")==="Marta").slice(0,6);
+ const linhaUrg=t=>{
   const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
   const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
   const manual=ordem.indexOf(t.id)!==-1;
   return `<div class="hitem urgrow" draggable="true" data-urg="${t.id}"><span class="grip" title="arrastar para priorizar">⠿</span><button class="hchk" data-hc="${t.id}" aria-label="concluir"></button><span ${pid?`data-op="${pid}" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;min-width:0"`:"style=\"display:flex;align-items:center;gap:6px;flex:1;min-width:0\""}><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap${manual?";font-weight:600":""}">${esc(t.titulo)}</span></span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?(dl<0?`${-dl}d atraso`:`${dl}d`):"hoje"}</span></div>`;
- }).join("")||`<div class="hsub">nada urgente</div>`;
+ };
+ $("hUrg").innerHTML=urg.map(linhaUrg).join("")||`<div class="hsub">nada urgente</div>`;
+ $("hUrgMarta").innerHTML=urgM.length?`<div class="hgrouph" style="margin-top:12px">Marta · ${urgM.length}</div>`+urgM.map(linhaUrg).join(""):"";
+ // em espera
+ const esp=D.tarefas.filter(t=>t.estado==="em espera").sort((a,b)=>(a.prazo||a.data||"9999").localeCompare(b.prazo||b.data||"9999"));
+ $("hEspera").innerHTML=esp.map(t=>{
+  const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
+  const quem=(t.responsavel||"Ricardo")==="Marta"?` <span class="chip" style="display:inline;color:var(--acc2)">Marta</span>`:"";
+  return `<div class="hitem"${pid?` data-op="${pid}" style="cursor:pointer"`:""}><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0">${esc(t.titulo)}${quem}</span><span class="hm">${esc(t.projecto||"")}</span></div>`;
+ }).join("")||`<div class="hsub">nada em espera</div>`;
+ $("hEspera").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
+ document.querySelectorAll("#hUrgMarta [data-hc]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();const t=D.tarefas.find(x=>x.id===b.dataset.hc);if(!t)return;t.estado="concluída";await save();rHome();rAll();
+ }));
+ document.querySelectorAll("#hUrgMarta [data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
  $("hUrg").querySelectorAll("[data-hc]").forEach(b=>b.addEventListener("click",async e=>{
   e.stopPropagation();const t=D.tarefas.find(x=>x.id===b.dataset.hc);if(!t)return;t.estado="concluída";await save();rHome();rAll();
  }));
@@ -2404,7 +2424,7 @@ function renderP(){
  rMTasksGrouped(p);
  rDocs();
 }
-let mTaskAcc={ativa:true,"em espera":false,"concluída":false,arquivada:false};
+let mTaskAcc={ativa:true,"em espera":true,"concluída":false,arquivada:false};
 function rMTasksGrouped(p){
  const box=$("mTasks");if(!box)return;
  const all=D.tarefas.filter(t=>t.categoria===p.categoria&&t.projecto===p.nome);
@@ -2497,11 +2517,11 @@ function fmtDur(ms){
 }
 async function pararTimer(silencioso){
  if(!D.timer)return;
- const t=D.tarefas.find(x=>x.id===D.timer.tid);
+ const t=D.timer.tid?D.tarefas.find(x=>x.id===D.timer.tid):null;
  const proj=D.timer.proj||(t&&t.projecto)||"sem projecto";
  let horas=timerDecorridoMs()/3600000;
  if(horas>TIMER_MAX_H){
-  const resp=prompt(`O cronómetro esteve ${horas.toFixed(1)}h em "${t?t.titulo:"?"}" — parece de mais.\nQuantas horas queres registar? (0 para descartar)`,TIMER_MAX_H.toFixed(1));
+  const resp=prompt(`O cronómetro esteve ${horas.toFixed(1)}h em "${t?t.titulo:(D.timer.titulo||proj)}" — parece de mais.\nQuantas horas queres registar? (0 para descartar)`,TIMER_MAX_H.toFixed(1));
   if(resp===null){return;}
   horas=Math.max(0,parseFloat(String(resp).replace(",","."))||0);
  }
@@ -3001,6 +3021,30 @@ function addNotaRima(){
  if(!t||!t.trim())return;
  D.notasRima.unshift({id:"nr"+Date.now(),titulo:t.trim(),corpo:""});
  nrSel=D.notasRima[0].id;save().then(rNotasRima);
+}
+const EXTRAS_SUGESTOES=["Organizar estúdio","Organizar ambiente de trabalho","Consulta / saúde","Deslocação","Admin e burocracia","Formação / estudo","Imprevisto"];
+async function registarExtra(){
+ const lista=EXTRAS_SUGESTOES.map((s,i)=>`${i+1}. ${s}`).join("\n");
+ const nome=prompt(`O que estás (ou estiveste) a fazer?\n\n${lista}\n\nEscreve o nome ou o número:`);
+ if(nome===null)return;
+ const nt=nome.trim();if(!nt)return;
+ const idx=parseInt(nt,10);
+ const titulo=(!isNaN(idx)&&idx>=1&&idx<=EXTRAS_SUGESTOES.length)?EXTRAS_SUGESTOES[idx-1]:nt;
+ const quando=prompt(`"${titulo}"\n\nDeixa vazio para começar a contar agora,\nou escreve as horas já gastas (ex: 2 ou 1.5):`,"");
+ if(quando===null)return;
+ const q=String(quando).trim().replace(",",".");
+ if(q===""){
+  if(D.timer)await pararTimer(true);
+  D.timer={tid:null,proj:titulo,titulo,inicio:Date.now(),dia:hoje(),extra:true};
+  await save();setSt(`a contar: ${titulo}`);rAll();
+  return;
+ }
+ const horas=parseFloat(q);
+ if(isNaN(horas)||horas<=0){setSt("valor inválido");return;}
+ const dia=hoje();
+ trk[dia]=trk[dia]||{};trk[dia].horas=trk[dia].horas||{};
+ trk[dia].horas[titulo]=Math.round(((trk[dia].horas[titulo]||0)+horas)*100)/100;
+ await save();setSt(`registado ${horas}h em ${titulo}`);rAll();
 }
 async function iniciarAlmoco(){
  if(!rot||rot.data!==hoje()){setSt("gera primeiro a rotina de hoje");return;}
