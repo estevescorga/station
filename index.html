@@ -82,6 +82,12 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .tmrbtn.run{color:var(--acc);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 #timerBar.pausado .tbdot{animation:none;background:var(--soft);}
 .tempot{font-size:10px;color:var(--acc2);white-space:nowrap;padding:0 2px;}
+.nowt{font-size:15px;}
+@media(max-width:700px){
+ .hometop .now{padding:14px 16px !important;}
+ .nowt{font-size:17px;display:block;line-height:1.25;margin-bottom:2px;}
+ .nowMeta{font-size:10px !important;}
+}
 .btn.on{color:var(--acc);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
 .trkper{font-size:10px;padding:6px 12px;text-transform:lowercase;letter-spacing:.04em;}
 .trkresumo{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--soft);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);}
@@ -1021,17 +1027,10 @@ function syncOut(){
 function setSt(m){$("status").textContent=m;setTimeout(()=>$("status").textContent="",3000);}
 
 // corrige mojibake (UTF-8 lido como Latin-1), aplicado a todo o texto renderizado
-function fixEnc(s){
- if(typeof s!=="string"||s.indexOf("Ã")<0&&s.indexOf("Â")<0)return s;
- try{
-  // reinterpreta os bytes: cada char -> byte latin1 -> descodifica utf-8
-  const bytes=new Uint8Array([...s].map(c=>c.charCodeAt(0)&0xff));
-  const dec=new TextDecoder("utf-8",{fatal:false}).decode(bytes);
-  // só aceita se reduziu os Ã (evita estragar texto já correto)
-  if(dec&&(dec.match(/Ã/g)||[]).length<(s.match(/Ã/g)||[]).length)return dec;
- }catch(e){}
- return s;
-}
+// O Worker já devolve UTF-8 correto (TextDecoder na rota GET).
+// Esta reparação deixou de ser necessária e estava a destruir acentos legítimos
+// (qualquer texto com "Ã" fazia com que ç, ã, é virassem caracteres inválidos).
+function fixEnc(s){return s;}
 function deepFix(o){
  if(typeof o==="string")return fixEnc(o);
  if(Array.isArray(o))return o.map(deepFix);
@@ -1337,7 +1336,7 @@ function tick(){
   const ini=min(c.q),total=cFim-ini,dec=nm-ini,falta=cFim-nm;
   const fmt=m=>{const hh=Math.floor(m/60),mm=m%60;return hh?`${hh}h${mm?String(mm).padStart(2,"0"):""}`:`${mm}min`;};
   const fimStr=`${String(Math.floor(cFim/60)).padStart(2,"0")}:${String(cFim%60).padStart(2,"0")}`;
-  base=`agora · <strong>${esc(c.t)}</strong>${(c.tarefas&&c.tarefas.length)?" — "+esc(tituloTarefa(c.tarefas[0])):c.n?" — "+esc(c.n):""}
+  base=`<strong class="nowt">${esc(c.t)}</strong>${(c.tarefas&&c.tarefas.length)?" — "+esc(tituloTarefa(c.tarefas[0])):c.n?" — "+esc(c.n):""}
    <span class="nowMeta">${c.q} → ${fimStr} · ${fmt(total)} total · ${fmt(dec)} decorrido · <b>${fmt(falta)} restantes</b></span>`;
  }else base="sem bloco definido";
  if(pausaAtiva()){
