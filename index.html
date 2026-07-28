@@ -81,6 +81,14 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .trkper{font-size:10px;padding:6px 12px;text-transform:lowercase;letter-spacing:.04em;}
 .trkresumo{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--soft);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);}
 .trkval{font-size:11px;margin-left:8px;white-space:nowrap;}
+.catbar{display:flex;height:9px;border-radius:5px;overflow:hidden;margin-bottom:8px;box-shadow:inset 1px 1px 3px var(--sh-d);}
+.catseg{height:100%;}
+.catlegs{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;}
+.catleg{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--soft);font-family:'IBM Plex Mono',monospace;}
+.catleg i{width:8px;height:8px;border-radius:2px;display:inline-block;}
+.trksub{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);margin:14px 0 8px;}
+.catbtn{margin-left:8px;border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:6px;box-shadow:inset 1px 1px 3px var(--sh-d),inset -1px -1px 3px var(--sh-l);}
+.catbtn:hover{color:var(--acc2);}
 #extraBtn{position:fixed;right:18px;bottom:64px;z-index:75;box-shadow:0 8px 22px rgba(20,18,14,.22),0 2px 8px rgba(20,18,14,.14);}
 @media(max-width:700px){#extraBtn{right:10px;bottom:52px;font-size:10px;padding:8px 12px;}}
 #almocoBtn{position:fixed;right:18px;bottom:18px;z-index:75;box-shadow:0 8px 22px rgba(20,18,14,.22),0 2px 8px rgba(20,18,14,.14);}
@@ -1133,6 +1141,7 @@ async function load(){
  if(D.notas!==undefined)delete D.notas;
  if(!D.ordemUrgente)D.ordemUrgente=[];
  if(D.timer===undefined)D.timer=null;
+ if(!D.extrasCat)D.extrasCat={};
  if(!D.notasRima)D.notasRima=[
   {id:"nr1",titulo:"Passos de um projecto novo",corpo:"1. Perguntar o budget disponível antes de orçamentar.\n2. Orçamento no Sheet, com nível de cliente.\n3. Criar pasta na Drive.\n4. Registar em Registos.\n5. Confirmar adjudicação por escrito antes de começar."},
   {id:"nr2",titulo:"Contactos frequentes",corpo:"Grünenthal · Catarina Cajada (RH)\nFiscalia · contabilidade mensal\n\nAcrescenta aqui os que usares."},
@@ -1616,18 +1625,54 @@ function rTrkProj(){
  const diasComRegisto=dias.filter(d=>Object.keys((trk[d]||{}).horas||{}).length).length;
  const pr=D.precario,hm=pr.horasDia*pr.diasSemana*4.33;
  const eurH={baixo:pr.niveis.baixo/hm,medio:pr.niveis.medio/hm,alto:pr.niveis.alto/hm};
- box.innerHTML=`<div class="trkresumo"><span><b>${totalH.toFixed(1)}h</b> no total</span><span>${diasComRegisto} dia${diasComRegisto===1?"":"s"} com registo</span><span>média <b>${diasComRegisto?(totalH/diasComRegisto).toFixed(1):"0"}h</b>/dia registado</span></div>`+
-  ent.map(([k,v])=>{
-   const pj=D.projectos.find(x=>x.nome===k);
-   const orc=pj&&pj.orcamento?pj.orcamento:null;
-   const alvo=pj?eurH[pj.nivel||"medio"]:null;
-   // €/h real só faz sentido com orçamento e sobre o total de horas do projecto (todas, não só do período)
-   let hTotProj=0;
-   Object.values(trk).forEach(r=>{hTotProj+=((r.horas||{})[k]||0);});
-   const real=orc&&hTotProj>0?orc/hTotProj:null;
-   const abaixo=real!==null&&alvo!==null&&real<alvo;
-   return `<div class="grow"><div class="gl">${esc(k)}</div><div class="gtrack"><div class="gbar" style="left:0;width:${v/max*100}%;background:${(pj&&pj.cor)||"var(--acc2)"}"></div></div><span class="mono trkval">${v.toFixed(1)}h${real!==null?` · <span class="${abaixo?"bad":"good"}" title="€/hora real sobre ${hTotProj.toFixed(1)}h totais${alvo?` · alvo ${alvo.toFixed(0)}€/h`:""}">${real.toFixed(0)}€/h</span>`:""}</span></div>`;
-  }).join("");
+
+ // agregar por categoria
+ const porCat={};
+ ent.forEach(([k,v])=>{const c=tipoRegisto(k);porCat[c]=(porCat[c]||0)+v;});
+ const fatH=porCat.cliente||0;
+ const pctFat=totalH?Math.round(fatH/totalH*100):0;
+
+ const barraCat=Object.entries(porCat).sort((a,b)=>b[1]-a[1])
+  .map(([c,v])=>`<div class="catseg" style="width:${v/totalH*100}%;background:${(CATEGORIAS_TEMPO[c]||{}).cor||"var(--soft)"}" title="${c}: ${v.toFixed(1)}h"></div>`).join("");
+ const legenda=Object.entries(porCat).sort((a,b)=>b[1]-a[1])
+  .map(([c,v])=>`<span class="catleg"><i style="background:${(CATEGORIAS_TEMPO[c]||{}).cor||"var(--soft)"}"></i>${c} ${v.toFixed(1)}h</span>`).join("");
+
+ const linha=([k,v])=>{
+  const cat=tipoRegisto(k);
+  const pj=D.projectos.find(x=>x.nome===k);
+  const orc=pj&&pj.orcamento?pj.orcamento:null;
+  const alvo=pj?eurH[pj.nivel||"medio"]:null;
+  let hTotProj=0;Object.values(trk).forEach(r=>{hTotProj+=((r.horas||{})[k]||0);});
+  const real=orc&&hTotProj>0?orc/hTotProj:null;
+  const abaixo=real!==null&&alvo!==null&&real<alvo;
+  const editavel=!pj;
+  return `<div class="grow"><div class="gl">${esc(k)}${editavel?`<button class="catbtn" data-cat="${esc(k)}" title="mudar categoria">${cat}</button>`:""}</div><div class="gtrack"><div class="gbar" style="left:0;width:${v/max*100}%;background:${(CATEGORIAS_TEMPO[cat]||{}).cor||"var(--acc2)"}"></div></div><span class="mono trkval">${v.toFixed(1)}h${real!==null?` · <span class="${abaixo?"bad":"good"}" title="€/hora real sobre ${hTotProj.toFixed(1)}h totais${alvo?` · alvo ${alvo.toFixed(0)}€/h`:""}">${real.toFixed(0)}€/h</span>`:""}</span></div>`;
+ };
+ const fatur=ent.filter(([k])=>tipoRegisto(k)==="cliente");
+ const resto=ent.filter(([k])=>tipoRegisto(k)!=="cliente");
+
+ box.innerHTML=`<div class="trkresumo">
+   <span><b>${totalH.toFixed(1)}h</b> no total</span>
+   <span class="${pctFat>=50?"good":"bad"}"><b>${pctFat}%</b> faturável (${fatH.toFixed(1)}h)</span>
+   <span>${diasComRegisto} dia${diasComRegisto===1?"":"s"} com registo</span>
+   <span>média <b>${diasComRegisto?(totalH/diasComRegisto).toFixed(1):"0"}h</b>/dia</span>
+  </div>
+  <div class="catbar">${barraCat}</div>
+  <div class="catlegs">${legenda}</div>`+
+  (fatur.length?`<div class="trksub">faturável · cliente</div>`+fatur.map(linha).join(""):"")+
+  (resto.length?`<div class="trksub">não faturável</div>`+resto.map(linha).join(""):"");
+
+ box.querySelectorAll("[data-cat]").forEach(b=>b.addEventListener("click",async()=>{
+  const nome=b.dataset.cat;
+  const opts=Object.keys(CATEGORIAS_TEMPO).filter(c=>c!=="cliente");
+  const lista=opts.map((c,i)=>`${i+1}. ${c}`).join("\n");
+  const r=prompt(`Categoria de "${nome}":\n\n${lista}`,String(opts.indexOf(tipoRegisto(nome))+1));
+  if(r===null)return;
+  const i=parseInt(String(r).trim(),10);
+  const nova=(!isNaN(i)&&i>=1&&i<=opts.length)?opts[i-1]:String(r).trim();
+  if(!CATEGORIAS_TEMPO[nova]){setSt("categoria inválida");return;}
+  D.extrasCat[nome]=nova;await save();rTrkProj();
+ }));
 }
 document.addEventListener("click",e=>{
  const b=e.target.closest(".trkper");if(!b)return;
@@ -3022,14 +3067,37 @@ function addNotaRima(){
  D.notasRima.unshift({id:"nr"+Date.now(),titulo:t.trim(),corpo:""});
  nrSel=D.notasRima[0].id;save().then(rNotasRima);
 }
-const EXTRAS_SUGESTOES=["Organizar estúdio","Organizar ambiente de trabalho","Consulta / saúde","Deslocação","Admin e burocracia","Formação / estudo","Imprevisto"];
+const CATEGORIAS_TEMPO={
+ cliente:{nome:"cliente",faturavel:true,cor:"#0E7C72"},
+ interno:{nome:"interno",faturavel:false,cor:"#8AA86A"},
+ estrutura:{nome:"estrutura",faturavel:false,cor:"#C77B3C"},
+ desenvolvimento:{nome:"desenvolvimento",faturavel:false,cor:"#6B92E5"},
+ pessoal:{nome:"pessoal",faturavel:false,cor:"#A87CA8"}
+};
+const EXTRAS_SUGESTOES=[
+ ["Organizar estúdio","estrutura"],
+ ["Organizar ambiente de trabalho","estrutura"],
+ ["Admin e burocracia","estrutura"],
+ ["Consulta / saúde","pessoal"],
+ ["Deslocação","pessoal"],
+ ["Formação / estudo","desenvolvimento"],
+ ["Imprevisto","estrutura"]
+];
+// classifica qualquer chave do tracker
+function tipoRegisto(nome){
+ const pj=(D.projectos||[]).find(x=>x.nome===nome);
+ if(pj)return pj.cliente?"cliente":"interno";
+ return (D.extrasCat&&D.extrasCat[nome])||"estrutura";
+}
 async function registarExtra(){
- const lista=EXTRAS_SUGESTOES.map((s,i)=>`${i+1}. ${s}`).join("\n");
+ const lista=EXTRAS_SUGESTOES.map(([s,c],i)=>`${i+1}. ${s} (${c})`).join("\n");
  const nome=prompt(`O que estás (ou estiveste) a fazer?\n\n${lista}\n\nEscreve o nome ou o número:`);
  if(nome===null)return;
  const nt=nome.trim();if(!nt)return;
  const idx=parseInt(nt,10);
- const titulo=(!isNaN(idx)&&idx>=1&&idx<=EXTRAS_SUGESTOES.length)?EXTRAS_SUGESTOES[idx-1]:nt;
+ let titulo=nt,catAuto=null;
+ if(!isNaN(idx)&&idx>=1&&idx<=EXTRAS_SUGESTOES.length){titulo=EXTRAS_SUGESTOES[idx-1][0];catAuto=EXTRAS_SUGESTOES[idx-1][1];}
+ if(!D.extrasCat[titulo])D.extrasCat[titulo]=catAuto||"estrutura";
  const quando=prompt(`"${titulo}"\n\nDeixa vazio para começar a contar agora,\nou escreve as horas já gastas (ex: 2 ou 1.5):`,"");
  if(quando===null)return;
  const q=String(quando).trim().replace(",",".");
