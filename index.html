@@ -721,6 +721,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="card" style="padding:10px 0" id="eideias"></div>
   <h2 class="sec">Princípios</h2>
   <div class="card" style="padding:10px 0" id="eprin"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Documentos<span style="display:flex;gap:6px"><button class="ico" style="width:28px;height:28px" title="Nova nota" onclick="addDocComercial()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></span></h2>
+  <div class="vgrid" style="grid-template-columns:260px 1fr;align-items:start">
+   <div class="card" style="padding:8px 0" id="cmDocLista"></div>
+   <div class="card" style="padding:18px 20px" id="cmDocDet"></div>
+  </div>
 </div>
 
 <!-- ============ REDES ============ -->
@@ -1980,6 +1985,7 @@ function rEstrategia(){
  const E=D.estrategia;if(!E)return;
  rAvisosComerciais();
  rTarefasComerciais();
+ rDocsComercial();
  // calendário: agrupar oportunidades por mês
  const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
  const mesAtual=new Date().getMonth();
@@ -2095,6 +2101,41 @@ function rAvisosComerciais(){
    estado:"ativa",data:hoje(),prazo,responsavel:"Ricardo"});
   await save();rEstrategia();rAll();
  }));
+}
+let cmDocSel=null;
+function rDocsComercial(){
+ const L=docs.filter(d=>d.projecto==="Comercial");
+ const lst=$("cmDocLista"),det=$("cmDocDet");
+ if(!lst||!det)return;
+ lst.innerHTML=L.map(d=>`<div class="ditem${cmDocSel===d.id?" on":""}" data-cd="${d.id}">${esc(d.titulo)}</div>`).join("")||`<div class="empty">sem documentos</div>`;
+ lst.querySelectorAll("[data-cd]").forEach(e=>e.addEventListener("click",()=>{cmDocSel=e.dataset.cd;rDocsComercial();}));
+ const d=L.find(x=>x.id===cmDocSel);
+ if(!d){det.innerHTML=`<div class="empty">escolhe um documento à esquerda</div>`;return;}
+ det.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+   <h3 style="font-size:15px;margin-bottom:10px;flex:1" contenteditable data-cdt="${d.id}">${esc(d.titulo)}</h3>
+   <button class="ico" style="width:26px;height:26px;font-size:11px" data-cddel="${d.id}" title="apagar">✕</button>
+  </div>
+  ${d.img?`<img src="${d.img}" style="max-width:100%;border-radius:10px"/>`:`<div class="dbody notaedit" contenteditable data-cdc="${d.id}">${esc(d.corpo||"")}</div><div class="hsub" id="cmDocSave" style="margin-top:6px">&nbsp;</div>`}`;
+ const gravar=async()=>{
+  const t=det.querySelector("[data-cdt]");const c=det.querySelector("[data-cdc]");
+  if(t&&t.textContent.trim())d.titulo=t.textContent.trim();
+  if(c)d.corpo=c.innerText;
+  await saveDocs();if($("cmDocSave"))$("cmDocSave").textContent="gravado";
+  setTimeout(()=>{if($("cmDocSave"))$("cmDocSave").innerHTML="&nbsp;";},1500);
+ };
+ det.querySelectorAll("[data-cdt],[data-cdc]").forEach(el=>el.addEventListener("blur",gravar));
+ const db=det.querySelector("[data-cddel]");
+ if(db)db.addEventListener("click",async()=>{
+  if(!confirm("Apagar este documento?"))return;
+  docs=docs.filter(x=>x.id!==d.id);cmDocSel=null;await saveDocs();rDocsComercial();
+ });
+}
+async function addDocComercial(){
+ const t=prompt("Título da nota:");
+ if(!t||!t.trim())return;
+ const doc={id:"d"+Date.now(),titulo:t.trim(),categoria:"RIMA",projecto:"Comercial",
+  caderno:"notas",criado:hoje(),corpo:"",img:null};
+ docs.push(doc);await saveDocs();cmDocSel=doc.id;rDocsComercial();
 }
 function rTarefasComerciais(){
  const box=$("cmTarefas");if(!box)return;
@@ -2470,7 +2511,6 @@ let mP=null;
 function openP(id){mP=id;sel=null;renderP();$("pOvl").classList.add("on");}
 function closeP(){mP=null;sel=null;ttsStop();$("pOvl").classList.remove("on");}
 $("pOvl").addEventListener("click",e=>{if(e.target.id==="pOvl")closeP();});
-$("nOvl").addEventListener("click",e=>{if(e.target.id==="nOvl")closeNotas();});
 $("askPanel").addEventListener("click",e=>{if(e.target.id==="askPanel")askPanelClose();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&mP)closeP();});
 $("mNew").addEventListener("keydown",e=>{if(e.key==="Enter")mAdd();});
@@ -3160,12 +3200,12 @@ async function iniciarAlmoco(){
  const mais=m=>{const d=new Date(n.getTime()+m*60000);return hm(d);};
  // remover blocos de almoço anteriores do dia
  rot.itens=rot.itens.filter(x=>!["Almoço","Sesta","Voltar ao estúdio"].includes(x.t));
- rot.itens.push({q:hm(n),t:"Almoço",n:"preparar, comer, arrumar",feito:false});
- rot.itens.push({q:mais(45),t:"Sesta",n:"20 min, não-negociável",feito:false});
- rot.itens.push({q:mais(70),t:"Voltar ao estúdio",n:"retomar o trabalho",feito:false});
+ rot.itens.push({q:hm(n),t:"Almoço",n:"30 min: preparar, comer, arrumar",feito:false});
+ rot.itens.push({q:mais(30),t:"Sesta",n:"20 min, não-negociável",feito:false});
+ rot.itens.push({q:mais(50),t:"Voltar ao estúdio",n:"retomar o trabalho",feito:false});
  rot.itens.sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
  await saveRot();rAll();
- setSt(`almoço às ${hm(n)}, de volta às ${mais(70)}`);
+ setSt(`almoço às ${hm(n)}, de volta às ${mais(50)}`);
 }
 function goTracker(){
  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));
