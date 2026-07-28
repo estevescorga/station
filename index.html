@@ -84,6 +84,12 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .trkper{font-size:10px;padding:6px 12px;text-transform:lowercase;letter-spacing:.04em;}
 .trkresumo{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--soft);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);}
 .trkval{font-size:11px;margin-left:8px;white-space:nowrap;}
+#syncAviso{display:none;position:fixed;left:50%;transform:translateX(-50%);top:14px;z-index:90;background:var(--bg);border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 0 0 1.5px var(--acc),0 10px 30px rgba(20,18,14,.26);align-items:center;gap:12px;max-width:min(560px,calc(100vw - 24px));}
+#syncAviso.on{display:flex;}
+.sadot{width:8px;height:8px;border-radius:50%;background:var(--acc);flex-shrink:0;animation:tbpulse 1.6s ease-in-out infinite;}
+.satxt{font-size:12px;line-height:1.4;flex:1;min-width:0;}
+#syncAviso .btn{flex-shrink:0;font-size:10px;padding:7px 12px;}
+@media(max-width:700px){#syncAviso{top:8px;padding:9px 10px 9px 12px;gap:8px;}.satxt{font-size:11px;}}
 .catbar{display:flex;height:9px;border-radius:5px;overflow:hidden;margin-bottom:8px;box-shadow:inset 1px 1px 3px var(--sh-d);}
 .catseg{height:100%;}
 .catlegs{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px;}
@@ -522,7 +528,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <a class="ico glink" href="https://mail.google.com" target="_blank" rel="noopener" title="Gmail">G</a>
     <a class="ico glink" href="https://web.whatsapp.com" target="_blank" rel="noopener" title="WhatsApp Web">W</a>
     <a class="ico glink" href="https://news.google.com" target="_blank" rel="noopener" title="Google Notícias">N</a>
-    <button class="ico" style="width:30px;height:30px" title="Puxar dados da nuvem" onclick="pullCloud()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13v8l-4-4"/><path d="m12 21 4-4"/><path d="M4.4 16.1A5 5 0 0 1 6 6.3a7 7 0 0 1 13.4 2.1 4.5 4.5 0 0 1 .2 8.6"/></svg></button>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
     <button class="ico" style="width:30px;height:30px" title="Preçário" onclick="goPrecario()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Notas práticas RIMA" onclick="goNotasRima()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></button>
@@ -645,6 +650,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <!-- ============ MODAL DE PROJECTO ============ -->
 <button class="btn" id="extraBtn" onclick="registarExtra()" title="Registar tempo em algo não planeado"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>extra</button>
 <button class="btn" id="almocoBtn" onclick="iniciarAlmoco()" title="Marca o início da pausa de almoço"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h1a2 2 0 0 0 2-2V2"/><path d="M6 11v11"/><path d="M17 2v20"/><path d="M17 8c1.7 0 3-1.3 3-3s-1.3-3-3-3"/></svg>almoço</button>
+
+<div id="syncAviso"></div>
 
 <div id="timerBar"></div>
 
@@ -1034,11 +1041,39 @@ async function cloudGet(){
  const txt=await r.text();
  return txt&&txt!=="{}"?JSON.parse(txt):null;
 }
+let tsConhecido=0;   // ts do último snapshot que este separador enviou ou recebeu
 async function cloudPut(obj){
  const r=await fetch(WORKER,{method:"POST",headers:{"X-Auth":SENHA,"Content-Type":"application/json"},body:JSON.stringify(obj)});
  if(!r.ok)throw new Error("worker "+r.status);
+ tsConhecido=obj.ts||Date.now();
  return true;
 }
+/* ============ aviso de alterações externas ============ */
+let avisoAberto=false;
+async function verificarNuvem(){
+ if(!cloudOn||avisoAberto||document.hidden)return;
+ try{
+  const cloud=await cloudGet();
+  if(!cloud||!cloud.D)return;
+  if((cloud.ts||0)>tsConhecido+1500){   // margem para não disparar com o nosso próprio save
+   mostrarAvisoNuvem(cloud);
+  }
+ }catch(e){}
+}
+function mostrarAvisoNuvem(cloud){
+ avisoAberto=true;
+ const el=$("syncAviso");if(!el)return;
+ const quando=new Date(cloud.ts||Date.now()).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
+ el.innerHTML=`<span class="sadot"></span><span class="satxt">Há alterações novas na nuvem (${quando}). O que estás a ver pode estar desatualizado.</span><button class="btn" id="saLoad">carregar</button><button class="ico" id="saNo" style="width:26px;height:26px;font-size:11px" title="ignorar">✕</button>`;
+ el.classList.add("on");
+ $("saLoad").onclick=async()=>{
+  if(applySnapshot(cloud)){tsConhecido=cloud.ts||Date.now();rAll();setSt("atualizado da nuvem");}
+  el.classList.remove("on");avisoAberto=false;
+ };
+ $("saNo").onclick=()=>{el.classList.remove("on");avisoAberto=false;tsConhecido=cloud.ts||Date.now();};
+}
+setInterval(verificarNuvem,60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(verificarNuvem,800);});
 function snapshot(){return {versao:D.versao,D,rot,docs,news,agenda,mail,pausas,trk,ts:Date.now()};}
 function applySnapshot(s){
  if(!s||!s.D)return false;
@@ -1057,6 +1092,7 @@ async function load(){
   const cloud=await cloudGet();
   if(cloud&&cloud.D){
    if(!local||!local.ts||(cloud.ts||0)>=(local.ts||0)){applySnapshot(cloud);}
+   tsConhecido=Math.max(cloud.ts||0,(local&&local.ts)||0);
    setSt("sincronizado");
   }else if(local&&local.D){
    // nuvem vazia: semear com o que temos localmente
@@ -1230,7 +1266,7 @@ async function diag(){
  alert(msg);
 }
 async function pullCloud(){
- try{const cloud=await cloudGet();if(applySnapshot(cloud)){rAll();rHome&&rHome();setSt("atualizado da nuvem");}}
+ try{const cloud=await cloudGet();if(applySnapshot(cloud)){tsConhecido=cloud.ts||Date.now();rAll();rHome&&rHome();setSt("atualizado da nuvem");}}
  catch(e){setSt("nuvem indisponível");}
 }
 
