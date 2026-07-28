@@ -80,6 +80,8 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .tbtit{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
 .tbtime{font-size:13px;font-weight:700;color:var(--acc);flex-shrink:0;}
 .tmrbtn.run{color:var(--acc);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
+#timerBar.pausado .tbdot{animation:none;background:var(--soft);}
+.tempot{font-size:10px;color:var(--acc2);white-space:nowrap;padding:0 2px;}
 .btn.on{color:var(--acc);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
 .trkper{font-size:10px;padding:6px 12px;text-transform:lowercase;letter-spacing:.04em;}
 .trkresumo{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--soft);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);}
@@ -1308,6 +1310,17 @@ function beep(){
  }catch(e){}
 }
 document.addEventListener("click",()=>{if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}},{once:true});
+function tituloTarefa(ref){
+ const t=(D.tarefas||[]).find(x=>x.id===ref);
+ return t?t.titulo:ref;
+}
+// total de horas já registadas numa tarefa (via projecto do tracker)
+function horasTarefa(t){
+ if(!t)return 0;
+ let h=0;
+ Object.values(trk||{}).forEach(r=>{h+=((r.tarefas||{})[t.id]||0);});
+ return h;
+}
 function tick(){
  const n=new Date();
  $("cD").textContent=n.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long"});
@@ -1324,7 +1337,7 @@ function tick(){
   const ini=min(c.q),total=cFim-ini,dec=nm-ini,falta=cFim-nm;
   const fmt=m=>{const hh=Math.floor(m/60),mm=m%60;return hh?`${hh}h${mm?String(mm).padStart(2,"0"):""}`:`${mm}min`;};
   const fimStr=`${String(Math.floor(cFim/60)).padStart(2,"0")}:${String(cFim%60).padStart(2,"0")}`;
-  base=`agora · <strong>${esc(c.t)}</strong>${(c.tarefas&&c.tarefas.length)?" — "+esc(c.tarefas[0]):c.n?" — "+esc(c.n):""}
+  base=`agora · <strong>${esc(c.t)}</strong>${(c.tarefas&&c.tarefas.length)?" — "+esc(tituloTarefa(c.tarefas[0])):c.n?" — "+esc(c.n):""}
    <span class="nowMeta">${c.q} → ${fimStr} · ${fmt(total)} total · ${fmt(dec)} decorrido · <b>${fmt(falta)} restantes</b></span>`;
  }else base="sem bloco definido";
  if(pausaAtiva()){
@@ -2634,7 +2647,21 @@ async function mAdd(){
 function pcor(t){const p=(D.projectos||[]).find(x=>x.nome===t.projecto&&x.categoria===t.categoria);return p&&p.cor?p.cor:"#999";}
 /* ============ cronómetro por tarefa ============ */
 const TIMER_MAX_H=8; // travão: acima disto pergunta em vez de gravar às cegas
-function timerDecorridoMs(){return D.timer?Date.now()-D.timer.inicio:0;}
+function timerDecorridoMs(){
+ if(!D.timer)return 0;
+ const fim=D.timer.pausadoEm||Date.now();
+ return Math.max(0,fim-D.timer.inicio-(D.timer.pausadoTotal||0));
+}
+async function togglePausaTimer(){
+ if(!D.timer)return;
+ if(D.timer.pausadoEm){
+  D.timer.pausadoTotal=(D.timer.pausadoTotal||0)+(Date.now()-D.timer.pausadoEm);
+  D.timer.pausadoEm=null;setSt("cronómetro retomado");
+ }else{
+  D.timer.pausadoEm=Date.now();setSt("cronómetro em pausa");
+ }
+ await save();rTimerBar();
+}
 function fmtDur(ms){
  const s=Math.floor(ms/1000),hh=Math.floor(s/3600),mm=Math.floor(s%3600/60),ss=s%60;
  return hh?`${hh}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`:`${mm}:${String(ss).padStart(2,"0")}`;
@@ -2650,11 +2677,16 @@ async function pararTimer(silencioso){
   horas=Math.max(0,parseFloat(String(resp).replace(",","."))||0);
  }
  const dia=D.timer.dia||hoje();
+ const tidRegisto=D.timer.tid||null;
  D.timer=null;
  if(horas>=0.02){
   trk[dia]=trk[dia]||{};
   trk[dia].horas=trk[dia].horas||{};
   trk[dia].horas[proj]=Math.round(((trk[dia].horas[proj]||0)+horas)*100)/100;
+  if(tidRegisto){
+   trk[dia].tarefas=trk[dia].tarefas||{};
+   trk[dia].tarefas[tidRegisto]=Math.round(((trk[dia].tarefas[tidRegisto]||0)+horas)*100)/100;
+  }
  }
  await save();
  if(!silencioso)setSt(horas>=0.02?`registado ${horas.toFixed(2)}h em ${proj}`:"cronómetro descartado");
@@ -2664,14 +2696,20 @@ async function toggleTimer(tid){
  if(D.timer&&D.timer.tid===tid){await pararTimer();return;}
  if(D.timer)await pararTimer(true); // só um de cada vez
  const t=D.tarefas.find(x=>x.id===tid);if(!t)return;
- D.timer={tid,proj:t.projecto||"sem projecto",titulo:t.titulo,inicio:Date.now(),dia:hoje()};
+ D.timer={tid,proj:t.projecto||"sem projecto",titulo:t.titulo,inicio:Date.now(),dia:hoje(),pausadoTotal:0,pausadoEm:null};
  await save();setSt(`a contar: ${t.titulo}`);rAll();
 }
 function rTimerBar(){
  const el=$("timerBar");if(!el)return;
  if(!D.timer){el.classList.remove("on");el.innerHTML="";return;}
  el.classList.add("on");
- el.innerHTML=`<span class="tbdot"></span><span class="tbtit">${esc(D.timer.titulo||"")}</span><span class="tbtime mono">${fmtDur(timerDecorridoMs())}</span><button class="ico" style="width:26px;height:26px" title="Parar" onclick="pararTimer()"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></button>`;
+ const pausado=!!D.timer.pausadoEm;
+ el.classList.toggle("pausado",pausado);
+ el.innerHTML=`<span class="tbdot"></span><span class="tbtit">${esc(D.timer.titulo||"")}${pausado?' <span class="hsub" style="display:inline">em pausa</span>':""}</span><span class="tbtime mono">${fmtDur(timerDecorridoMs())}</span>`+
+  `<button class="ico" style="width:26px;height:26px" title="${pausado?"Retomar":"Pausa"}" onclick="togglePausaTimer()">${pausado
+    ?`<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>`
+    :`<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>`}</button>`+
+  `<button class="ico" style="width:26px;height:26px" title="Parar e registar" onclick="pararTimer()"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></button>`;
 }
 setInterval(()=>{if(D&&D.timer)rTimerBar();},1000);
 function rTaskList(el,list){
@@ -2686,6 +2724,7 @@ function rTaskList(el,list){
    <button class="chk${t.estado==="concluída"?" c":""}" data-a="tg" data-id="${t.id}" aria-label="concluir"></button>
    <span style="display:flex;align-items:baseline;min-width:0;cursor:pointer" data-op="${(D.projectos.find(x=>x.nome===t.projecto)||{}).id||""}"><i class="pdot" style="background:${pcor(t)}"></i><span style="min-width:0"><span class="tt">${esc(t.titulo)}${urg?' <span class="meta urg">⚠</span>':""}${t.responsavel&&t.responsavel!=="Ricardo"?` <span class="chip hot" style="display:inline">${esc(t.responsavel)}</span>`:""}</span><span class="sub2">${t.categoria} · ${esc(t.projecto)}</span></span></span>
    <span class="tctrl">
+    ${(()=>{const ht=horasTarefa(t);return ht>0?`<span class="tempot mono" title="tempo já registado nesta tarefa">${ht.toFixed(1)}h</span>`:"";})()}
     ${dateChip("t:"+t.id+":data",t.data?fmtDataCurta(t.data):"dia",t.data,"")}
     ${dateChip("t:"+t.id+":prazo",t.prazo?fmtDataCurta(t.prazo):"prazo",t.prazo,px)}
     <select class="pin" data-a="es" data-id="${t.id}">${["ativa","em espera","concluída","arquivada"].map(s=>`<option ${t.estado===s?"selected":""}>${s}</option>`).join("")}</select>
@@ -3182,7 +3221,7 @@ async function registarExtra(){
  const q=String(quando).trim().replace(",",".");
  if(q===""){
   if(D.timer)await pararTimer(true);
-  D.timer={tid:null,proj:titulo,titulo,inicio:Date.now(),dia:hoje(),extra:true};
+  D.timer={tid:null,proj:titulo,titulo,inicio:Date.now(),dia:hoje(),extra:true,pausadoTotal:0,pausadoEm:null};
   await save();setSt(`a contar: ${titulo}`);rAll();
   return;
  }
