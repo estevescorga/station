@@ -1369,6 +1369,7 @@ function tkLabel(ref){
  const concluida=t.estado==="concluída";
  return `<span class="tk${foraDeHoje?" tkfora":""}${concluida?" tkdone":""}" title="${foraDeHoje?"já não é de hoje ("+t.data+")":concluida?"concluída":""}">${esc(t.titulo)}${foraDeHoje?" ⤳":""}${concluida?" ✓":""}</span>`;
 }
+let rotPassOpen=false;
 function rHoje(){
  const el=$("rotList");el.innerHTML="";
  const its=rot?rot.itens:null;
@@ -1381,15 +1382,28 @@ function rHoje(){
  }
  const nm=new Date().getHours()*60+new Date().getMinutes();
  const s=[...its].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
- s.forEach((it,i)=>{
+ const linha=(it,i)=>{
   const nx=i<s.length-1?min(s[i+1].q):1440,m=min(it.q);
   const cur=m!==null&&nm>=m&&nm<nx;
-  el.insertAdjacentHTML("beforeend",`<div class="rrow${it.feito?" done":""}${cur?" cur":""}">
+  return `<div class="rrow${cur?" cur":""}">
    <span class="q">${esc(it.q)}</span>
    <span><span class="t">${esc(it.t)}</span>${it.n?`<span class="n">${esc(it.n)}</span>`:""}${(it.tarefas||[]).map(t=>tkLabel(t)).join("")}</span>
-   <button class="chk${it.feito?" c":""}" data-i="${i}" aria-label="concluir"></button></div>`);
+   <span></span></div>`;
+ };
+ let iAtual=s.findIndex((it,i)=>{
+  const nx=i<s.length-1?min(s[i+1].q):1440,m=min(it.q);
+  return m!==null&&nm>=m&&nm<nx;
  });
- el.querySelectorAll(".chk").forEach(b=>b.addEventListener("click",async()=>{s[+b.dataset.i].feito=!s[+b.dataset.i].feito;await saveRot();rHoje();}));
+ if(iAtual<0)iAtual=s.length;
+ const passados=s.slice(0,iAtual), resto=s.slice(iAtual);
+ let html="";
+ if(passados.length){
+  html+=`<div class="cgroup"><div class="cgrouph acc" id="rotPassAcc"><span class="accarr">${rotPassOpen?"▾":"▸"}</span>já passou · ${passados.length}</div><div class="cgbody" style="display:${rotPassOpen?"block":"none"}">${passados.map((it,i)=>linha(it,i)).join("")}</div></div>`;
+ }
+ html+=resto.map((it,i)=>linha(it,iAtual+i)).join("");
+ el.innerHTML=html;
+ const acc=$("rotPassAcc");
+ if(acc)acc.addEventListener("click",()=>{rotPassOpen=!rotPassOpen;rHoje();});
 }
 function fecho(){
  const f=rot?rot.itens.filter(x=>x.feito).map(x=>x.t):[];
