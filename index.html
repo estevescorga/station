@@ -2669,7 +2669,10 @@ function fmtDur(ms){
 async function pararTimer(silencioso){
  if(!D.timer)return;
  const t=D.timer.tid?D.tarefas.find(x=>x.id===D.timer.tid):null;
- const proj=D.timer.proj||(t&&t.projecto)||"sem projecto";
+ let proj=D.timer.proj||(t&&t.projecto)||"sem projecto";
+ // tarefas genéricas não se somam todas em "Inbox": cada uma conta pelo seu nome,
+ // para poder receber categoria própria no tracker
+ if(t&&(!t.projecto||t.projecto==="Inbox"))proj=t.titulo;
  let horas=timerDecorridoMs()/3600000;
  if(horas>TIMER_MAX_H){
   const resp=prompt(`O cronómetro esteve ${horas.toFixed(1)}h em "${t?t.titulo:(D.timer.titulo||proj)}" — parece de mais.\nQuantas horas queres registar? (0 para descartar)`,TIMER_MAX_H.toFixed(1));
@@ -3237,8 +3240,13 @@ async function iniciarAlmoco(){
  const n=new Date();
  const hm=x=>String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");
  const mais=m=>{const d=new Date(n.getTime()+m*60000);return hm(d);};
- // remover blocos de almoço anteriores do dia
- rot.itens=rot.itens.filter(x=>!["Almoço","Sesta","Voltar ao estúdio"].includes(x.t));
+ const iniMin=n.getHours()*60+n.getMinutes(), fimMin=iniMin+50;
+ // limpar uma pausa anterior e absorver blocos que caiam dentro desta
+ rot.itens=rot.itens.filter(x=>{
+  if(["Almoço","Sesta","Voltar ao estúdio"].includes(x.t))return false;
+  const m=min(x.q);
+  return !(m!==null&&m>iniMin&&m<fimMin);
+ });
  rot.itens.push({q:hm(n),t:"Almoço",n:"30 min: preparar, comer, arrumar",feito:false});
  rot.itens.push({q:mais(30),t:"Sesta",n:"20 min, não-negociável",feito:false});
  rot.itens.push({q:mais(50),t:"Voltar ao estúdio",n:"retomar o trabalho",feito:false});
