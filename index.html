@@ -82,6 +82,7 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .tmrbtn.run{color:var(--acc);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 #timerBar.pausado .tbdot{animation:none;background:var(--soft);}
 .tempot{font-size:10px;color:var(--acc2);white-space:nowrap;padding:0 2px;}
+.hsep{width:1px;height:20px;background:var(--line);margin:0 2px;}
 .nowt{font-size:15px;}
 @media(max-width:700px){
  .hometop .now{padding:14px 16px !important;}
@@ -528,15 +529,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 <div class="head card">
   <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><h1 style="margin:0">STATION</h1><span id="hFraseTop" class="fraseTop"></span></div>
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
     <a class="ico glink" href="https://claude.ai/chat/d093794a-2795-4f78-89f1-8d16eabb1cd3" target="_blank" rel="noopener" title="Conversa GOTEN" id="gotenLink" style="color:var(--acc)">✦</a>
-    <a class="ico glink" href="https://calendar.google.com" target="_blank" rel="noopener" title="Google Calendar">C</a>
-    <a class="ico glink" href="https://tasks.google.com" target="_blank" rel="noopener" title="Google Tasks">T</a>
-    <a class="ico glink" href="https://keep.google.com" target="_blank" rel="noopener" title="Google Keep">K</a>
-    <a class="ico glink" href="https://mail.google.com" target="_blank" rel="noopener" title="Gmail">G</a>
-    <a class="ico glink" href="https://web.whatsapp.com" target="_blank" rel="noopener" title="WhatsApp Web">W</a>
-    <a class="ico glink" href="https://news.google.com" target="_blank" rel="noopener" title="Google Notícias">N</a>
-<button class="ico" style="width:30px;height:30px" title="Notas para melhorar a Station" onclick="openNotas()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></button>
+    <a class="ico glink" href="https://calendar.google.com" target="_blank" rel="noopener" title="Google Calendar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></a>
+    <a class="ico glink" href="https://keep.google.com" target="_blank" rel="noopener" title="Google Keep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></a>
+    <a class="ico glink" href="https://mail.google.com" target="_blank" rel="noopener" title="Gmail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg></a>
+    <a class="ico glink" href="https://web.whatsapp.com" target="_blank" rel="noopener" title="WhatsApp Web"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2A9.9 9.9 0 0 0 2.13 11.9c0 1.75.46 3.45 1.32 4.95L2.05 22l5.3-1.38a9.86 9.86 0 0 0 4.69 1.19h.004a9.9 9.9 0 0 0 9.9-9.9A9.9 9.9 0 0 0 12.04 2Zm0 18.14h-.004a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.1.81.83-3.03-.2-.31a8.2 8.2 0 1 1 6.95 3.85Zm4.52-6.16c-.25-.12-1.46-.72-1.69-.8-.23-.09-.39-.13-.56.12-.16.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.15-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.13-.15.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.42h-.48c-.16 0-.43.06-.65.31-.22.25-.85.83-.85 2.03s.87 2.35.99 2.51c.12.16 1.71 2.61 4.15 3.66.58.25 1.03.4 1.39.51.58.19 1.11.16 1.53.1.47-.07 1.46-.6 1.66-1.18.21-.58.21-1.07.15-1.18-.06-.11-.22-.17-.47-.29Z"/></svg></a>
+    <a class="ico glink" href="https://news.google.com" target="_blank" rel="noopener" title="Google Notícias"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9h4"/><path d="M10 6h8M10 10h8M10 14h4"/></svg></a>
+    <span class="hsep"></span>
+    <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
+    <button class="ico" style="width:30px;height:30px" title="Preçário" onclick="goPrecario()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg></button>
+    <button class="ico" style="width:30px;height:30px" title="Notas práticas" onclick="goNotasRima()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></button>
+    <button class="ico" style="width:30px;height:30px" title="Tracker" onclick="goTracker()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></button>
+    <button class="ico" id="btnSom" style="width:30px;height:30px" title="Som ao mudar de bloco" onclick="toggleSom()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
+    <button class="ico" style="width:30px;height:30px" title="Melhorias da Station" onclick="openNotas()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
     <div class="clock"><div class="d" id="cD">—</div><div class="h" id="cH">—</div></div>
   </div>
 </div>
@@ -559,14 +565,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="view on" id="v-HOJE">
   <div class="hometop">
     <div class="now card"><div class="pip"></div><div id="nowTxt">—</div></div>
-    <div class="icorow" style="margin-bottom:0">
-      <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
-    <button class="ico" style="width:30px;height:30px" title="Preçário" onclick="goPrecario()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg></button>
-    <button class="ico" style="width:30px;height:30px" title="Notas práticas RIMA" onclick="goNotasRima()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></button>
-    <button class="ico" style="width:30px;height:30px" title="Notas práticas Ricardo" onclick="goNotasRicardo()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h4"/><path d="M2 12h4"/><path d="M2 18h4"/><rect x="8" y="3" width="14" height="18" rx="2"/></svg></button>
-    <button class="ico" style="width:30px;height:30px" title="Tracker" onclick="goTracker()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></button>
-      <button class="ico" id="btnSom" title="Som ao mudar de bloco" onclick="toggleSom()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
-    </div>
+
   </div>
   <div class="home">
     <div class="rot card" id="rotList"></div>
@@ -706,10 +705,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
    <div class="card" style="padding:8px 0" id="nrLista"></div>
    <div class="card" style="padding:18px 20px" id="nrDetalhe"></div>
   </div>
-</div>
-
-<div class="view" id="v-NOTASRICARDO">
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Notas práticas Ricardo<button class="ico" style="width:28px;height:28px" title="Nova nota" onclick="addNotaRicardo()">＋</button></h2>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">Notas práticas Ricardo<button class="ico" style="width:28px;height:28px" title="Nova nota" onclick="addNotaRicardo()">＋</button></h2>
   <div class="vgrid" style="grid-template-columns:260px 1fr;align-items:start">
    <div class="card" style="padding:8px 0" id="npLista"></div>
    <div class="card" style="padding:18px 20px" id="npDetalhe"></div>
@@ -1475,9 +1471,24 @@ function rHome(){
  const agOk=agenda&&agenda.atualizado===hoje();
  const evHoje=agOk?(agenda.eventos||[]).filter(e=>e.data===hoje()):[];
  const anivHoje=agOk?(agenda.aniversarios||[]).filter(a=>a.data===hoje()):[];
- $("hAg").innerHTML=agOk?(
-  evHoje.map(e=>`<div class="hitem"><span class="hm" style="margin:0 0 0 0">${esc(e.h||"")}</span><span>${esc(e.t)}${e.quem?` <span class="chip" style="display:inline;color:var(--acc2)">${esc(e.quem)}</span>`:""}</span></div>`).join("")||`<div class="hsub">sem eventos hoje</div>`
- ):`<div class="hsub">por atualizar</div>`;
+ const linhaEv=e=>`<div class="hitem"><span class="hm" style="margin:0 0 0 0">${esc(e.h||"")}</span><span>${esc(e.t)}${e.quem?` <span class="chip" style="display:inline;color:var(--acc2)">${esc(e.quem)}</span>`:""}</span></div>`;
+ if(!agOk){$("hAg").innerHTML=`<div class="hsub">por atualizar</div>`;}
+ else{
+  let html=evHoje.map(linhaEv).join("")||`<div class="hsub">sem eventos hoje</div>`;
+  // próximos 3 dias, em listas separadas
+  for(let k=1;k<=3;k++){
+   const d=new Date();d.setDate(d.getDate()+k);
+   const iso=isoLocal(d);
+   const evs=(agenda.eventos||[]).filter(e=>e.data===iso);
+   const anv=(agenda.aniversarios||[]).filter(a=>a.data===iso);
+   if(!evs.length&&!anv.length)continue;
+   const nome=k===1?"amanhã":d.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit"});
+   html+=`<div class="hgrouph" style="margin-top:12px">${esc(nome)}</div>`+
+     anv.map(a=>`<div class="hitem"><span class="hm" style="margin:0"></span><span>🎂 ${esc(a.nome)}</span></div>`).join("")+
+     evs.map(linhaEv).join("");
+  }
+  $("hAg").innerHTML=html;
+ }
  $("hAniv").innerHTML=anivHoje.length?anivHoje.map(a=>`<div class="hitem"><span>🎂 ${esc(a.nome)}</span></div>`).join(""):`<div class="hsub">nenhum hoje</div>`;
  // emails
  const mOk=mail&&mail.data===hoje();
@@ -3177,16 +3188,16 @@ function goPrecario(){
 let nrSel={notasRima:null,notasRicardo:null};
 const CADERNOS={
  notasRima:{vista:"v-NOTASRIMA",lista:"nrLista",det:"nrDetalhe",save:"nrSave"},
- notasRicardo:{vista:"v-NOTASRICARDO",lista:"npLista",det:"npDetalhe",save:"npSave"}
+ notasRicardo:{vista:"v-NOTASRIMA",lista:"npLista",det:"npDetalhe",save:"npSave"}
 };
-function abrirCaderno(chave){
+function goNotasRima(){
  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));
  cat=null;document.body.dataset.theme="HOJE";
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
- $(CADERNOS[chave].vista).classList.add("on");rCaderno(chave);
+ $("v-NOTASRIMA").classList.add("on");
+ rCaderno("notasRima");rCaderno("notasRicardo");
 }
-function goNotasRima(){abrirCaderno("notasRima");}
-function goNotasRicardo(){abrirCaderno("notasRicardo");}
+const goNotasRicardo=goNotasRima;
 function rCaderno(chave){
  const cfg=CADERNOS[chave];
  const L=D[chave]||(D[chave]=[]);
