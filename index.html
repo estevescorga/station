@@ -563,6 +563,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
     <button class="ico" style="width:30px;height:30px" title="Preçário" onclick="goPrecario()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Notas práticas RIMA" onclick="goNotasRima()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></button>
+    <button class="ico" style="width:30px;height:30px" title="Notas práticas Ricardo" onclick="goNotasRicardo()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6h4"/><path d="M2 12h4"/><path d="M2 18h4"/><rect x="8" y="3" width="14" height="18" rx="2"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Tracker" onclick="goTracker()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></button>
       <button class="ico" id="btnSom" title="Som ao mudar de bloco" onclick="toggleSom()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
     </div>
@@ -704,6 +705,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="vgrid" style="grid-template-columns:260px 1fr;align-items:start">
    <div class="card" style="padding:8px 0" id="nrLista"></div>
    <div class="card" style="padding:18px 20px" id="nrDetalhe"></div>
+  </div>
+</div>
+
+<div class="view" id="v-NOTASRICARDO">
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Notas práticas Ricardo<button class="ico" style="width:28px;height:28px" title="Nova nota" onclick="addNotaRicardo()">＋</button></h2>
+  <div class="vgrid" style="grid-template-columns:260px 1fr;align-items:start">
+   <div class="card" style="padding:8px 0" id="npLista"></div>
+   <div class="card" style="padding:18px 20px" id="npDetalhe"></div>
   </div>
 </div>
 
@@ -1186,6 +1195,10 @@ async function load(){
  if(!D.ordemUrgente)D.ordemUrgente=[];
  if(D.timer===undefined)D.timer=null;
  if(!D.extrasCat)D.extrasCat={};
+ if(!D.notasRicardo)D.notasRicardo=[
+  {id:"np1",titulo:"Levar em viagem",corpo:"Carregadores, adaptador, auscultadores.\nCaderno e canetas.\nComprimidos.\n\nAjusta esta lista à tua."},
+  {id:"np2",titulo:"Apontamentos de seminários",corpo:"Cola aqui o que trouxeres de seminários e workshops de ilustração."}
+ ];
  if(!D.notasRima)D.notasRima=[
   {id:"nr1",titulo:"Passos de um projecto novo",corpo:"1. Perguntar o budget disponível antes de orçamentar.\n2. Orçamento no Sheet, com nível de cliente.\n3. Criar pasta na Drive.\n4. Registar em Registos.\n5. Confirmar adjudicação por escrito antes de começar."},
   {id:"nr2",titulo:"Contactos frequentes",corpo:"Grünenthal · Catarina Cajada (RH)\nFiscalia · contabilidade mensal\n\nAcrescenta aqui os que usares."},
@@ -2833,7 +2846,7 @@ function bindMonthGrid(box){
    e.preventDefault();c.classList.remove("over");
    const id=e.dataTransfer.getData("text/plain");
    const t=D.tarefas.find(x=>x.id===id);
-   if(t){t.data=c.dataset.iso;await save();rGlobalTasks();rCal();}
+   if(t){t.data=c.dataset.iso;await save();rInbox();rGlobalTasks();rCal();if(mP)renderP();}
   });
  });
 }
@@ -3161,92 +3174,57 @@ function goPrecario(){
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
  $("v-PRECARIO").classList.add("on");rPrec();rServ();
 }
-function goNotasRima(){
+let nrSel={notasRima:null,notasRicardo:null};
+const CADERNOS={
+ notasRima:{vista:"v-NOTASRIMA",lista:"nrLista",det:"nrDetalhe",save:"nrSave"},
+ notasRicardo:{vista:"v-NOTASRICARDO",lista:"npLista",det:"npDetalhe",save:"npSave"}
+};
+function abrirCaderno(chave){
  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));
  cat=null;document.body.dataset.theme="HOJE";
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
- $("v-NOTASRIMA").classList.add("on");rNotasRima();
+ $(CADERNOS[chave].vista).classList.add("on");rCaderno(chave);
 }
-let nrSel=null;
-function rNotasRima(){
- const L=D.notasRima||[];
- $("nrLista").innerHTML=L.map(n=>`<div class="ditem${nrSel===n.id?" on":""}" data-nr="${n.id}">${esc(n.titulo)}</div>`).join("")||`<div class="empty">sem notas</div>`;
- $("nrLista").querySelectorAll("[data-nr]").forEach(e=>e.addEventListener("click",()=>{nrSel=e.dataset.nr;rNotasRima();}));
- const n=L.find(x=>x.id===nrSel);
- if(!n){$("nrDetalhe").innerHTML=`<div class="empty">escolhe uma nota à esquerda</div>`;return;}
- $("nrDetalhe").innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
-   <h3 style="font-size:15px;margin-bottom:10px;flex:1" contenteditable data-nrt="${n.id}">${esc(n.titulo)}</h3>
-   <button class="ico" style="width:26px;height:26px;font-size:11px" data-nrdel="${n.id}" title="apagar">✕</button>
+function goNotasRima(){abrirCaderno("notasRima");}
+function goNotasRicardo(){abrirCaderno("notasRicardo");}
+function rCaderno(chave){
+ const cfg=CADERNOS[chave];
+ const L=D[chave]||(D[chave]=[]);
+ const lst=$(cfg.lista),det=$(cfg.det);
+ if(!lst||!det)return;
+ lst.innerHTML=L.map(n=>`<div class="ditem${nrSel[chave]===n.id?" on":""}" data-nk="${n.id}">${esc(n.titulo)}</div>`).join("")||`<div class="empty">sem notas</div>`;
+ lst.querySelectorAll("[data-nk]").forEach(e=>e.addEventListener("click",()=>{nrSel[chave]=e.dataset.nk;rCaderno(chave);}));
+ const n=L.find(x=>x.id===nrSel[chave]);
+ if(!n){det.innerHTML=`<div class="empty">escolhe uma nota à esquerda</div>`;return;}
+ det.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+   <h3 style="font-size:15px;margin-bottom:10px;flex:1" contenteditable data-nkt>${esc(n.titulo)}</h3>
+   <button class="ico" style="width:26px;height:26px;font-size:11px" data-nkdel title="apagar">✕</button>
   </div>
-  <div class="dbody notaedit" contenteditable data-nrc="${n.id}">${esc(n.corpo||"")}</div>
-  <div class="hsub" id="nrSave" style="margin-top:6px">&nbsp;</div>`;
+  <div class="dbody notaedit" contenteditable data-nkc>${esc(n.corpo||"")}</div>
+  <div class="hsub" id="${cfg.save}" style="margin-top:6px">&nbsp;</div>`;
  const gravar=async()=>{
-  const t=$("nrDetalhe").querySelector("[data-nrt]").textContent.trim();
-  const c=$("nrDetalhe").querySelector("[data-nrc]").innerText;
+  const t=det.querySelector("[data-nkt]").textContent.trim();
+  const c=det.querySelector("[data-nkc]").innerText;
   if(t)n.titulo=t; n.corpo=c;
-  await save();if($("nrSave"))$("nrSave").textContent="gravado";
-  setTimeout(()=>{if($("nrSave"))$("nrSave").innerHTML="&nbsp;";},1500);
+  await save();
+  const s=$(cfg.save);if(s){s.textContent="gravado";setTimeout(()=>{if($(cfg.save))$(cfg.save).innerHTML="&nbsp;";},1500);}
  };
- $("nrDetalhe").querySelectorAll("[data-nrt],[data-nrc]").forEach(el=>el.addEventListener("blur",gravar));
- const db=$("nrDetalhe").querySelector("[data-nrdel]");
+ det.querySelectorAll("[data-nkt],[data-nkc]").forEach(el=>el.addEventListener("blur",gravar));
+ const db=det.querySelector("[data-nkdel]");
  if(db)db.addEventListener("click",async()=>{
   if(!confirm("Apagar esta nota?"))return;
-  D.notasRima=D.notasRima.filter(x=>x.id!==n.id);nrSel=null;await save();rNotasRima();
+  D[chave]=D[chave].filter(x=>x.id!==n.id);nrSel[chave]=null;await save();rCaderno(chave);
  });
 }
-function addNotaRima(){
+function addNota(chave){
  const t=prompt("Título da nota:");
  if(!t||!t.trim())return;
- D.notasRima.unshift({id:"nr"+Date.now(),titulo:t.trim(),corpo:""});
- nrSel=D.notasRima[0].id;save().then(rNotasRima);
+ D[chave]=D[chave]||[];
+ D[chave].unshift({id:"n"+Date.now(),titulo:t.trim(),corpo:""});
+ nrSel[chave]=D[chave][0].id;save().then(()=>rCaderno(chave));
 }
-const CATEGORIAS_TEMPO={
- cliente:{nome:"cliente",faturavel:true,cor:"#0E7C72"},
- interno:{nome:"interno",faturavel:false,cor:"#8AA86A"},
- estrutura:{nome:"estrutura",faturavel:false,cor:"#C77B3C"},
- desenvolvimento:{nome:"desenvolvimento",faturavel:false,cor:"#6B92E5"},
- pessoal:{nome:"pessoal",faturavel:false,cor:"#A87CA8"}
-};
-const EXTRAS_SUGESTOES=[
- ["Organizar estúdio","estrutura"],
- ["Organizar ambiente de trabalho","estrutura"],
- ["Admin e burocracia","estrutura"],
- ["Consulta / saúde","pessoal"],
- ["Deslocação","pessoal"],
- ["Formação / estudo","desenvolvimento"],
- ["Imprevisto","estrutura"]
-];
-// classifica qualquer chave do tracker
-function tipoRegisto(nome){
- const pj=(D.projectos||[]).find(x=>x.nome===nome);
- if(pj)return pj.cliente?"cliente":"interno";
- return (D.extrasCat&&D.extrasCat[nome])||"estrutura";
-}
-async function registarExtra(){
- const lista=EXTRAS_SUGESTOES.map(([s,c],i)=>`${i+1}. ${s} (${c})`).join("\n");
- const nome=prompt(`O que estás (ou estiveste) a fazer?\n\n${lista}\n\nEscreve o nome ou o número:`);
- if(nome===null)return;
- const nt=nome.trim();if(!nt)return;
- const idx=parseInt(nt,10);
- let titulo=nt,catAuto=null;
- if(!isNaN(idx)&&idx>=1&&idx<=EXTRAS_SUGESTOES.length){titulo=EXTRAS_SUGESTOES[idx-1][0];catAuto=EXTRAS_SUGESTOES[idx-1][1];}
- if(!D.extrasCat[titulo])D.extrasCat[titulo]=catAuto||"estrutura";
- const quando=prompt(`"${titulo}"\n\nDeixa vazio para começar a contar agora,\nou escreve as horas já gastas (ex: 2 ou 1.5):`,"");
- if(quando===null)return;
- const q=String(quando).trim().replace(",",".");
- if(q===""){
-  if(D.timer)await pararTimer(true);
-  D.timer={tid:null,proj:titulo,titulo,inicio:Date.now(),dia:hoje(),extra:true,pausadoTotal:0,pausadoEm:null};
-  await save();setSt(`a contar: ${titulo}`);rAll();
-  return;
- }
- const horas=parseFloat(q);
- if(isNaN(horas)||horas<=0){setSt("valor inválido");return;}
- const dia=hoje();
- trk[dia]=trk[dia]||{};trk[dia].horas=trk[dia].horas||{};
- trk[dia].horas[titulo]=Math.round(((trk[dia].horas[titulo]||0)+horas)*100)/100;
- await save();setSt(`registado ${horas}h em ${titulo}`);rAll();
-}
+function addNotaRima(){addNota("notasRima");}
+function addNotaRicardo(){addNota("notasRicardo");}
 async function iniciarAlmoco(){
  if(!rot||rot.data!==hoje()){setSt("gera primeiro a rotina de hoje");return;}
  const n=new Date();
@@ -3302,7 +3280,7 @@ $("nav").addEventListener("click",e=>{
   if(v==="TRACKER")rTracker();
  }
 });
-function rAll(){rTimerBar();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
+function rAll(){rTimerBar();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
 const PIN_OK="Rimmmmmma1";  // senha de entrada
 let _booted=false;
 async function boot(){
