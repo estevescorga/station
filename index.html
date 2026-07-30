@@ -95,6 +95,15 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .trkdiabtn{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:9px;text-align:center;line-height:1.5;padding:6px 9px;border-radius:10px;box-shadow:3px 3px 7px var(--sh-d),-3px -3px 7px var(--sh-l);}
 .trkdiabtn.on{color:var(--acc2);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .trkdiabtn.off{opacity:.35;}
+.tcell{width:100%;min-width:0;border:none;background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 7px;border-radius:8px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
+.tcell:focus{outline:none;box-shadow:inset 0 0 0 1.5px var(--acc2);}
+.tsesta{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 8px;border-radius:8px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
+.trkdot.sm{width:14px;height:14px;}
+.trkrow.off{opacity:.4;}
+.cmdbox{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
+#cmdBtns{display:flex;gap:7px;flex-wrap:wrap;}
+.cmdb{font-size:9.5px;padding:6px 10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;}
+.cmdb.copiado{color:var(--acc2);}
 .nowt{font-size:15px;}
 @media(max-width:700px){
  .hometop .now{padding:14px 16px !important;}
@@ -620,7 +629,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <!-- ============ TRACKER ============ -->
 <div class="view" id="v-TRACKER">
   <div class="fin" id="trkHoje"></div>
-  <div class="card" id="trkForm" style="padding:16px 20px;margin-bottom:18px"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">Investimento de tempo
    <span style="display:flex;gap:6px">
     <button class="btn trkper on" data-per="7">semana</button>
@@ -686,6 +694,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
    <button class="btn" onclick="copiarNotas()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>copiar tudo</button>
    <span class="hsub" id="nStatus"></span>
+  </div>
+  <div class="cmdbox">
+   <div class="trkfl" style="margin-bottom:8px">comandos · clica para copiar</div>
+   <div id="cmdBtns"></div>
   </div>
  </div>
 </div>
@@ -988,6 +1000,28 @@ function isFolga(d){
 }
 const $=i=>document.getElementById(i);
 function isoLocal(d){const x=d||new Date();return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");}
+// tempo em horas decimais -> "6h30m"
+function fmtH(v){
+ if(v===null||v===undefined||v===""||isNaN(v))return "—";
+ const tot=Math.round(Number(v)*60);
+ if(tot<=0)return "0m";
+ const hh=Math.floor(tot/60),mm=tot%60;
+ if(hh&&mm)return `${hh}h${String(mm).padStart(2,"0")}m`;
+ if(hh)return `${hh}h`;
+ return `${mm}m`;
+}
+// "6h30" / "6h30m" / "6,5" / "6.5" / "90m" -> horas decimais
+function parseH(s){
+ if(s===null||s===undefined)return null;
+ s=String(s).trim().toLowerCase().replace(",",".");
+ if(!s)return null;
+ let m=s.match(/^(\d+(?:\.\d+)?)h(?:\s*(\d+)\s*m?)?$/);
+ if(m)return Number(m[1])+(m[2]?Number(m[2])/60:0);
+ m=s.match(/^(\d+(?:\.\d+)?)\s*m$/);
+ if(m)return Number(m[1])/60;
+ const v=parseFloat(s);
+ return isNaN(v)?null:v;
+}
 function fmtDataCurta(iso){if(!iso)return"";const[,m,d]=iso.split("-");return `${d}/${m}`;}
 const hoje=()=>isoLocal();
 const esc=s=>{const d=document.createElement("div");d.textContent=fixEnc(String(s==null?"":s));return d.innerHTML;};
@@ -1739,9 +1773,9 @@ function rTrkProj(){
  const pctFat=totalH?Math.round(fatH/totalH*100):0;
 
  const barraCat=Object.entries(porCat).sort((a,b)=>b[1]-a[1])
-  .map(([c,v])=>`<div class="catseg" style="width:${v/totalH*100}%;background:${(CATEGORIAS_TEMPO[c]||{}).cor||"var(--soft)"}" title="${c}: ${v.toFixed(1)}h"></div>`).join("");
+  .map(([c,v])=>`<div class="catseg" style="width:${v/totalH*100}%;background:${(CATEGORIAS_TEMPO[c]||{}).cor||"var(--soft)"}" title="${c}: ${fmtH(v)}"></div>`).join("");
  const legenda=Object.entries(porCat).sort((a,b)=>b[1]-a[1])
-  .map(([c,v])=>`<span class="catleg"><i style="background:${(CATEGORIAS_TEMPO[c]||{}).cor||"var(--soft)"}"></i>${c} ${v.toFixed(1)}h</span>`).join("");
+  .map(([c,v])=>`<span class="catleg"><i style="background:${(CATEGORIAS_TEMPO[c]||{}).cor||"var(--soft)"}"></i>${c} ${fmtH(v)}</span>`).join("");
 
  const linha=([k,v])=>{
   const cat=tipoRegisto(k);
@@ -1752,16 +1786,16 @@ function rTrkProj(){
   const real=orc&&hTotProj>0?orc/hTotProj:null;
   const abaixo=real!==null&&alvo!==null&&real<alvo;
   const editavel=!pj;
-  return `<div class="grow"><div class="gl">${esc(k)}${editavel?`<button class="catbtn" data-cat="${esc(k)}" title="mudar categoria">${cat}</button>`:""}</div><div class="gtrack"><div class="gbar" style="left:0;width:${v/max*100}%;background:${(CATEGORIAS_TEMPO[cat]||{}).cor||"var(--acc2)"}"></div></div><span class="mono trkval">${v.toFixed(1)}h${real!==null?` · <span class="${abaixo?"bad":"good"}" title="€/hora real sobre ${hTotProj.toFixed(1)}h totais${alvo?` · alvo ${alvo.toFixed(0)}€/h`:""}">${real.toFixed(0)}€/h</span>`:""}</span></div>`;
+  return `<div class="grow"><div class="gl">${esc(k)}${editavel?`<button class="catbtn" data-cat="${esc(k)}" title="mudar categoria">${cat}</button>`:""}</div><div class="gtrack"><div class="gbar" style="left:0;width:${v/max*100}%;background:${(CATEGORIAS_TEMPO[cat]||{}).cor||"var(--acc2)"}"></div></div><span class="mono trkval">${fmtH(v)}${real!==null?` · <span class="${abaixo?"bad":"good"}" title="€/hora real sobre ${fmtH(hTotProj)} totais${alvo?` · alvo ${alvo.toFixed(0)}€/h`:""}">${real.toFixed(0)}€/h</span>`:""}</span></div>`;
  };
  const fatur=ent.filter(([k])=>tipoRegisto(k)==="cliente");
  const resto=ent.filter(([k])=>tipoRegisto(k)!=="cliente");
 
  box.innerHTML=`<div class="trkresumo">
-   <span><b>${totalH.toFixed(1)}h</b> no total</span>
-   <span class="${pctFat>=50?"good":"bad"}"><b>${pctFat}%</b> faturável (${fatH.toFixed(1)}h)</span>
+   <span><b>${fmtH(totalH)}</b> no total</span>
+   <span class="${pctFat>=50?"good":"bad"}"><b>${pctFat}%</b> faturável (${fmtH(fatH)})</span>
    <span>${diasComRegisto} dia${diasComRegisto===1?"":"s"} com registo</span>
-   <span>média <b>${diasComRegisto?(totalH/diasComRegisto).toFixed(1):"0"}h</b>/dia</span>
+   <span>média <b>${diasComRegisto?fmtH(totalH/diasComRegisto):"0m"}</b>/dia</span>
   </div>
   <div class="catbar">${barraCat}</div>
   <div class="catlegs">${legenda}</div>`+
@@ -1786,7 +1820,6 @@ document.addEventListener("click",e=>{
  document.querySelectorAll(".trkper").forEach(x=>x.classList.toggle("on",x===b));
  rTrkProj();
 });
-let trkFormDia=null;
 function diaUtil(iso){
  const dt=new Date(iso+"T12:00");
  const dow=dt.getDay();
@@ -1794,84 +1827,58 @@ function diaUtil(iso){
  if((D.folgas||[]).includes(iso))return false;
  return true;
 }
-function rTrkForm(){
- const box=$("trkForm");if(!box)return;
- const d=trkFormDia||hoje();
- const ultimos7=[...Array(7)].map((_,i)=>{const dt=new Date();dt.setDate(dt.getDate()-i);return isoLocal(dt);});
- const seletor=`<div class="trkdias">${ultimos7.map(iso=>{
-   const dt=new Date(iso+"T12:00");
-   const lbl=["dom","seg","ter","qua","qui","sex","sáb"][dt.getDay()];
-   return `<button class="trkdiabtn${iso===d?" on":""}${!diaUtil(iso)?" off":""}" data-td="${iso}">${lbl}<br>${iso.slice(8,10)}</button>`;
-  }).join("")}</div>`;
-
- if(!diaUtil(d)){
-  box.innerHTML=seletor+`<div class="hsub" style="margin-top:14px">Fim de semana ou folga — este tracker só regista dias de trabalho.</div>`;
-  box.querySelectorAll("[data-td]").forEach(b=>b.addEventListener("click",()=>{trkFormDia=b.dataset.td;rTrkForm();}));
-  return;
- }
- const r=trk[d]||(trk[d]={});
- box.innerHTML=seletor+`<div class="trkformgrid" style="margin-top:14px">
-   <div class="trkfield">
-    <span class="trkfl">sono</span>
-    <div style="display:flex;align-items:baseline;gap:4px"><input class="pin" type="number" min="0" max="14" step="0.5" id="tfSono" value="${r.sono??""}" placeholder="—" style="width:56px"/><span class="hsub" style="margin:0">horas</span></div>
-   </div>
-   <div class="trkfield">
-    <span class="trkfl">energia</span>
-    <div class="trkdots" id="tfEnergia">${[1,2,3,4,5].map(n=>`<button class="trkdot${(r.energia||0)>=n?" on":""}" data-en="${n}" title="${n}/5"></button>`).join("")}</div>
-   </div>
-   <div class="trkfield">
-    <span class="trkfl">exercício</span>
-    <div style="display:flex;align-items:baseline;gap:4px"><input class="pin" type="number" min="0" id="tfExercicio" value="${r.exercicio??""}" placeholder="—" style="width:64px"/><span class="hsub" style="margin:0">min</span></div>
-   </div>
-   <div class="trkfield">
-    <span class="trkfl">esticar</span>
-    <div style="display:flex;gap:6px">
-     <button class="trkdot${r.esticar1?" on":""}" data-es="esticar1" title="pausa das 11:45"></button>
-     <button class="trkdot${r.esticar2?" on":""}" data-es="esticar2" title="pausa das 15:15"></button>
-    </div>
-   </div>
-  </div>`;
- box.querySelectorAll("[data-td]").forEach(b=>b.addEventListener("click",()=>{trkFormDia=b.dataset.td;rTrkForm();}));
- $("tfSono").addEventListener("change",async e=>{
-  const v=e.target.value===""?null:parseFloat(String(e.target.value).replace(",","."));
-  trk[d]=trk[d]||{};trk[d].sono=v;await save();rTracker();
- });
- $("tfExercicio").addEventListener("change",async e=>{
-  const v=e.target.value===""?null:parseFloat(String(e.target.value).replace(",","."));
-  trk[d]=trk[d]||{};trk[d].exercicio=v;await save();rTracker();
- });
- box.querySelectorAll("[data-en]").forEach(b=>b.addEventListener("click",async()=>{
-  trk[d]=trk[d]||{};trk[d].energia=+b.dataset.en;await save();rTrkForm();rTracker();
- }));
- box.querySelectorAll("[data-es]").forEach(b=>b.addEventListener("click",async()=>{
-  const k=b.dataset.es;trk[d]=trk[d]||{};trk[d][k]=!trk[d][k];await save();rTrkForm();rTracker();
- }));
-}
 function rTracker(){
- rTrkForm();
  // camada 1: cartões do dia
  const est=estimativaHoje();
  const rHoje=trk[hoje()]||{};
  const horasReg=Object.values(rHoje.horas||{}).reduce((s,v)=>s+v,0);
  $("trkHoje").innerHTML=`
-  <div class="fcard card"><div class="fl">hoje · blocos de trabalho</div><div class="fv">${est.bloco.toFixed(1)}h</div><div class="fs">${est.pausa>0?`− ${est.pausa.toFixed(1)}h de pausas = ${est.liquido.toFixed(1)}h líquidas`:"sem pausas registadas"}</div></div>
-  <div class="fcard card"><div class="fl">horas registadas hoje</div><div class="fv">${horasReg?horasReg.toFixed(1)+"h":"—"}</div><div class="fs">via fecho do dia</div></div>
-  <div class="fcard card"><div class="fl">sono ontem</div><div class="fv">${(()=>{const o=isoLocal(new Date(Date.now()-864e5));const r=trk[o];return r&&r.sono?r.sono+"h":"—";})()}</div><div class="fs">energia: ${rHoje.energia?"●".repeat(rHoje.energia)+"○".repeat(5-rHoje.energia):"por registar"}</div></div>`;
+  <div class="fcard card"><div class="fl">hoje · blocos de trabalho</div><div class="fv">${fmtH(est.bloco)}</div><div class="fs">${est.pausa>0?`− ${fmtH(est.pausa)} de pausas = ${fmtH(est.liquido)} líquidas`:"sem pausas registadas"}</div></div>
+  <div class="fcard card"><div class="fl">horas registadas hoje</div><div class="fv">${horasReg?fmtH(horasReg):"—"}</div><div class="fs">via fecho do dia</div></div>
+  <div class="fcard card"><div class="fl">sono ontem</div><div class="fv">${(()=>{const o=isoLocal(new Date(Date.now()-864e5));const r=trk[o];return r&&r.sono?fmtH(r.sono):"—";})()}</div><div class="fs">energia: ${rHoje.energia?"●".repeat(rHoje.energia)+"○".repeat(5-rHoje.energia):"por registar"}</div></div>`;
  const dias=Object.keys(trk).sort().reverse().slice(0,21);
+ // dias úteis das últimas 3 semanas, mesmo sem registo, para poder editar qualquer um
+ const listaDias=[];
+ for(let i=0;i<21;i++){
+  const dt=new Date();dt.setDate(dt.getDate()-i);
+  const iso=isoLocal(dt);
+  if(diaUtil(iso)||trk[iso])listaDias.push(iso);
+ }
  $("trkTab").innerHTML=`<div class="trkrow trkhead"><span>data</span><span>sono</span><span>sesta</span><span>energia</span><span>exerc.</span><span>esticar</span><span>horas por projecto</span></div>`+
-  (dias.map(d=>{
+  (listaDias.map(d=>{
    const r=trk[d]||{};
-   const hs=r.horas?Object.entries(r.horas).map(([k,v])=>`${esc(k)} <b>${v}h</b>`).join(" · "):"";
+   const util=diaUtil(d);
+   const hs=r.horas?Object.entries(r.horas).map(([k,v])=>`${esc(k)} <b>${fmtH(v)}</b>`).join(" · "):"";
    const dt=new Date(d+"T12:00");
-   const est=(r.esticar1?"✓":"·")+(r.esticar2?"✓":"·");
-   return `<div class="trkrow"><span class="mono">${["dom","seg","ter","qua","qui","sex","sáb"][dt.getDay()]} ${d.slice(8,10)}/${d.slice(5,7)}</span>
-    <span class="mono">${r.sono??"—"}${r.sono?"h":""}</span>
-    <span>${r.sesta===true?"✓":r.sesta===false?"✗":"—"}</span>
-    <span class="mono">${r.energia?"●".repeat(r.energia)+"○".repeat(5-r.energia):"—"}</span>
-    <span class="mono">${r.exercicio?r.exercicio+"m":"—"}</span>
-    <span class="mono">${est}</span>
+   const nome=["dom","seg","ter","qua","qui","sex","sáb"][dt.getDay()];
+   if(!util)return `<div class="trkrow off"><span class="mono">${nome} ${d.slice(8,10)}/${d.slice(5,7)}</span><span class="mono" style="grid-column:2/7">folga</span><span style="font-size:11px">${hs||"—"}</span></div>`;
+   return `<div class="trkrow"><span class="mono">${nome} ${d.slice(8,10)}/${d.slice(5,7)}</span>
+    <input class="tcell" data-tk="sono" data-td="${d}" value="${r.sono?fmtH(r.sono):""}" placeholder="—" title="ex: 7h30" />
+    <button class="tsesta" data-tk="sesta" data-td="${d}">${r.sesta===true?"✓":r.sesta===false?"✗":"—"}</button>
+    <span class="trkdots">${[1,2,3,4,5].map(n=>`<button class="trkdot sm${(r.energia||0)>=n?" on":""}" data-tk="energia" data-tv="${n}" data-td="${d}" title="${n}/5"></button>`).join("")}</span>
+    <input class="tcell" data-tk="exercicio" data-td="${d}" value="${r.exercicio||""}" placeholder="—" title="minutos" />
+    <span style="display:flex;gap:4px">
+     <button class="trkdot sm${r.esticar1?" on":""}" data-tk="esticar1" data-td="${d}" title="pausa das 11:45"></button>
+     <button class="trkdot sm${r.esticar2?" on":""}" data-tk="esticar2" data-td="${d}" title="pausa das 15:15"></button>
+    </span>
     <span style="font-size:11px">${hs||"—"}${r.notas?`<span class="sub2">${esc(r.notas)}</span>`:""}</span></div>`;
-  }).join("")||`<div class="empty">sem registos ainda</div>`);
+  }).join(""));
+ // edição directa na tabela
+ $("trkTab").querySelectorAll("input.tcell").forEach(inp=>inp.addEventListener("change",async()=>{
+  const d=inp.dataset.td,k=inp.dataset.tk;
+  trk[d]=trk[d]||{};
+  if(k==="sono"){const v=parseH(inp.value);trk[d].sono=v;}
+  else{const v=inp.value===""?null:parseInt(inp.value,10);trk[d].exercicio=(v===null||isNaN(v))?null:v;}
+  await save();rTracker();
+ }));
+ $("trkTab").querySelectorAll("button[data-tk]").forEach(b=>b.addEventListener("click",async()=>{
+  const d=b.dataset.td,k=b.dataset.tk;
+  trk[d]=trk[d]||{};
+  if(k==="energia")trk[d].energia=+b.dataset.tv;
+  else if(k==="sesta")trk[d].sesta=trk[d].sesta===true?false:trk[d].sesta===false?null:true;
+  else trk[d][k]=!trk[d][k];
+  await save();rTracker();
+ }));
  rTrkProj();
  // gráfico de sono: sparkline 14 dias
  const d14=[];
@@ -1908,7 +1915,7 @@ function rTracker(){
    <div class="hitem"><span>sono médio</span><span class="hm">${sonos.length?(sonos.reduce((a,b)=>a+b,0)/sonos.length).toFixed(1)+"h":"—"}</span></div>
    <div class="hitem"><span>sestas</span><span class="hm">${sestas}/${doMes.length}</span></div>
    <div class="hitem"><span>dias com exercício</span><span class="hm">${exs}/${doMes.length}</span></div>
-   <div class="hitem"><span>horas de projecto</span><span class="hm">${totalH.toFixed(1)}h</span></div>
+   <div class="hitem"><span>horas de projecto</span><span class="hm">${fmtH(totalH)}</span></div>
    ${eur.map(([k,v])=>`<div class="hitem"><span>€/h real · ${esc(k)}</span><span class="hm">€${v.toFixed(0)}</span></div>`).join("")}`;
  }else $("trkMes").innerHTML=`<div class="empty">sem registos este mês</div>`;
 }
@@ -2301,10 +2308,22 @@ function bindUrgDrag(listaVisivel){
 }
 
 /* ============ notas de melhorias (lâmpada) ============ */
+const COMANDOS=["SYNC","NOVA ROTINA","ROTINA DE AMANHÃ","FECHO DO DIA","ORDEM DE TRABALHO","NOVO PROJECTO","CONTABILIDADE MENSAL","FECHAR CONTABILIDADE MENSAL","NOVOS POSTS","UPGRADE"];
+function rCmdBtns(){
+ const box=$("cmdBtns");if(!box)return;
+ box.innerHTML=COMANDOS.map(c=>`<button class="btn cmdb" data-cmd="${esc(c)}">${esc(c.toLowerCase())}</button>`).join("");
+ box.querySelectorAll("[data-cmd]").forEach(b=>b.addEventListener("click",async()=>{
+  const t=b.dataset.cmd;
+  try{await navigator.clipboard.writeText(t);}
+  catch(e){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(e2){}ta.remove();}
+  b.textContent="copiado ✓";b.classList.add("copiado");
+  setTimeout(()=>{b.classList.remove("copiado");b.textContent=t.toLowerCase();},1200);
+ }));
+}
 function openNotas(){
  $("nTxt").value=D.notasStation||"";
  $("nStatus").textContent="";
- $("nOvl").classList.add("on");
+ $("nOvl").classList.add("on");rCmdBtns();
  setTimeout(()=>$("nTxt").focus(),80);
 }
 function closeNotas(){$("nOvl").classList.remove("on");}
@@ -2704,15 +2723,15 @@ function balancoFinal(p,orc,hEst,hg,alvoH){
    <div class="balh">balanço final</div>
    <div class="balgrid">
     <div><span class="ball">orçamentado</span><span class="balv">€${orc.toLocaleString("pt-PT")}</span></div>
-    <div><span class="ball">horas reais</span><span class="balv">${hg.toFixed(1)}h</span></div>
+    <div><span class="ball">horas reais</span><span class="balv">${fmtH(hg)}</span></div>
     <div><span class="ball">€/hora real</span><span class="balv ${acima?"good":"bad"}">${real.toFixed(0)}€</span></div>
     <div><span class="ball">alvo do nível</span><span class="balv">${alvoH.toFixed(0)}€</span></div>
    </div>
    <div class="hsub" style="margin-top:10px">${
      desvio===null?"":
-     Math.abs(desvio)<8?`Bateu certo com o previsto (${hEst.toFixed(1)}h estimadas).`
-     :desvio>0?`Demorou <b>${fmtPct(desvio)}</b> mais do que o orçamento previa (${hEst.toFixed(1)}h estimadas). ${acima?"Ainda assim ficou acima do alvo.":"Para um trabalho igual, orçamentar mais."}`
-     :`Demorou <b>${fmtPct(desvio)}</b> menos do que o previsto (${hEst.toFixed(1)}h estimadas). Margem melhor do que o esperado.`
+     Math.abs(desvio)<8?`Bateu certo com o previsto (${fmtH(hEst)} estimadas).`
+     :desvio>0?`Demorou <b>${fmtPct(desvio)}</b> mais do que o orçamento previa (${fmtH(hEst)} estimadas). ${acima?"Ainda assim ficou acima do alvo.":"Para um trabalho igual, orçamentar mais."}`
+     :`Demorou <b>${fmtPct(desvio)}</b> menos do que o previsto (${fmtH(hEst)} estimadas). Margem melhor do que o esperado.`
    }</div>
   </div>`;
 }
@@ -2737,7 +2756,7 @@ function renderBudget(p){
    <label class="mono">orçamento € <input class="pin" type="number" min="0" step="10" data-bf="orcamento" value="${orc??""}" style="width:74px" ${orcLink!==null?"disabled title=\"ligado ao registo "+esc(reg[0])+"\"":""}/></label>
    <label class="mono">nível cliente <select data-bf="nivel">${["baixo","medio","alto"].map(n=>`<option value="${n}" ${nivel===n?"selected":""}>${n}</option>`).join("")}</select></label>
   </div>
-  ${hEst?`<div class="hsub" style="margin-bottom:8px">orçamento: <b>${hEst.toFixed(1)}h disponíveis</b> · ${hg.toFixed(1)}h usadas (tracker) · ${Math.max(0,hEst-hg).toFixed(1)}h restantes</div>`:""}
+  ${hEst?`<div class="hsub" style="margin-bottom:8px">orçamento: <b>${fmtH(hEst)} disponíveis</b> · ${fmtH(hg)} usadas (tracker) · ${fmtH(Math.max(0,hEst-hg))} restantes</div>`:""}
   ${balancoFinal(p,orc,hEst,hg,alvoH)}
   ${hEst?`<div class="pbar" style="margin-bottom:10px"><div style="width:${pct}%;background:${over?"var(--acc)":"var(--acc2)"}"></div></div>${over?`<div class="hsub" style="margin-bottom:12px;color:var(--acc)">acima do previsto</div>`:""}`:""}`;
  box.querySelectorAll("[data-bf]").forEach(el=>el.addEventListener("change",async()=>{
@@ -2787,7 +2806,7 @@ async function pararTimer(silencioso){
  if(t&&(!t.projecto||t.projecto==="Inbox"))proj=t.titulo;
  let horas=timerDecorridoMs()/3600000;
  if(horas>TIMER_MAX_H){
-  const resp=prompt(`O cronómetro esteve ${horas.toFixed(1)}h em "${t?t.titulo:(D.timer.titulo||proj)}" — parece de mais.\nQuantas horas queres registar? (0 para descartar)`,TIMER_MAX_H.toFixed(1));
+  const resp=prompt(`O cronómetro esteve ${fmtH(horas)} em "${t?t.titulo:(D.timer.titulo||proj)}" — parece de mais.\nQuantas horas queres registar? (0 para descartar)`,TIMER_MAX_H.toFixed(1));
   if(resp===null){return;}
   horas=Math.max(0,parseFloat(String(resp).replace(",","."))||0);
  }
@@ -2804,7 +2823,7 @@ async function pararTimer(silencioso){
   }
  }
  await save();
- if(!silencioso)setSt(horas>=0.02?`registado ${horas.toFixed(2)}h em ${proj}`:"cronómetro descartado");
+ if(!silencioso)setSt(horas>=0.02?`registado ${fmtH(horas)} em ${proj}`:"cronómetro descartado");
  rAll();
 }
 async function toggleTimer(tid){
@@ -2839,7 +2858,7 @@ function rTaskList(el,list){
    <button class="chk${t.estado==="concluída"?" c":""}" data-a="tg" data-id="${t.id}" aria-label="concluir"></button>
    <span style="display:flex;align-items:baseline;min-width:0;cursor:pointer" data-op="${(D.projectos.find(x=>x.nome===t.projecto)||{}).id||""}"><i class="pdot" style="background:${pcor(t)}"></i><span style="min-width:0"><span class="tt">${esc(t.titulo)}${urg?' <span class="meta urg">⚠</span>':""}${t.responsavel&&t.responsavel!=="Ricardo"?` <span class="chip hot" style="display:inline">${esc(t.responsavel)}</span>`:""}</span><span class="sub2">${t.categoria} · ${esc(t.projecto)}</span></span></span>
    <span class="tctrl">
-    ${(()=>{const ht=horasTarefa(t);return ht>0?`<span class="tempot mono" title="tempo já registado nesta tarefa">${ht.toFixed(1)}h</span>`:"";})()}
+    ${(()=>{const ht=horasTarefa(t);return ht>0?`<span class="tempot mono" title="tempo já registado nesta tarefa">${fmtH(ht)}</span>`:"";})()}
     ${dateChip("t:"+t.id+":data",t.data?fmtDataCurta(t.data):"dia",t.data,"")}
     ${dateChip("t:"+t.id+":prazo",t.prazo?fmtDataCurta(t.prazo):"prazo",t.prazo,px)}
     <select class="pin" data-a="es" data-id="${t.id}">${["ativa","em espera","concluída","arquivada"].map(s=>`<option ${t.estado===s?"selected":""}>${s}</option>`).join("")}</select>
