@@ -87,7 +87,7 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .trkfield{display:flex;flex-direction:column;gap:6px;}
 .trkfl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);}
 .trkdots{display:flex;gap:5px;}
-.trkdot{width:20px;height:20px;border-radius:50%;border:none;cursor:pointer;background:var(--bg);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
+.trkdot{width:20px;height:20px;padding:0;flex-shrink:0;border-radius:50%;border:none;cursor:pointer;background:var(--bg);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
 .trkdot.on{background:var(--acc2);box-shadow:none;}
 .trkex{font-size:10px;padding:6px 11px;}
 .trkex.on{color:var(--acc2);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
@@ -98,7 +98,7 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .tcell{width:100%;min-width:0;border:none;background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 7px;border-radius:8px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
 .tcell:focus{outline:none;box-shadow:inset 0 0 0 1.5px var(--acc2);}
 .tsesta{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 8px;border-radius:8px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
-.trkdot.sm{width:14px;height:14px;}
+.trkdot.sm{width:7px;height:7px;}
 .trkrow.off{opacity:.4;}
 .cmdbox{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
 #cmdBtns{display:flex;gap:7px;flex-wrap:wrap;}
@@ -692,7 +692,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
   <textarea id="nTxt" style="width:100%;min-height:340px;font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;padding:14px;border:none;border-radius:14px;background:var(--bg);color:var(--txt);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);resize:vertical"></textarea>
   <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
-   <button class="btn" onclick="copiarNotas()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>copiar tudo</button>
    <span class="hsub" id="nStatus"></span>
   </div>
   <div class="cmdbox">
