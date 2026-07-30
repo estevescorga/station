@@ -103,7 +103,6 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .dpx{width:18px !important;height:18px !important;font-size:8px !important;opacity:.5;}
 .dpx:hover{opacity:1;}
 input.tempot{width:56px;color:var(--acc2);text-align:center;}
-.alertmini{font-size:10.5px;color:var(--soft);line-height:1.7;padding:4px 2px 0;}
 .mrow2{display:grid;grid-template-columns:1fr 1fr;gap:26px;}
 @media(max-width:820px){.mrow2{grid-template-columns:1fr;}}
 .cmdbox{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
@@ -624,7 +623,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <div class="hcol">
       <div class="card hcard mini"><h5>aniversários</h5><div id="hAniv"></div></div>
       <div class="card hcard"><h5>inbox · genéricas</h5><input class="pin" id="hInboxNew" placeholder="nova tarefa genérica… (Enter)" style="width:100%;margin-bottom:8px"/><div id="hInbox"></div></div>
-      <div class="card hcard"><h5>projectos ativos</h5><div id="hProj"></div></div>
+      <div class="card hcard mini"><h5>projectos de cliente</h5><div id="hProj"></div></div>
       <div class="card hcard mini" id="finCard"><div id="hFin"></div></div>
     </div>
   </div>
@@ -1629,35 +1628,49 @@ function rHome(){
  ].join("")||`<div class="hsub">nada pendente de adjudicação</div>`;
  $("hAdj").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
  $("hUrg").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
- // projectos: clientes vs internos
+ // projectos: só os de cliente (os internos não ajudam a decidir o dia)
  const act=D.projectos.filter(p=>p.estado==="em curso");
- const cli=act.filter(p=>p.cliente), int=act.filter(p=>!p.cliente);
+ const cli=act.filter(p=>p.cliente);
  const linha=p=>{
   const dl=p.prazo?Math.ceil((new Date(p.prazo)-n)/864e5):null;
   return `<div class="hitem" data-op="${p.id}" style="cursor:pointer"><i class="pdot" style="background:${p.cor}"></i><span>${esc(p.nome)}</span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?dl+"d":""}</span></div>`;
  };
- $("hProj").innerHTML=
-  `<div class="hgrouph">clientes · ${cli.length}</div>`+(cli.map(linha).join("")||`<div class="hsub">nenhum ativo</div>`)+
-  `<div class="hgrouph" style="margin-top:10px">internos · ${int.length}</div>`+(int.map(linha).join("")||`<div class="hsub">nenhum ativo</div>`);
+ $("hProj").innerHTML=cli.map(linha).join("")||`<div class="hsub">nenhum ativo</div>`;
  $("hProj").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
  // financeiro
  const f=D.financeiro||{objetivoMinimo:5000,meses:{}};
  const mk=isoLocal(n).slice(0,7);
  const m=f.meses[mk]||{receita:0};
  $("hFin").innerHTML=`<div class="finmini"><span class="mono ${m.receita>=f.objetivoMinimo?"good":"bad"}" style="font-size:17px;font-weight:700">€${(m.receita||0).toLocaleString("pt-PT")}</span><span class="hsub" style="margin:0">${Math.round((m.receita||0)/f.objetivoMinimo*100)}% do objetivo · s/IVA</span></div>`;
- // alertas discretos (eco dos que já aparecem no topo de Comercial e Redes)
+ // comercial
  const hAl=$("hAlertas");
  if(hAl){
+  const h0=new Date();h0.setHours(0,0,0,0);
   const op=oportunidadeAgora();
   const lac=typeof lacunasComerciais==="function"?lacunasComerciais():[];
   const linhas=[];
   if(op){
+   const dias=diffDias(h0,op.tipo==="ativo"?(op.fim||op.evento):op.inicio);
    linhas.push(op.tipo==="ativo"
-    ?`🎯 ${esc(op.nome)} — janela ativa`
-    :`🎯 ${esc(op.nome)} — abre em ${diffDias(new Date(new Date().setHours(0,0,0,0)),op.inicio)}d`);
+    ?`<div class="hitem"><span class="hm" style="margin:0;color:var(--acc)">agora</span><span>${esc(op.nome)}${dias>0?` · fecha em ${dias}d`:""}</span></div>`
+    :`<div class="hitem"><span class="hm" style="margin:0">${dias}d</span><span>${esc(op.nome)} — abre a janela</span></div>`);
   }
-  if(lac.length)linhas.push(`⚠ ${lac.length} oportunidade${lac.length===1?"":"s"} comercial${lac.length===1?"":"is"} sem tarefa`);
-  hAl.innerHTML=linhas.length?`<div class="alertmini">${linhas.map(l=>`<div>${l}</div>`).join("")}</div>`:"";
+  // tarefas comerciais por fazer, com prazo mais próximo
+  const tc=(D.tarefas||[]).filter(t=>t.projecto==="Comercial"&&t.estado==="ativa")
+   .sort((a,b)=>(a.prazo||a.data||"9999").localeCompare(b.prazo||b.data||"9999"));
+  tc.slice(0,3).forEach(t=>{
+   const ref=t.prazo||t.data;
+   const dl=ref?Math.ceil((new Date(ref)-n)/864e5):null;
+   linhas.push(`<div class="hitem"><span class="hm ${dl!==null&&dl<=7?"urg":""}" style="margin:0">${dl!==null?(dl<0?"atraso":dl+"d"):"—"}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo)}</span></div>`);
+  });
+  if(tc.length>3)linhas.push(`<div class="hsub">+${tc.length-3} tarefas comerciais</div>`);
+  if(!tc.length)linhas.push(`<div class="hsub">sem tarefas comerciais ativas</div>`);
+  if(lac.length)linhas.push(`<div class="hsub" style="color:var(--acc);margin-top:6px">⚠ ${lac.length} oportunidade${lac.length===1?"":"s"} sem tarefa a apontar para lá</div>`);
+  // propostas por fechar
+  const porFechar=(D.conta||[]).filter(r=>(r[8]||"")==="AGUARDA"&&!contaRej(r));
+  const valPorFechar=porFechar.reduce((s,r)=>s+(+r[6]||0),0);
+  if(porFechar.length)linhas.push(`<div class="hsub" style="margin-top:6px">${porFechar.length} proposta${porFechar.length===1?"":"s"} por fechar · €${valPorFechar.toLocaleString("pt-PT")}</div>`);
+  hAl.innerHTML=`<div class="card hcard"><h5>comercial</h5>${linhas.join("")}</div>`;
  }
 }
 
