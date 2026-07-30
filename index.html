@@ -338,6 +338,8 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .crow.st-feito{background:color-mix(in srgb, var(--ok) 8%, transparent);}
 .crow.st-ativo{background:color-mix(in srgb, var(--acc2) 8%, transparent);}
 .crow.st-aguarda{background:color-mix(in srgb, var(--acc) 6%, transparent);}
+.gastoRow{display:grid;grid-template-columns:1fr auto 22px;gap:10px;align-items:center;padding:5px 2px;font-size:12px;}
+.gastoRow .gdesc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .cpag input[type=date]{font-family:'IBM Plex Mono',monospace;font-size:9px;width:104px;padding:4px 5px;border:none;border-radius:8px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .cpag input[type=date]:not([value=""]):valid{color:var(--soft);}
 @media(max-width:1200px){.cpag{flex-wrap:wrap;gap:6px;}}
@@ -1282,7 +1284,7 @@ async function load(){
  };
  if(D.redes.calendario)delete D.redes.calendario;
  if(!D.precario)D.precario={niveis:{baixo:3500,medio:7000,alto:13000},horasDia:5,diasSemana:5};
- (D.projectos||[]).forEach(p=>{if(p.cliente===undefined)p.cliente=false;if(p.marca===undefined)p.marca=null;if(p.prioridade===undefined)p.prioridade=2;if(p.horasPrevistas===undefined)p.horasPrevistas=null;if(p.horasGastas===undefined)p.horasGastas=0;if(p.orcamento===undefined)p.orcamento=null;if(p.adjudicado===undefined)p.adjudicado=true;});
+ (D.projectos||[]).forEach(p=>{if(p.cliente===undefined)p.cliente=false;if(p.marca===undefined)p.marca=null;if(p.prioridade===undefined)p.prioridade=2;if(p.horasPrevistas===undefined)p.horasPrevistas=null;if(p.horasGastas===undefined)p.horasGastas=0;if(p.orcamento===undefined)p.orcamento=null;if(p.adjudicado===undefined)p.adjudicado=true;if(p.gastos===undefined)p.gastos=[];});
  const PAL=["#C74A3C","#3AAFA9","#D99A3C","#6B92E5","#A87CA8","#7FA88B","#B85C7A","#5C8AA8","#8A7B63","#6E8F5A","#C77B3C","#7A6BB8","#4AA3C7","#A8A23C","#B8635C","#5CA88F","#8F5CA8","#A8845C","#5C6EA8","#94A83C","#C75C94","#3C9AA8","#A83C5C"];
  (D.projectos||[]).forEach((p,i)=>{if(!p.cor)p.cor=PAL[i%PAL.length];});
  (D.tarefas||[]).forEach(t=>{if(t.prazo===undefined)t.prazo=null;if(!t.responsavel)t.responsavel="Ricardo";});
@@ -2766,7 +2768,9 @@ function rMTasksGrouped(p){
 function balancoFinal(p,orc,hEst,hg,alvoH){
  const st=estadoP(p);
  if(st!=="concluído"||!orc||hg<=0)return "";
- const real=orc/hg;
+ const totGastos=(p.gastos||[]).reduce((s,g)=>s+(+g.valor||0),0);
+ const net=orc-totGastos;
+ const real=net/hg;
  const desvio=hEst?((hg-hEst)/hEst*100):null;   // >0 = demorou mais do que o orçamento previa
  const acima=real>=alvoH;
  const fmtPct=v=>`${v>0?"+":""}${v.toFixed(0)}%`;
@@ -2774,8 +2778,9 @@ function balancoFinal(p,orc,hEst,hg,alvoH){
    <div class="balh">balanço final</div>
    <div class="balgrid">
     <div><span class="ball">orçamentado</span><span class="balv">€${orc.toLocaleString("pt-PT")}</span></div>
+    ${totGastos>0?`<div><span class="ball">gastos materiais</span><span class="balv bad">−€${totGastos.toLocaleString("pt-PT")}</span></div>`:""}
     <div><span class="ball">horas reais</span><span class="balv">${fmtH(hg)}</span></div>
-    <div><span class="ball">€/hora real</span><span class="balv ${acima?"good":"bad"}">${real.toFixed(0)}€</span></div>
+    <div><span class="ball">€/hora real</span><span class="balv ${acima?"good":"bad"}" title="${totGastos>0?`líquido de gastos: €${net.toLocaleString("pt-PT")}`:""}">${real.toFixed(0)}€</span></div>
     <div><span class="ball">alvo do nível</span><span class="balv">${alvoH.toFixed(0)}€</span></div>
    </div>
    <div class="hsub" style="margin-top:10px">${
@@ -2785,6 +2790,26 @@ function balancoFinal(p,orc,hEst,hg,alvoH){
      :`Demorou <b>${fmtPct(desvio)}</b> menos do que o previsto (${fmtH(hEst)} estimadas). Margem melhor do que o esperado.`
    }</div>
   </div>`;
+}
+function rGastos(p){
+ const box=$("mGastos");if(!box)return;
+ const arr=p.gastos||[];
+ const tot=arr.reduce((s,g)=>s+(+g.valor||0),0);
+ box.innerHTML=arr.map((g,i)=>`<div class="gastoRow"><span class="gdesc">${esc(g.desc)}</span><span class="mono">€${(+g.valor||0).toLocaleString("pt-PT",{minimumFractionDigits:2})}</span><button class="ico" style="width:20px;height:20px;font-size:10px" data-gdel="${i}" title="apagar">✕</button></div>`).join("")
+  +(arr.length?`<div class="gastoRow" style="border-top:1px solid var(--line);margin-top:4px;padding-top:6px"><span class="gdesc" style="font-weight:600">total</span><span class="mono" style="font-weight:600">€${tot.toLocaleString("pt-PT",{minimumFractionDigits:2})}</span><span></span></div>`:`<div class="hsub">sem gastos registados</div>`);
+ box.querySelectorAll("[data-gdel]").forEach(b=>b.addEventListener("click",async()=>{
+  p.gastos.splice(+b.dataset.gdel,1);await save();rGastos(p);renderBudget(p);
+ }));
+}
+async function addGasto(){
+ const p=D.projectos.find(x=>x.id===mP);if(!p)return;
+ const desc=prompt("Descrição do gasto:");
+ if(!desc||!desc.trim())return;
+ const valor=parseFloat(String(prompt("Valor (€):")||"").replace(",","."));
+ if(isNaN(valor)||valor<0){setSt("valor inválido");return;}
+ p.gastos=p.gastos||[];
+ p.gastos.push({desc:desc.trim(),valor,data:hoje()});
+ await save();rGastos(p);renderBudget(p);
 }
 function renderBudget(p){
  const box=$("mBudget");if(!box)return;
@@ -2809,13 +2834,16 @@ function renderBudget(p){
   </div>
   ${hEst?`<div class="hsub" style="margin-bottom:8px">orçamento: <b>${fmtH(hEst)} disponíveis</b> · ${fmtH(hg)} usadas (tracker) · ${fmtH(Math.max(0,hEst-hg))} restantes</div>`:""}
   ${balancoFinal(p,orc,hEst,hg,alvoH)}
-  ${hEst?`<div class="pbar" style="margin-bottom:10px"><div style="width:${pct}%;background:${over?"var(--acc)":"var(--acc2)"}"></div></div>${over?`<div class="hsub" style="margin-bottom:12px;color:var(--acc)">acima do previsto</div>`:""}`:""}`;
+  ${hEst?`<div class="pbar" style="margin-bottom:10px"><div style="width:${pct}%;background:${over?"var(--acc)":"var(--acc2)"}"></div></div>${over?`<div class="hsub" style="margin-bottom:12px;color:var(--acc)">acima do previsto</div>`:""}`:""}
+  <div class="msech" style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">gastos<button class="ico" style="width:22px;height:22px;font-size:12px" onclick="addGasto()" title="Novo gasto">+</button></div>
+  <div id="mGastos"></div>`;
  box.querySelectorAll("[data-bf]").forEach(el=>el.addEventListener("change",async()=>{
   const f=el.dataset.bf;
   if(f==="nivel")p.nivel=el.value;
   else{const v=el.value===""?null:+el.value;p[f]=v;}
   await save();renderBudget(p);
  }));
+ rGastos(p);
 }
 async function mAdd(){
  const v=$("mNew").value.trim();if(!v)return;
