@@ -83,6 +83,14 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 #timerBar.pausado .tbdot{animation:none;background:var(--soft);}
 .tempot{font-size:10px;color:var(--acc2);white-space:nowrap;padding:0 2px;}
 .hsep{width:1px;height:20px;background:var(--line);margin:0 2px;}
+.trkformgrid{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-end;}
+.trkfield{display:flex;flex-direction:column;gap:6px;}
+.trkfl{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);}
+.trkdots{display:flex;gap:5px;}
+.trkdot{width:20px;height:20px;border-radius:50%;border:none;cursor:pointer;background:var(--bg);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
+.trkdot.on{background:var(--acc2);box-shadow:none;}
+.trkex{font-size:10px;padding:6px 11px;}
+.trkex.on{color:var(--acc2);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
 .nowt{font-size:15px;}
 @media(max-width:700px){
  .hometop .now{padding:14px 16px !important;}
@@ -608,6 +616,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <!-- ============ TRACKER ============ -->
 <div class="view" id="v-TRACKER">
   <div class="fin" id="trkHoje"></div>
+  <div class="card" id="trkForm" style="padding:16px 20px;margin-bottom:18px"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">Investimento de tempo
    <span style="display:flex;gap:6px">
     <button class="btn trkper on" data-per="7">semana</button>
@@ -1773,7 +1782,44 @@ document.addEventListener("click",e=>{
  document.querySelectorAll(".trkper").forEach(x=>x.classList.toggle("on",x===b));
  rTrkProj();
 });
+function rTrkForm(){
+ const box=$("trkForm");if(!box)return;
+ const d=hoje();
+ const r=trk[d]||(trk[d]={});
+ box.innerHTML=`<div class="trkformgrid">
+   <div class="trkfield">
+    <span class="trkfl">sono</span>
+    <div style="display:flex;align-items:baseline;gap:4px"><input class="pin" type="number" min="0" max="14" step="0.5" id="tfSono" value="${r.sono??""}" placeholder="—" style="width:56px"/><span class="hsub" style="margin:0">horas</span></div>
+   </div>
+   <div class="trkfield">
+    <span class="trkfl">energia</span>
+    <div class="trkdots" id="tfEnergia">${[1,2,3,4,5].map(n=>`<button class="trkdot${(r.energia||0)>=n?" on":""}" data-en="${n}" title="${n}/5"></button>`).join("")}</div>
+   </div>
+   <div class="trkfield">
+    <span class="trkfl">exercício</span>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+     ${[0,15,30,45,60].map(m=>`<button class="btn trkex${r.exercicio===m?" on":""}" data-ex="${m}">${m===0?"nenhum":m+"m"}</button>`).join("")}
+     <input class="pin" type="number" min="0" id="tfExOutro" placeholder="outro (min)" style="width:78px"/>
+    </div>
+   </div>
+  </div>`;
+ $("tfSono").addEventListener("change",async e=>{
+  const v=e.target.value===""?null:parseFloat(String(e.target.value).replace(",","."));
+  trk[d]=trk[d]||{};trk[d].sono=v;await save();rTracker();
+ });
+ box.querySelectorAll("[data-en]").forEach(b=>b.addEventListener("click",async()=>{
+  trk[d]=trk[d]||{};trk[d].energia=+b.dataset.en;await save();rTrkForm();rTracker();
+ }));
+ box.querySelectorAll("[data-ex]").forEach(b=>b.addEventListener("click",async()=>{
+  trk[d]=trk[d]||{};trk[d].exercicio=+b.dataset.ex;await save();rTrkForm();rTracker();
+ }));
+ $("tfExOutro").addEventListener("change",async e=>{
+  const v=e.target.value===""?null:parseInt(e.target.value,10);
+  if(v!==null&&!isNaN(v)){trk[d]=trk[d]||{};trk[d].exercicio=v;await save();rTrkForm();rTracker();}
+ });
+}
 function rTracker(){
+ rTrkForm();
  // camada 1: cartões do dia
  const est=estimativaHoje();
  const rHoje=trk[hoje()]||{};
