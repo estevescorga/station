@@ -179,6 +179,7 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 @media(min-width:1000px){
  .home{height:calc(100vh - 210px);min-height:430px;align-items:stretch;}
  .home .rot{overflow:auto;}
+ .hcol .rot{flex:1;min-height:0;}
  .hcol{min-height:0;}
  .hcol .hcard{flex:0 1 auto;min-height:0;overflow:auto;max-height:340px;}
  .hcol .hcard.grow{flex:1;}
@@ -606,10 +607,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
   </div>
   <div class="home">
-    <div class="rot card" id="rotList"></div>
+    <div class="hcol">
+      <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
+      <div class="rot card" id="rotList"></div>
+    </div>
     <div class="hcol">
       <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
-      <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
       <div class="card hcard"><h5>em espera</h5><div id="hEspera"></div></div>
       <div id="hAlertas"></div>
       <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
@@ -1304,7 +1307,18 @@ async function load(){
   }}catch(e){}
  }
  if(D&&D.tracker&&Object.keys(D.tracker).length){Object.assign(trk,D.tracker);D.tracker={};await persist("trk");}
+ await rolarTarefasAtrasadas();
  rPause();rSomBtn();
+}
+// tarefas com dia de trabalho no passado, ainda por resolver, passam para hoje.
+// o prazo não se mexe: se estiver ultrapassado tem de continuar a dar erro.
+async function rolarTarefasAtrasadas(){
+ if(!D||!D.tarefas)return;
+ const h=hoje();let n=0;
+ D.tarefas.forEach(t=>{
+  if(t.data&&t.data<h&&t.estado!=="concluída"&&t.estado!=="arquivada"){t.data=h;n++;}
+ });
+ if(n){await save();setSt(`${n} tarefa${n===1?"":"s"} transitou para hoje`);}
 }
 async function persist(tag){
  const snap=snapshot();
@@ -1394,8 +1408,16 @@ function horasTarefa(t){
  Object.values(trk||{}).forEach(r=>{h+=((r.tarefas||{})[t.id]||0);});
  return h;
 }
+let ultimoDiaVisto=null;
 function tick(){
  const n=new Date();
+ // se o dia virou com o separador aberto, faz transitar as tarefas e redesenha
+ const hj=hoje();
+ if(ultimoDiaVisto===null)ultimoDiaVisto=hj;
+ else if(ultimoDiaVisto!==hj){
+  ultimoDiaVisto=hj;
+  rolarTarefasAtrasadas().then(()=>rAll());
+ }
  $("cD").textContent=n.toLocaleDateString("pt-PT",{weekday:"long",day:"numeric",month:"long"});
  $("cH").textContent=n.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
  const its=(rot&&rot.itens)||D.rotinaBase, nm=n.getHours()*60+n.getMinutes();
@@ -2154,7 +2176,10 @@ function oportunidadeAgora(){
    cand.push({...o,evento,fim,inicio});
   });
  });
- const ativos=cand.filter(c=>c.inicio<=h&&h<=c.fim).sort((a,b)=>a.evento-b.evento);
+ // "atacar agora" = ainda dá para agir, ou seja até à data do evento.
+ // Em períodos longos (ex: época de casamentos) o momento de preparar é antes de começar,
+ // por isso deixam de ser accionáveis assim que a época arranca.
+ const ativos=cand.filter(c=>c.inicio<=h&&h<=c.evento).sort((a,b)=>a.evento-b.evento);
  if(ativos.length)return{tipo:"ativo",...ativos[0]};
  const futuros=cand.filter(c=>c.inicio>h).sort((a,b)=>a.inicio-b.inicio);
  return futuros.length?{tipo:"futuro",...futuros[0]}:null;
