@@ -690,7 +690,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ REGISTOS ============ -->
 <div class="view" id="v-REGISTOS">
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Contabilidade<span style="display:flex;gap:8px;align-items:center"><select id="fEstC" class="pin"><option value="">todos</option><option>ATIVO</option><option>AGUARDA</option><option>FEITO</option></select><button class="ico" style="width:28px;height:28px" title="Novo projecto" onclick="novoProj()">＋</button></span></h2>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Contabilidade<span style="display:flex;gap:8px;align-items:center"><select id="fOrdC" class="pin"><option value="num">ordenar: número</option><option value="estado">ordenar: estado</option><option value="valor">ordenar: valor</option></select><select id="fEstC" class="pin"><option value="">todos</option><option>ATIVO</option><option>AGUARDA</option><option>FEITO</option></select><button class="ico" style="width:28px;height:28px" title="Novo projecto" onclick="novoProj()">＋</button></span></h2>
   <div class="card" style="padding:6px 0" id="contaList"></div>
 </div>
 
@@ -2073,8 +2073,21 @@ let contaOpen={ativos:true,"avenças":true,pagos:false,null:false,rejeitados:fal
 function rConta(){
  const el=$("contaList");if(!el)return;
  const fe=$("fEstC").value;
- let rows=(D.conta||[]).slice().reverse();
+ const ord=$("fOrdC")?$("fOrdC").value:"num";
+ let rows=(D.conta||[]).slice();
  if(fe)rows=rows.filter(r=>r[8]===fe);
+ const ORDEM_ESTADO=["ATIVO","AGUARDA","FEITO","REJEITADO",""];
+ const cmp=(a,b)=>{
+  if(ord==="estado"){
+   const d=ORDEM_ESTADO.indexOf(a[8]||"")-ORDEM_ESTADO.indexOf(b[8]||"");
+   if(d)return d;
+  }else if(ord==="valor"){
+   const d=(+b[6]||0)-(+a[6]||0);
+   if(d)return d;
+  }
+  return (b[0]||"").localeCompare(a[0]||"");
+ };
+ rows.sort(cmp);
  const grupos=[
   ["ativos",rows.filter(r=>!contaAvenca(r)&&!contaPago(r)&&!contaNull(r)&&!contaRej(r))],
   ["avenças",rows.filter(r=>contaAvenca(r)&&!contaPago(r)&&!contaNull(r)&&!contaRej(r))],
@@ -3294,7 +3307,7 @@ function rGlobalTasks(){
  if(fo==="data")l=[...l].sort((a,b)=>(a.data||"9999")<(b.data||"9999")?-1:1);
  rTaskList($("allTasks"),l);
 }
-document.addEventListener("change",e=>{if(["fCat","fProj","fEst","fOrd","fResp"].includes(e.target.id))rGlobalTasks();if(e.target.id==="fEstC")rConta();});
+document.addEventListener("change",e=>{if(["fCat","fProj","fEst","fOrd","fResp"].includes(e.target.id))rGlobalTasks();if(e.target.id==="fEstC"||e.target.id==="fOrdC")rConta();});
 async function addTask(){
  const tit=$("nTit").value.trim();if(!tit)return;
  D.tarefas.push({id:Date.now().toString(36),categoria:$("nCat").value,projecto:$("nProj").value.trim()||"Geral",titulo:tit,estado:"ativa",data:$("nData").value||null,prazo:null,hora:null,responsavel:$("nResp").value||"Ricardo"});
