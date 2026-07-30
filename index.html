@@ -91,6 +91,10 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .trkdot.on{background:var(--acc2);box-shadow:none;}
 .trkex{font-size:10px;padding:6px 11px;}
 .trkex.on{color:var(--acc2);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
+.trkdias{display:flex;gap:6px;}
+.trkdiabtn{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:9px;text-align:center;line-height:1.5;padding:6px 9px;border-radius:10px;box-shadow:3px 3px 7px var(--sh-d),-3px -3px 7px var(--sh-l);}
+.trkdiabtn.on{color:var(--acc2);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
+.trkdiabtn.off{opacity:.35;}
 .nowt{font-size:15px;}
 @media(max-width:700px){
  .hometop .now{padding:14px 16px !important;}
@@ -1782,11 +1786,31 @@ document.addEventListener("click",e=>{
  document.querySelectorAll(".trkper").forEach(x=>x.classList.toggle("on",x===b));
  rTrkProj();
 });
+let trkFormDia=null;
+function diaUtil(iso){
+ const dt=new Date(iso+"T12:00");
+ const dow=dt.getDay();
+ if(dow===0||dow===6)return false;
+ if((D.folgas||[]).includes(iso))return false;
+ return true;
+}
 function rTrkForm(){
  const box=$("trkForm");if(!box)return;
- const d=hoje();
+ const d=trkFormDia||hoje();
+ const ultimos7=[...Array(7)].map((_,i)=>{const dt=new Date();dt.setDate(dt.getDate()-i);return isoLocal(dt);});
+ const seletor=`<div class="trkdias">${ultimos7.map(iso=>{
+   const dt=new Date(iso+"T12:00");
+   const lbl=["dom","seg","ter","qua","qui","sex","sáb"][dt.getDay()];
+   return `<button class="trkdiabtn${iso===d?" on":""}${!diaUtil(iso)?" off":""}" data-td="${iso}">${lbl}<br>${iso.slice(8,10)}</button>`;
+  }).join("")}</div>`;
+
+ if(!diaUtil(d)){
+  box.innerHTML=seletor+`<div class="hsub" style="margin-top:14px">Fim de semana ou folga — este tracker só regista dias de trabalho.</div>`;
+  box.querySelectorAll("[data-td]").forEach(b=>b.addEventListener("click",()=>{trkFormDia=b.dataset.td;rTrkForm();}));
+  return;
+ }
  const r=trk[d]||(trk[d]={});
- box.innerHTML=`<div class="trkformgrid">
+ box.innerHTML=seletor+`<div class="trkformgrid" style="margin-top:14px">
    <div class="trkfield">
     <span class="trkfl">sono</span>
     <div style="display:flex;align-items:baseline;gap:4px"><input class="pin" type="number" min="0" max="14" step="0.5" id="tfSono" value="${r.sono??""}" placeholder="—" style="width:56px"/><span class="hsub" style="margin:0">horas</span></div>
@@ -1797,26 +1821,31 @@ function rTrkForm(){
    </div>
    <div class="trkfield">
     <span class="trkfl">exercício</span>
-    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-     ${[0,15,30,45,60].map(m=>`<button class="btn trkex${r.exercicio===m?" on":""}" data-ex="${m}">${m===0?"nenhum":m+"m"}</button>`).join("")}
-     <input class="pin" type="number" min="0" id="tfExOutro" placeholder="outro (min)" style="width:78px"/>
+    <div style="display:flex;align-items:baseline;gap:4px"><input class="pin" type="number" min="0" id="tfExercicio" value="${r.exercicio??""}" placeholder="—" style="width:64px"/><span class="hsub" style="margin:0">min</span></div>
+   </div>
+   <div class="trkfield">
+    <span class="trkfl">esticar</span>
+    <div style="display:flex;gap:6px">
+     <button class="trkdot${r.esticar1?" on":""}" data-es="esticar1" title="pausa das 11:45"></button>
+     <button class="trkdot${r.esticar2?" on":""}" data-es="esticar2" title="pausa das 15:15"></button>
     </div>
    </div>
   </div>`;
+ box.querySelectorAll("[data-td]").forEach(b=>b.addEventListener("click",()=>{trkFormDia=b.dataset.td;rTrkForm();}));
  $("tfSono").addEventListener("change",async e=>{
   const v=e.target.value===""?null:parseFloat(String(e.target.value).replace(",","."));
   trk[d]=trk[d]||{};trk[d].sono=v;await save();rTracker();
  });
+ $("tfExercicio").addEventListener("change",async e=>{
+  const v=e.target.value===""?null:parseFloat(String(e.target.value).replace(",","."));
+  trk[d]=trk[d]||{};trk[d].exercicio=v;await save();rTracker();
+ });
  box.querySelectorAll("[data-en]").forEach(b=>b.addEventListener("click",async()=>{
   trk[d]=trk[d]||{};trk[d].energia=+b.dataset.en;await save();rTrkForm();rTracker();
  }));
- box.querySelectorAll("[data-ex]").forEach(b=>b.addEventListener("click",async()=>{
-  trk[d]=trk[d]||{};trk[d].exercicio=+b.dataset.ex;await save();rTrkForm();rTracker();
+ box.querySelectorAll("[data-es]").forEach(b=>b.addEventListener("click",async()=>{
+  const k=b.dataset.es;trk[d]=trk[d]||{};trk[d][k]=!trk[d][k];await save();rTrkForm();rTracker();
  }));
- $("tfExOutro").addEventListener("change",async e=>{
-  const v=e.target.value===""?null:parseInt(e.target.value,10);
-  if(v!==null&&!isNaN(v)){trk[d]=trk[d]||{};trk[d].exercicio=v;await save();rTrkForm();rTracker();}
- });
 }
 function rTracker(){
  rTrkForm();
@@ -1829,19 +1858,20 @@ function rTracker(){
   <div class="fcard card"><div class="fl">horas registadas hoje</div><div class="fv">${horasReg?horasReg.toFixed(1)+"h":"—"}</div><div class="fs">via fecho do dia</div></div>
   <div class="fcard card"><div class="fl">sono ontem</div><div class="fv">${(()=>{const o=isoLocal(new Date(Date.now()-864e5));const r=trk[o];return r&&r.sono?r.sono+"h":"—";})()}</div><div class="fs">energia: ${rHoje.energia?"●".repeat(rHoje.energia)+"○".repeat(5-rHoje.energia):"por registar"}</div></div>`;
  const dias=Object.keys(trk).sort().reverse().slice(0,21);
- $("trkTab").innerHTML=`<div class="trkrow trkhead"><span>data</span><span>sono</span><span>sesta</span><span>energia</span><span>exerc.</span><span>pausas</span><span>horas por projecto</span></div>`+
+ $("trkTab").innerHTML=`<div class="trkrow trkhead"><span>data</span><span>sono</span><span>sesta</span><span>energia</span><span>exerc.</span><span>esticar</span><span>horas por projecto</span></div>`+
   (dias.map(d=>{
    const r=trk[d]||{};
    const hs=r.horas?Object.entries(r.horas).map(([k,v])=>`${esc(k)} <b>${v}h</b>`).join(" · "):"";
    const dt=new Date(d+"T12:00");
+   const est=(r.esticar1?"✓":"·")+(r.esticar2?"✓":"·");
    return `<div class="trkrow"><span class="mono">${["dom","seg","ter","qua","qui","sex","sáb"][dt.getDay()]} ${d.slice(8,10)}/${d.slice(5,7)}</span>
     <span class="mono">${r.sono??"—"}${r.sono?"h":""}</span>
     <span>${r.sesta===true?"✓":r.sesta===false?"✗":"—"}</span>
     <span class="mono">${r.energia?"●".repeat(r.energia)+"○".repeat(5-r.energia):"—"}</span>
     <span class="mono">${r.exercicio?r.exercicio+"m":"—"}</span>
-    <span class="mono">${r.pausas??""}</span>
+    <span class="mono">${est}</span>
     <span style="font-size:11px">${hs||"—"}${r.notas?`<span class="sub2">${esc(r.notas)}</span>`:""}</span></div>`;
-  }).join("")||`<div class="empty">sem registos ainda — o fecho do dia (⏻) alimenta esta tabela</div>`);
+  }).join("")||`<div class="empty">sem registos ainda</div>`);
  rTrkProj();
  // gráfico de sono: sparkline 14 dias
  const d14=[];
