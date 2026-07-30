@@ -104,10 +104,14 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .dpx:hover{opacity:1;}
 input.tempot{width:56px;color:var(--acc2);text-align:center;}
 .alertmini{font-size:10.5px;color:var(--soft);line-height:1.7;padding:4px 2px 0;}
+.mrow2{display:grid;grid-template-columns:1fr 1fr;gap:26px;}
+@media(max-width:820px){.mrow2{grid-template-columns:1fr;}}
 .cmdbox{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
-#cmdBtns{display:flex;gap:7px;flex-wrap:wrap;}
-.cmdb{font-size:9.5px;padding:6px 10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;}
+#cmdBtns{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;}
+.cmdb{display:flex;align-items:center;gap:8px;font-size:10.5px;padding:9px 12px;font-family:'Inter',sans-serif;justify-content:flex-start;text-align:left;}
+.cmdb svg{flex-shrink:0;opacity:.65;}
 .cmdb.copiado{color:var(--acc2);}
+.cmdb.copiado svg{opacity:1;}
 .nowt{font-size:15px;}
 @media(max-width:700px){
  .hometop .now{padding:14px 16px !important;}
@@ -260,7 +264,7 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 /* modal de projecto */
 .ovl{display:none;position:fixed;inset:0;background:rgba(40,42,50,.45);z-index:50;padding:30px 14px;overflow:auto;}
 .ovl.on{display:flex;align-items:flex-start;justify-content:center;}
-.modal{width:100%;max-width:840px;padding:26px 30px 30px;box-shadow:0 24px 60px rgba(20,18,14,.38),0 6px 18px rgba(20,18,14,.22) !important;}
+.modal{width:100%;max-width:1120px;padding:26px 34px 30px;box-shadow:0 24px 60px rgba(20,18,14,.38),0 6px 18px rgba(20,18,14,.22) !important;}
 @media(max-width:700px){.modal{padding:18px 14px 20px;border-radius:14px;} .ovl{padding:14px 6px;} .mhead h3{font-size:16px;}}
 .mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
 .mhead h3{font-size:17px;font-weight:700;}
@@ -331,6 +335,9 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .crow.rejeitado{opacity:.4;}
 .crow.rejeitado .cli{text-decoration:line-through;}
 .crow.aviso{background:rgba(232,205,110,.14);}
+.crow.st-feito{box-shadow:inset 3px 0 0 var(--ok);}
+.crow.st-ativo{box-shadow:inset 3px 0 0 var(--acc2);}
+.crow.st-aguarda{box-shadow:inset 3px 0 0 var(--acc);}
 .cpag input[type=date]{font-family:'IBM Plex Mono',monospace;font-size:9px;width:104px;padding:4px 5px;border:none;border-radius:8px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .cpag input[type=date]:not([value=""]):valid{color:var(--soft);}
 @media(max-width:1200px){.cpag{flex-wrap:wrap;gap:6px;}}
@@ -712,8 +719,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
    <h3 id="mName"></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeP()" title="Fechar">✕</button>
   </div>
-  <div class="msec"><div class="msech">definições</div><div class="pedit" id="mEdit"></div></div>
-  <div class="msec"><div class="msech">horas e orçamento</div><div id="mBudget"></div></div>
+  <div class="mrow2">
+   <div class="msec"><div class="msech">definições</div><div class="pedit" id="mEdit"></div></div>
+   <div class="msec"><div class="msech">horas e orçamento</div><div id="mBudget"></div></div>
+  </div>
   <div class="msec"><div class="msech">tarefas</div>
    <div class="tlist" id="mTasks"></div>
    <div class="addrow" style="margin-top:10px">
@@ -2012,7 +2021,10 @@ function crow(r){
  }
  const pid=contaProjId(r);
  const proj=pid?(D.projectos||[]).find(p=>p.id===pid):null;
- return `<div class="crow${contaRej(r)?" rejeitado":contaNull(r)?" anulado":contaPago(r)?" pago":""}${contaAviso(r)?" aviso":""}">
+ // cor por estado: feito-por-pagar / ativo / aguarda (só quando não há rejeitado, anulado, pago ou aviso a sobrepor)
+ const semSobreposicao=!contaRej(r)&&!contaNull(r)&&!contaPago(r)&&!contaAviso(r);
+ const estCls=semSobreposicao?(contaFeito(r)?" st-feito":(r[8]||"")==="ATIVO"?" st-ativo":(r[8]||"")==="AGUARDA"?" st-aguarda":""):"";
+ return `<div class="crow${contaRej(r)?" rejeitado":contaNull(r)?" anulado":contaPago(r)?" pago":""}${contaAviso(r)?" aviso":""}${estCls}">
    <span class="cid">${r[0]}</span>
    <span class="cnome${pid?" clk":""}" ${pid?`data-copen="${pid}"`:""}><span class="cli">${esc(r[3]||"—")}</span><span class="cdesc">${esc(r[5]||"")}${r[1]?" · "+r[1]:""}</span></span>
    <span class="cval">€${val.toLocaleString("pt-PT",{minimumFractionDigits:2})}<span class="sub2" style="display:block">€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})} c/IVA</span></span>
@@ -2332,16 +2344,29 @@ function bindUrgDrag(listaVisivel){
 }
 
 /* ============ notas de melhorias (lâmpada) ============ */
-const COMANDOS=["SYNC","NOVA ROTINA","ROTINA DE AMANHÃ","FECHO DO DIA","ORDEM DE TRABALHO","NOVO PROJECTO","CONTABILIDADE MENSAL","FECHAR CONTABILIDADE MENSAL","NOVOS POSTS","UPGRADE"];
+const COMANDOS=[
+ {cmd:"SYNC",label:"sync",icon:'<path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/>'},
+ {cmd:"NOVA ROTINA",label:"rotina de hoje",icon:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>'},
+ {cmd:"ROTINA DE AMANHÃ",label:"rotina de amanhã",icon:'<path d="M5 12h14M13 6l6 6-6 6"/>'},
+ {cmd:"FECHO DO DIA",label:"fecho do dia",icon:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>'},
+ {cmd:"ORDEM DE TRABALHO",label:"ordem de trabalho",icon:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'},
+ {cmd:"NOVO PROJECTO",label:"novo projecto",icon:'<path d="M12 5v14M5 12h14"/>'},
+ {cmd:"CONTABILIDADE MENSAL",label:"contabilidade mensal",icon:'<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'},
+ {cmd:"CHECK DE REGISTOS",label:"check de registos",icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="m8 12 2.5 2.5L16 9"/>'},
+ {cmd:"NOVOS POSTS",label:"novos posts",icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>'},
+ {cmd:"FECHAR CONTABILIDADE MENSAL",label:"fechar contabilidade",icon:'<path d="M20 6 9 17l-5-5"/>'},
+ {cmd:"UPGRADE",label:"upgrade",icon:'<path d="M12 20V4M5 11l7-7 7 7"/>'}
+];
 function rCmdBtns(){
  const box=$("cmdBtns");if(!box)return;
- box.innerHTML=COMANDOS.map(c=>`<button class="btn cmdb" data-cmd="${esc(c)}">${esc(c.toLowerCase())}</button>`).join("");
+ box.innerHTML=COMANDOS.map(c=>`<button class="btn cmdb" data-cmd="${esc(c.cmd)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${c.icon}</svg><span>${esc(c.label)}</span></button>`).join("");
  box.querySelectorAll("[data-cmd]").forEach(b=>b.addEventListener("click",async()=>{
   const t=b.dataset.cmd;
   try{await navigator.clipboard.writeText(t);}
   catch(e){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(e2){}ta.remove();}
-  b.textContent="copiado ✓";b.classList.add("copiado");
-  setTimeout(()=>{b.classList.remove("copiado");b.textContent=t.toLowerCase();},1200);
+  const lbl=b.querySelector("span"),old=lbl.textContent;
+  b.classList.add("copiado");lbl.textContent="copiado ✓";
+  setTimeout(()=>{b.classList.remove("copiado");lbl.textContent=old;},1200);
  }));
 }
 function openNotas(){
