@@ -197,6 +197,11 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .ecmn{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--acc2);margin-bottom:4px;}
 .ecalm.now .ecmn{color:var(--acc);font-weight:700;}
 .ecmt{font-size:10.5px;line-height:1.4;color:var(--txt);}
+.ecalm{display:flex;flex-direction:column;gap:8px;}
+.ecbloco{display:flex;flex-direction:column;gap:2px;}
+.eclbl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);opacity:.75;}
+.eclbl.prep{color:var(--acc);}
+.ecmt.prep{color:var(--soft);font-style:italic;}
 .fcard2{position:relative;padding-bottom:14px;}
 .opnow{box-shadow:0 0 0 1.5px var(--acc),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
 .opnow.soon{box-shadow:0 0 0 1.5px var(--acc2),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
@@ -2101,6 +2106,7 @@ const OPORTUNIDADES=[
  {nome:"Dia da Família",mes:5,dia:15,cMes:5,cDia:1,nota:"Extensão natural da campanha do Dia da Mãe."},
  {nome:"Dia da Criança",mes:6,dia:1,cMes:5,cDia:15,nota:"Prendas para crianças, ângulo lúdico."},
  {nome:"Fim de ano escolar",mes:6,dia:20,cMes:6,cDia:1,nota:"Prendas de professores, retratos de turma."},
+ {nome:"Época de casamentos",mes:6,dia:1,mesFim:10,diaFim:31,cMes:4,cDia:1,nota:"Junho a outubro. Live sketching (Entrelinhas) em casamentos: serviço presencial, margem alta. Preparar oferta e contactos de wedding planners na primavera."},
  {nome:"Preparar o outono",mes:9,dia:1,cMes:8,cDia:1,nota:"Agosto é para produzir stock e conteúdo, não vender."},
  {nome:"Retomar prospeção corporate",mes:9,dia:15,cMes:8,cDia:15,nota:"Reativar contactos B2B depois do verão."},
  {nome:"Dia do Animal",mes:10,dia:4,cMes:9,cDia:15,nota:"Comunicação temática, público apaixonado por animais."},
@@ -2115,12 +2121,14 @@ function oportunidadeAgora(){
  OPORTUNIDADES.forEach(o=>{
   [anoRef-1,anoRef,anoRef+1].forEach(ano=>{
    const evento=new Date(ano,o.mes-1,o.dia);
+   // eventos longos (ex: época de casamentos) mantêm-se ativos até ao fim do período
+   const fim=o.mesFim?new Date(ano,o.mesFim-1,o.diaFim||28):evento;
    const inicioAno=o.cMes>o.mes?ano-1:ano;
    const inicio=new Date(inicioAno,o.cMes-1,o.cDia);
-   cand.push({...o,evento,inicio});
+   cand.push({...o,evento,fim,inicio});
   });
  });
- const ativos=cand.filter(c=>c.inicio<=h&&h<=c.evento).sort((a,b)=>a.evento-b.evento);
+ const ativos=cand.filter(c=>c.inicio<=h&&h<=c.fim).sort((a,b)=>a.evento-b.evento);
  if(ativos.length)return{tipo:"ativo",...ativos[0]};
  const futuros=cand.filter(c=>c.inicio>h).sort((a,b)=>a.inicio-b.inicio);
  return futuros.length?{tipo:"futuro",...futuros[0]}:null;
@@ -2151,12 +2159,28 @@ function rEstrategia(){
  rAvisosComerciais();
  rTarefasComerciais();
  rDocsComercial();
- // calendário: agrupar oportunidades por mês
+ // calendário: dois blocos por mês — o que acontece e o que se prepara
  const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
  const mesAtual=new Date().getMonth();
- const porMes=Array.from({length:12},()=>[]);
- OPORTUNIDADES.forEach(o=>porMes[o.mes-1].push(o.nome+(o.dia?` (${o.dia})`:"")));
- $("ecal").innerHTML=`<div class="ecalgrid">`+MESES.map((m,i)=>`<div class="ecalm${i===mesAtual?" now":""}"><div class="ecmn">${m}</div><div class="ecmt">${esc(porMes[i].join(" · ")||"—")}</div></div>`).join("")+`</div>`;
+ const aconteceM=Array.from({length:12},()=>[]);
+ const prepararM=Array.from({length:12},()=>[]);
+ OPORTUNIDADES.forEach(o=>{
+  const rot=o.nome+(o.mesFim?"":o.dia?` (${o.dia})`:"");
+  if(o.mesFim){ // evento longo: marca todos os meses do intervalo
+   for(let m=o.mes;m<=o.mesFim;m++)aconteceM[m-1].push(o.nome);
+  }else aconteceM[o.mes-1].push(rot);
+  // preparação: do mês de início de comunicação até ao mês antes do evento
+  let cm=o.cMes;
+  while(cm!==o.mes){
+   prepararM[cm-1].push(o.nome);
+   cm=cm===12?1:cm+1;
+  }
+ });
+ $("ecal").innerHTML=`<div class="ecalgrid">`+MESES.map((m,i)=>`<div class="ecalm${i===mesAtual?" now":""}">
+   <div class="ecmn">${m}</div>
+   <div class="ecbloco"><span class="eclbl">acontece</span><div class="ecmt">${esc(aconteceM[i].join(" · ")||"—")}</div></div>
+   <div class="ecbloco"><span class="eclbl prep">preparar</span><div class="ecmt prep">${esc(prepararM[i].join(" · ")||"—")}</div></div>
+  </div>`).join("")+`</div>`;
  // oportunidade a atacar agora — cartão fixo no topo das frentes
  const op=oportunidadeAgora();
  let opCard="";
