@@ -100,6 +100,10 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .tsesta{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 8px;border-radius:8px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
 .trkdot.sm{width:7px;height:7px;}
 .trkrow.off{opacity:.4;}
+.dpx{width:18px !important;height:18px !important;font-size:8px !important;opacity:.5;}
+.dpx:hover{opacity:1;}
+input.tempot{width:56px;color:var(--acc2);text-align:center;}
+.alertmini{font-size:10.5px;color:var(--soft);line-height:1.7;padding:4px 2px 0;}
 .cmdbox{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);}
 #cmdBtns{display:flex;gap:7px;flex-wrap:wrap;}
 .cmdb{font-size:9.5px;padding:6px 10px;font-family:'IBM Plex Mono',monospace;letter-spacing:.03em;}
@@ -594,6 +598,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
       <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
       <div class="card hcard"><h5>em espera</h5><div id="hEspera"></div></div>
+      <div id="hAlertas"></div>
       <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
       <div class="card hcard"><h5>emails</h5><div id="hMail"></div></div>
       <div class="card hcard">
@@ -1624,6 +1629,20 @@ function rHome(){
  const mk=isoLocal(n).slice(0,7);
  const m=f.meses[mk]||{receita:0};
  $("hFin").innerHTML=`<div class="finmini"><span class="mono ${m.receita>=f.objetivoMinimo?"good":"bad"}" style="font-size:17px;font-weight:700">€${(m.receita||0).toLocaleString("pt-PT")}</span><span class="hsub" style="margin:0">${Math.round((m.receita||0)/f.objetivoMinimo*100)}% do objetivo · s/IVA</span></div>`;
+ // alertas discretos (eco dos que já aparecem no topo de Comercial e Redes)
+ const hAl=$("hAlertas");
+ if(hAl){
+  const op=oportunidadeAgora();
+  const lac=typeof lacunasComerciais==="function"?lacunasComerciais():[];
+  const linhas=[];
+  if(op){
+   linhas.push(op.tipo==="ativo"
+    ?`🎯 ${esc(op.nome)} — janela ativa`
+    :`🎯 ${esc(op.nome)} — abre em ${diffDias(new Date(new Date().setHours(0,0,0,0)),op.inicio)}d`);
+  }
+  if(lac.length)linhas.push(`⚠ ${lac.length} oportunidade${lac.length===1?"":"s"} comercial${lac.length===1?"":"is"} sem tarefa`);
+  hAl.innerHTML=linhas.length?`<div class="alertmini">${linhas.map(l=>`<div>${l}</div>`).join("")}</div>`:"";
+ }
 }
 
 /* ============ CATEGORIA (montra) ============ */
@@ -2268,11 +2287,17 @@ async function addDocComercial(){
   caderno:"notas",criado:hoje(),corpo:"",img:null};
  docs.push(doc);await saveDocs();cmDocSel=doc.id;rDocsComercial();
 }
+let cmDoneOpen=false;
 function rTarefasComerciais(){
  const box=$("cmTarefas");if(!box)return;
- const ts=(D.tarefas||[]).filter(t=>t.projecto==="Comercial"&&t.estado!=="arquivada")
-  .sort((a,b)=>(a.estado==="concluída"?1:0)-(b.estado==="concluída"?1:0)||(a.data||a.prazo||"9999").localeCompare(b.data||b.prazo||"9999"));
- rTaskList(box,ts);
+ const all=(D.tarefas||[]).filter(t=>t.projecto==="Comercial"&&t.estado!=="arquivada");
+ const ativas=all.filter(t=>t.estado!=="concluída").sort((a,b)=>(a.data||a.prazo||"9999").localeCompare(b.data||b.prazo||"9999"));
+ const feitas=all.filter(t=>t.estado==="concluída");
+ box.innerHTML=`<div id="cmAtivas"></div>`+(feitas.length?`<div class="cgroup"><div class="cgrouph acc" id="cmDoneAcc"><span class="accarr">${cmDoneOpen?"▾":"▸"}</span>concluídas · ${feitas.length}</div><div class="cgbody" id="cmDoneBody" style="display:${cmDoneOpen?"block":"none"}"></div></div>`:"");
+ rTaskList($("cmAtivas"),ativas);
+ if(feitas.length)rTaskList($("cmDoneBody"),feitas);
+ const acc=$("cmDoneAcc");
+ if(acc)acc.addEventListener("click",()=>{cmDoneOpen=!cmDoneOpen;rTarefasComerciais();});
 }
 async function addTarefaComercial(){
  const t=prompt("Nova tarefa comercial:");
@@ -2326,6 +2351,7 @@ function openNotas(){
  setTimeout(()=>$("nTxt").focus(),80);
 }
 function closeNotas(){$("nOvl").classList.remove("on");}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("nOvl").classList.contains("on"))closeNotas();});
 let notasTimer=null;
 document.addEventListener("input",e=>{
  if(e.target.id!=="nTxt")return;
@@ -2857,7 +2883,7 @@ function rTaskList(el,list){
    <button class="chk${t.estado==="concluída"?" c":""}" data-a="tg" data-id="${t.id}" aria-label="concluir"></button>
    <span style="display:flex;align-items:baseline;min-width:0;cursor:pointer" data-op="${(D.projectos.find(x=>x.nome===t.projecto)||{}).id||""}"><i class="pdot" style="background:${pcor(t)}"></i><span style="min-width:0"><span class="tt">${esc(t.titulo)}${urg?' <span class="meta urg">⚠</span>':""}${t.responsavel&&t.responsavel!=="Ricardo"?` <span class="chip hot" style="display:inline">${esc(t.responsavel)}</span>`:""}</span><span class="sub2">${t.categoria} · ${esc(t.projecto)}</span></span></span>
    <span class="tctrl">
-    ${(()=>{const ht=horasTarefa(t);return ht>0?`<span class="tempot mono" title="tempo já registado nesta tarefa">${fmtH(ht)}</span>`:"";})()}
+    ${(()=>{const ht=horasTarefa(t);return `<input class="tcell tempot" data-httid="${t.id}" data-htold="${ht}" value="${ht>0?fmtH(ht):""}" placeholder="—" title="tempo registado nesta tarefa · edita para ajustar" />`;})()}
     ${dateChip("t:"+t.id+":data",t.data?fmtDataCurta(t.data):"dia",t.data,"")}
     ${dateChip("t:"+t.id+":prazo",t.prazo?fmtDataCurta(t.prazo):"prazo",t.prazo,px)}
     <select class="pin" data-a="es" data-id="${t.id}">${["ativa","em espera","concluída","arquivada"].map(s=>`<option ${t.estado===s?"selected":""}>${s}</option>`).join("")}</select>
@@ -2879,6 +2905,18 @@ function rTaskList(el,list){
  }));
  el.querySelectorAll("[data-a=es]").forEach(s=>s.addEventListener("change",async()=>{
   D.tarefas.find(x=>x.id===s.dataset.id).estado=s.value;await save();rAll();
+ }));
+ el.querySelectorAll("[data-httid]").forEach(inp=>inp.addEventListener("change",async()=>{
+  const tid=inp.dataset.httid;
+  const old=parseFloat(inp.dataset.htold)||0;
+  const nv=parseH(inp.value);
+  const novoTotal=nv===null?0:nv;
+  const delta=Math.round((novoTotal-old)*100)/100;
+  if(delta===0){rAll();return;}
+  const d=hoje();
+  trk[d]=trk[d]||{};trk[d].tarefas=trk[d].tarefas||{};
+  trk[d].tarefas[tid]=Math.round(((trk[d].tarefas[tid]||0)+delta)*100)/100;
+  await save();rAll();
  }));
  el.querySelectorAll("[data-tmr]").forEach(b=>b.addEventListener("click",async e=>{
   e.stopPropagation();await toggleTimer(b.dataset.tmr);
@@ -2956,23 +2994,24 @@ function bindMonthGrid(box){
  });
 }
 const dpNav={};
+function datePopInner(key,selIso){
+ const st=dpNav[key];
+ let nY=st.y,nM=st.m+1;if(nM>11){nM=0;nY++;}
+ return `<div class="calh mini"><button class="ico" data-dpp="${key}" style="width:20px;height:20px;font-size:10px">‹</button><span>${new Date(st.y,st.m,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span><button class="ico" data-dpn="${key}" style="width:20px;height:20px;font-size:10px">›</button></div>
+   ${buildMonthGrid(st.y,st.m,selIso)}
+   <div class="calh mini" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><span>${new Date(nY,nM,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span></div>
+   ${buildMonthGrid(nY,nM,selIso)}
+   <button class="btn" data-dpclear="${key}" style="width:100%;margin-top:8px;font-size:10px;padding:6px 10px">limpar data</button>`;
+}
 function datePopHTML(key,selIso){
  if(!dpNav[key]){
   const base=selIso?new Date(selIso+"T12:00"):new Date();
   dpNav[key]={y:base.getFullYear(),m:base.getMonth()};
  }
- const st=dpNav[key];
- let nY=st.y,nM=st.m+1;if(nM>11){nM=0;nY++;}
- return `<div class="qmenu datepop" data-dpmenu="${key}" hidden>
-   <div class="calh mini"><button class="ico" data-dpp="${key}" style="width:20px;height:20px;font-size:10px">‹</button><span>${new Date(st.y,st.m,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span><button class="ico" data-dpn="${key}" style="width:20px;height:20px;font-size:10px">›</button></div>
-   ${buildMonthGrid(st.y,st.m,selIso)}
-   <div class="calh mini" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line)"><span>${new Date(nY,nM,1).toLocaleDateString("pt-PT",{month:"long",year:"numeric"})}</span></div>
-   ${buildMonthGrid(nY,nM,selIso)}
-   <button class="btn" data-dpclear="${key}" style="width:100%;margin-top:8px;font-size:10px;padding:6px 10px">limpar data</button>
-  </div>`;
+ return `<div class="qmenu datepop" data-dpmenu="${key}" data-sel="${selIso||""}" hidden>${datePopInner(key,selIso)}</div>`;
 }
 function dateChip(key,label,selIso,cls){
- return `<span class="qwrap"><button class="ico datechip ${cls||""}" data-dpo="${key}">${esc(label)}</button>${datePopHTML(key,selIso)}</span>`;
+ return `<span class="qwrap"><button class="ico datechip ${cls||""}" data-dpo="${key}">${esc(label)}</button>${selIso?`<button class="ico dpx" data-dpx="${key}" title="apagar data">✕</button>`:""}${datePopHTML(key,selIso)}</span>`;
 }
 function resolveDP(key){
  const [kind,a,b]=key.split(":");
@@ -2986,6 +3025,28 @@ function resolveDP(key){
  }
  return null;
 }
+function bindPopoverContent(menu){
+ const key=menu.dataset.dpmenu,selIso=menu.dataset.sel||null;
+ menu.querySelectorAll("[data-dpp]").forEach(b=>b.addEventListener("click",e=>{
+  e.stopPropagation();const st=dpNav[key];st.m--;if(st.m<0){st.m=11;st.y--;}
+  menu.innerHTML=datePopInner(key,selIso);bindPopoverContent(menu);
+ }));
+ menu.querySelectorAll("[data-dpn]").forEach(b=>b.addEventListener("click",e=>{
+  e.stopPropagation();const st=dpNav[key];st.m++;if(st.m>11){st.m=0;st.y++;}
+  menu.innerHTML=datePopInner(key,selIso);bindPopoverContent(menu);
+ }));
+ menu.querySelectorAll(".cald").forEach(c=>c.addEventListener("click",async e=>{
+  e.stopPropagation();
+  const r=resolveDP(key);if(!r)return;
+  r.set(c.dataset.iso);await save();rAll();
+ }));
+ const cl=menu.querySelector("[data-dpclear]");
+ if(cl)cl.addEventListener("click",async e=>{
+  e.stopPropagation();
+  const r=resolveDP(key);if(!r)return;
+  r.set(null);await save();rAll();
+ });
+}
 function bindDatePickers(el){
  el.querySelectorAll("[data-dpo]").forEach(b=>b.addEventListener("click",e=>{
   e.stopPropagation();
@@ -2993,25 +3054,12 @@ function bindDatePickers(el){
   document.querySelectorAll(".qmenu").forEach(x=>{if(x!==menu)x.hidden=true;});
   if(menu)menu.hidden=!menu.hidden;
  }));
- el.querySelectorAll("[data-dpp]").forEach(b=>b.addEventListener("click",e=>{
-  e.stopPropagation();const key=b.dataset.dpp,st=dpNav[key];st.m--;if(st.m<0){st.m=11;st.y--;}
-  rAll();const m2=document.querySelector(`[data-dpmenu="${key}"]`);if(m2)m2.hidden=false;
- }));
- el.querySelectorAll("[data-dpn]").forEach(b=>b.addEventListener("click",e=>{
-  e.stopPropagation();const key=b.dataset.dpn,st=dpNav[key];st.m++;if(st.m>11){st.m=0;st.y++;}
-  rAll();const m2=document.querySelector(`[data-dpmenu="${key}"]`);if(m2)m2.hidden=false;
- }));
- el.querySelectorAll(".datepop .cald").forEach(c=>c.addEventListener("click",async e=>{
+ el.querySelectorAll("[data-dpx]").forEach(b=>b.addEventListener("click",async e=>{
   e.stopPropagation();
-  const menu=c.closest(".datepop"),key=menu.dataset.dpmenu;
-  const r=resolveDP(key);if(!r)return;
-  r.set(c.dataset.iso);await save();rAll();
- }));
- el.querySelectorAll("[data-dpclear]").forEach(b=>b.addEventListener("click",async e=>{
-  e.stopPropagation();
-  const r=resolveDP(b.dataset.dpclear);if(!r)return;
+  const r=resolveDP(b.dataset.dpx);if(!r)return;
   r.set(null);await save();rAll();
  }));
+ el.querySelectorAll(".datepop").forEach(bindPopoverContent);
 }
 function rCal(){
  if(calY===undefined){const n=new Date();calY=n.getFullYear();calM=n.getMonth();}
@@ -3027,7 +3075,7 @@ function rCal(){
 /* ============ semana / mês ============ */
 function rSemana(){
  const g=$("wGrid");g.innerHTML="";
- const start=new Date();start.setDate(start.getDate()-1);start.setHours(0,0,0,0);
+ const start=new Date();start.setDate(start.getDate()-3);start.setHours(0,0,0,0);
  const nm=["seg","ter","qua","qui","sex","sáb","dom"];
  const ev=(agenda&&agenda.eventos)?agenda.eventos:[];
  const anv=(agenda&&agenda.aniversarios)?agenda.aniversarios:[];
@@ -3330,6 +3378,41 @@ function addNota(chave){
 }
 function addNotaRima(){addNota("notasRima");}
 function addNotaRicardo(){addNota("notasRicardo");}
+const EXTRAS_SUGESTOES=[
+ ["Organizar estúdio","estrutura"],
+ ["Organizar ambiente de trabalho","estrutura"],
+ ["Admin e burocracia","estrutura"],
+ ["Consulta / saúde","pessoal"],
+ ["Deslocação","pessoal"],
+ ["Formação / estudo","desenvolvimento"],
+ ["Imprevisto","estrutura"]
+];
+async function registarExtra(){
+ const lista=EXTRAS_SUGESTOES.map(([s,c],i)=>`${i+1}. ${s} (${c})`).join("\n");
+ const nome=prompt(`O que estás (ou estiveste) a fazer?\n\n${lista}\n\nEscreve o nome ou o número:`);
+ if(nome===null)return;
+ const nt=nome.trim();if(!nt)return;
+ const idx=parseInt(nt,10);
+ let titulo=nt,catAuto=null;
+ if(!isNaN(idx)&&idx>=1&&idx<=EXTRAS_SUGESTOES.length){titulo=EXTRAS_SUGESTOES[idx-1][0];catAuto=EXTRAS_SUGESTOES[idx-1][1];}
+ D.extrasCat=D.extrasCat||{};
+ if(!D.extrasCat[titulo])D.extrasCat[titulo]=catAuto||"estrutura";
+ const quando=prompt(`"${titulo}"\n\nDeixa vazio para começar a contar agora,\nou escreve as horas já gastas (ex: 2 ou 1.5):`,"");
+ if(quando===null)return;
+ const q=String(quando).trim().replace(",",".");
+ if(q===""){
+  if(D.timer)await pararTimer(true);
+  D.timer={tid:null,proj:titulo,titulo,inicio:Date.now(),dia:hoje(),extra:true,pausadoTotal:0,pausadoEm:null};
+  await save();setSt(`a contar: ${titulo}`);rAll();
+  return;
+ }
+ const horas=parseFloat(q);
+ if(isNaN(horas)||horas<=0){setSt("valor inválido");return;}
+ const dia=hoje();
+ trk[dia]=trk[dia]||{};trk[dia].horas=trk[dia].horas||{};
+ trk[dia].horas[titulo]=Math.round(((trk[dia].horas[titulo]||0)+horas)*100)/100;
+ await save();setSt(`registado ${fmtH(horas)} em ${titulo}`);rAll();
+}
 async function iniciarAlmoco(){
  if(!rot||rot.data!==hoje()){setSt("gera primeiro a rotina de hoje");return;}
  const n=new Date();
