@@ -335,6 +335,9 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .crow.rejeitado{opacity:.4;}
 .crow.rejeitado .cli{text-decoration:line-through;}
 .crow.aviso{background:rgba(232,205,110,.14);}
+.crow.st-feito{background:color-mix(in srgb, var(--ok) 8%, transparent);}
+.crow.st-ativo{background:color-mix(in srgb, var(--acc2) 8%, transparent);}
+.crow.st-aguarda{background:color-mix(in srgb, var(--acc) 6%, transparent);}
 .cpag input[type=date]{font-family:'IBM Plex Mono',monospace;font-size:9px;width:104px;padding:4px 5px;border:none;border-radius:8px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .cpag input[type=date]:not([value=""]):valid{color:var(--soft);}
 @media(max-width:1200px){.cpag{flex-wrap:wrap;gap:6px;}}
@@ -482,7 +485,6 @@ body.paused #pauseTint{opacity:1;}
 .trow.done .tt{text-decoration:line-through;}
 .trow.espera{opacity:.65;}
 .trow.espera .tt{font-style:italic;}
-.trow.ativa{background:color-mix(in srgb, var(--acc2) 9%, transparent);}
 .trow .sub2{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--soft);display:block;margin-top:2px;letter-spacing:.05em;text-transform:uppercase;}
 .trow .meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--soft);text-align:right;}
 .trow .meta.urg{color:var(--acc);font-weight:700;}
@@ -2022,7 +2024,8 @@ function crow(r){
  // cor por estado: feito-por-pagar / ativo / aguarda (só quando não há rejeitado, anulado, pago ou aviso a sobrepor)
  const semSobreposicao=!contaRej(r)&&!contaNull(r)&&!contaPago(r)&&!contaAviso(r);
  const corProj=semSobreposicao&&proj?proj.cor:null;
- return `<div class="crow${contaRej(r)?" rejeitado":contaNull(r)?" anulado":contaPago(r)?" pago":""}${contaAviso(r)?" aviso":""}" style="${corProj?`box-shadow:inset 3px 0 0 ${corProj};`:""}">
+ const estCls=semSobreposicao?(contaFeito(r)?" st-feito":(r[8]||"")==="ATIVO"?" st-ativo":(r[8]||"")==="AGUARDA"?" st-aguarda":""):"";
+ return `<div class="crow${contaRej(r)?" rejeitado":contaNull(r)?" anulado":contaPago(r)?" pago":""}${contaAviso(r)?" aviso":""}${estCls}" style="${corProj?`box-shadow:inset 3px 0 0 ${corProj};`:""}">
    <span class="cid">${r[0]}</span>
    <span class="cnome${pid?" clk":""}" ${pid?`data-copen="${pid}"`:""}><span class="cli">${esc(r[3]||"—")}</span><span class="cdesc">${esc(r[5]||"")}${r[1]?" · "+r[1]:""}</span></span>
    <span class="cval">€${val.toLocaleString("pt-PT",{minimumFractionDigits:2})}<span class="sub2" style="display:block">€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})} c/IVA</span></span>
@@ -2902,7 +2905,7 @@ function rTaskList(el,list){
   const urg=dl!==null&&dl<=2&&t.estado!=="concluída";
   const px=dl===null?"":dl<=2?"px1":dl<=7?"px2":"";
   const generica=!t.projecto||t.projecto==="Inbox";
-  el.insertAdjacentHTML("beforeend",`<div class="trow ${t.estado==="concluída"?"done":""} ${t.estado==="em espera"?"espera":""} ${t.estado==="ativa"?"ativa":""}" draggable="true" data-drag="${t.id}">
+  el.insertAdjacentHTML("beforeend",`<div class="trow ${t.estado==="concluída"?"done":""} ${t.estado==="em espera"?"espera":""}" draggable="true" data-drag="${t.id}">
    <button class="chk${t.estado==="concluída"?" c":""}" data-a="tg" data-id="${t.id}" aria-label="concluir"></button>
    <span style="display:flex;align-items:baseline;min-width:0;cursor:pointer" data-op="${(D.projectos.find(x=>x.nome===t.projecto)||{}).id||""}"><i class="pdot" style="background:${pcor(t)}"></i><span style="min-width:0"><span class="tt">${esc(t.titulo)}${urg?' <span class="meta urg">⚠</span>':""}${t.responsavel&&t.responsavel!=="Ricardo"?` <span class="chip hot" style="display:inline">${esc(t.responsavel)}</span>`:""}</span><span class="sub2">${t.categoria} · ${esc(t.projecto)}</span></span></span>
    <span class="tctrl">
@@ -2931,14 +2934,22 @@ function rTaskList(el,list){
  }));
  el.querySelectorAll("[data-httid]").forEach(inp=>inp.addEventListener("change",async()=>{
   const tid=inp.dataset.httid;
+  const task=D.tarefas.find(x=>x.id===tid);
   const old=parseFloat(inp.dataset.htold)||0;
   const nv=parseH(inp.value);
   const novoTotal=nv===null?0:nv;
   const delta=Math.round((novoTotal-old)*100)/100;
   if(delta===0){rAll();return;}
   const d=hoje();
-  trk[d]=trk[d]||{};trk[d].tarefas=trk[d].tarefas||{};
+  trk[d]=trk[d]||{};
+  trk[d].tarefas=trk[d].tarefas||{};
   trk[d].tarefas[tid]=Math.round(((trk[d].tarefas[tid]||0)+delta)*100)/100;
+  if(task){
+   let projKey=task.projecto;
+   if(!projKey||projKey==="Inbox")projKey=task.titulo;
+   trk[d].horas=trk[d].horas||{};
+   trk[d].horas[projKey]=Math.round(((trk[d].horas[projKey]||0)+delta)*100)/100;
+  }
   await save();rAll();
  }));
  el.querySelectorAll("[data-tmr]").forEach(b=>b.addEventListener("click",async e=>{
