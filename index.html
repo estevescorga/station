@@ -611,24 +611,24 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div class="rot card" id="rotList"></div>
     </div>
     <div class="hcol">
+      <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
       <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
       <div class="card hcard"><h5>em espera</h5><div id="hEspera"></div></div>
       <div id="hAlertas"></div>
-      <div class="card hcard"><h5>emails</h5><div id="hMail"></div></div>
     </div>
     <div class="hcol">
-      <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
-      <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
+      <div class="card hcard mini"><h5>aniversários</h5><div id="hAniv"></div></div>
       <div class="card hcard">
         <h5>pesquisar tarefas</h5>
         <input class="pin" id="hSearch" placeholder="escreve para procurar…" style="width:100%;margin-bottom:8px"/>
         <div id="hSearchRes"></div>
       </div>
-      <div class="card hcard mini"><h5>aniversários</h5><div id="hAniv"></div></div>
       <div class="card hcard"><h5>inbox · genéricas</h5><input class="pin" id="hInboxNew" placeholder="nova tarefa genérica… (Enter)" style="width:100%;margin-bottom:8px"/><div id="hInbox"></div></div>
       <div class="card hcard mini"><h5>projectos de cliente</h5><div id="hProj"></div></div>
-      <div class="card hcard mini" id="finCard"><div id="hFin"></div></div>
+      <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
+      <div class="card hcard"><h5>emails</h5><div id="hMail"></div></div>
     </div>
+  </div>
   </div>
   </div>
 </div>
@@ -1661,11 +1661,6 @@ function rHome(){
  };
  $("hProj").innerHTML=cli.map(linha).join("")||`<div class="hsub">nenhum ativo</div>`;
  $("hProj").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
- // financeiro
- const f=D.financeiro||{objetivoMinimo:5000,meses:{}};
- const mk=isoLocal(n).slice(0,7);
- const m=f.meses[mk]||{receita:0};
- $("hFin").innerHTML=`<div class="finmini"><span class="mono ${m.receita>=f.objetivoMinimo?"good":"bad"}" style="font-size:17px;font-weight:700">€${(m.receita||0).toLocaleString("pt-PT")}</span><span class="hsub" style="margin:0">${Math.round((m.receita||0)/f.objetivoMinimo*100)}% do objetivo · s/IVA</span></div>`;
  // comercial
  const hAl=$("hAlertas");
  if(hAl){
