@@ -608,27 +608,28 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   </div>
   <div class="home">
     <div class="hcol">
-      <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
       <div class="rot card" id="rotList"></div>
     </div>
     <div class="hcol">
-      <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
+      <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
       <div class="card hcard"><h5>em espera</h5><div id="hEspera"></div></div>
       <div id="hAlertas"></div>
-      <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
       <div class="card hcard"><h5>emails</h5><div id="hMail"></div></div>
+    </div>
+    <div class="hcol">
+      <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
+      <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
       <div class="card hcard">
         <h5>pesquisar tarefas</h5>
         <input class="pin" id="hSearch" placeholder="escreve para procurar…" style="width:100%;margin-bottom:8px"/>
         <div id="hSearchRes"></div>
       </div>
-    </div>
-    <div class="hcol">
       <div class="card hcard mini"><h5>aniversários</h5><div id="hAniv"></div></div>
       <div class="card hcard"><h5>inbox · genéricas</h5><input class="pin" id="hInboxNew" placeholder="nova tarefa genérica… (Enter)" style="width:100%;margin-bottom:8px"/><div id="hInbox"></div></div>
       <div class="card hcard mini"><h5>projectos de cliente</h5><div id="hProj"></div></div>
       <div class="card hcard mini" id="finCard"><div id="hFin"></div></div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -1469,21 +1470,21 @@ let rotPassOpen=false;
 function rHoje(){
  const el=$("rotList");el.innerHTML="";
  const its=rot?rot.itens:null;
- if(!its){
+ let lista,base=false;
+ if(its)lista=its;
+ else{
+  base=true;
   D.rotinaBase=deepFix(D.rotinaBase);
-  const base=isFolga()?D.rotinaBase.filter(x=>!/Bloco|Comercial|Fecho do dia|Abertura|Reunião|Estúdio|escola/i.test(x.t)):D.rotinaBase;
-  base.forEach(x=>el.insertAdjacentHTML("beforeend",
-   `<div class="rrow" style="opacity:.6"><span class="q">${x.q}</span><span><span class="t">${esc(x.t)} *</span>${x.n?`<span class="n">${esc(x.n)}</span>`:""}</span><span></span></div>`));
-  return;
+  lista=isFolga()?D.rotinaBase.filter(x=>!/Bloco|Comercial|Fecho do dia|Abertura|Reunião|Estúdio|escola/i.test(x.t)):D.rotinaBase;
  }
  const nm=new Date().getHours()*60+new Date().getMinutes();
- const s=[...its].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
+ const s=[...lista].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
  const linha=(it,i)=>{
   const nx=i<s.length-1?min(s[i+1].q):1440,m=min(it.q);
-  const cur=m!==null&&nm>=m&&nm<nx;
-  return `<div class="rrow${cur?" cur":""}">
+  const cur=!base&&m!==null&&nm>=m&&nm<nx;
+  return `<div class="rrow${cur?" cur":""}"${base?' style="opacity:.6"':""}>
    <span class="q">${esc(it.q)}</span>
-   <span><span class="t">${esc(it.t)}</span>${it.n?`<span class="n">${esc(it.n)}</span>`:""}${(it.tarefas||[]).map(t=>tkLabel(t)).join("")}</span>
+   <span><span class="t">${esc(it.t)}${base?" *":""}</span>${it.n?`<span class="n">${esc(it.n)}</span>`:""}${(it.tarefas||[]).map(t=>tkLabel(t)).join("")}</span>
    <span></span></div>`;
  };
  let iAtual=s.findIndex((it,i)=>{
@@ -1497,6 +1498,7 @@ function rHoje(){
   html+=`<div class="cgroup"><div class="cgrouph acc" id="rotPassAcc"><span class="accarr">${rotPassOpen?"▾":"▸"}</span>já passou · ${passados.length}</div><div class="cgbody" style="display:${rotPassOpen?"block":"none"}">${passados.map((it,i)=>linha(it,i)).join("")}</div></div>`;
  }
  html+=resto.map((it,i)=>linha(it,iAtual+i)).join("");
+ if(base)html=`<div class="hsub" style="padding:6px 16px 2px">rotina base · ainda não há rotina para hoje</div>`+html;
  el.innerHTML=html;
  const acc=$("rotPassAcc");
  if(acc)acc.addEventListener("click",()=>{rotPassOpen=!rotPassOpen;rHoje();});
