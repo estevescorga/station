@@ -300,7 +300,9 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 @media(max-width:700px){.trkrow{grid-template-columns:70px 44px 40px 64px 1fr;} .trkrow span:nth-child(5),.trkrow span:nth-child(6){display:none;}}
 
 /* contabilidade */
-.crow{display:grid;grid-template-columns:56px minmax(0,1fr) 96px 300px 26px 30px;gap:10px;padding:10px 16px;align-items:center;font-size:13px;border-bottom:1px solid var(--line);}
+.crow{display:grid;grid-template-columns:56px minmax(0,1fr) 92px minmax(0,270px) 26px 30px;gap:10px;padding:10px 16px;align-items:center;font-size:13px;border-bottom:1px solid var(--line);max-width:100%;overflow:hidden;}
+.crow>*{min-width:0;}
+.cpag{overflow:hidden;}
 .clink{display:flex;align-items:center;justify-content:center;}
 .linkBtn{width:26px;height:26px;font-size:13px;color:var(--acc2);}
 .linkBtn.off{color:var(--line);opacity:.55;}
@@ -2394,6 +2396,7 @@ function rAvisosComerciais(){
   await save();rEstrategia();rAll();
  }));
 }
+let cmDoneOpen=false;
 function rTarefasComerciais(){
  const box=$("cmTarefas");if(!box)return;
  const all=(D.tarefas||[]).filter(t=>t.projecto==="Comercial"&&t.estado!=="arquivada");
