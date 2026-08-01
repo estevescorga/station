@@ -205,8 +205,13 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .hcard{padding:14px 16px;margin-bottom:16px;}
 .hcard h5{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);margin-bottom:10px;}
 .hitem{display:flex;align-items:center;gap:7px;font-size:12px;padding:5px 0;border-bottom:1px solid var(--line);line-height:1.35;}
-.ecalgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
-@media(max-width:900px){.ecalgrid{grid-template-columns:repeat(3,1fr);}}
+.ecalduo{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+@media(max-width:1000px){.ecalduo{grid-template-columns:1fr;gap:20px;}}
+.ecalcol{min-width:0;}
+.ecalh{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--soft);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line);}
+.ecalh.prep{color:var(--acc);}
+.ecalgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+@media(max-width:600px){.ecalgrid{grid-template-columns:repeat(2,1fr);}}
 .ecalm{padding:10px 11px;border-radius:12px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);min-height:64px;}
 .ecalm.now{box-shadow:inset 0 0 0 2px var(--acc),inset 2px 2px 6px var(--sh-d);}
 .ecmn{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:var(--acc2);margin-bottom:4px;}
@@ -300,15 +305,17 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 @media(max-width:700px){.trkrow{grid-template-columns:70px 44px 40px 64px 1fr;} .trkrow span:nth-child(5),.trkrow span:nth-child(6){display:none;}}
 
 /* contabilidade */
-.crow{display:grid;grid-template-columns:56px minmax(0,1fr) 92px minmax(0,270px) 26px 30px;gap:10px;padding:10px 16px;align-items:center;font-size:13px;border-bottom:1px solid var(--line);max-width:100%;overflow:hidden;}
+.crow{display:grid;grid-template-columns:56px minmax(0,1fr) 92px auto 26px 30px;gap:10px;padding:10px 16px;align-items:center;font-size:13px;border-bottom:1px solid var(--line);}
 .crow>*{min-width:0;}
-.cpag{overflow:hidden;}
 .clink{display:flex;align-items:center;justify-content:center;}
 .linkBtn{width:26px;height:26px;font-size:13px;color:var(--acc2);}
 .linkBtn.off{color:var(--line);opacity:.55;}
 .linkSel{position:absolute;width:1px;height:1px;opacity:0;}
-@media(max-width:1300px){.crow{grid-template-columns:52px minmax(0,1fr) 84px 210px 24px 28px;gap:8px;}}
-@media(max-width:900px){.crow{grid-template-columns:52px minmax(0,1fr) 24px 28px;} .crow .cpag{grid-column:1/-1;justify-content:flex-start;}}
+/* abaixo de 1400px os pagamentos passam a linha própria, para não espremer nem cortar */
+@media(max-width:1400px){
+ .crow{grid-template-columns:56px minmax(0,1fr) 92px 26px 30px;row-gap:8px;}
+ .crow .cpag{grid-column:1/-1;justify-content:flex-start;flex-wrap:wrap;padding-left:66px;}
+}
 .cpag{display:flex;gap:10px;align-items:flex-end;}
 .cpf{display:flex;flex-direction:column;gap:2px;width:64px;flex-shrink:0;align-items:flex-start;}
 .cpf .cpl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);padding-left:2px;}
@@ -371,7 +378,7 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .crow .cval{font-family:'IBM Plex Mono',monospace;font-size:12px;text-align:right;line-height:1.3;}
 .crow select,#fEstC,#cNv,#cUn{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:4px 6px;border:none;border-radius:8px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .pin{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 8px;border:none;border-radius:9px;background:var(--bg);color:var(--txt);box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
-@media(max-width:700px){.crow{grid-template-columns:1fr;gap:8px;} .cpag{justify-content:flex-start;}}
+@media(max-width:700px){.crow{grid-template-columns:minmax(0,1fr) 26px 30px;gap:8px;} .crow .cpag{padding-left:0;}}
 
 /* gate */
 #gate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;}
@@ -2270,11 +2277,20 @@ function rEstrategia(){
    cm=cm===12?1:cm+1;
   }
  });
- $("ecal").innerHTML=`<div class="ecalgrid">`+MESES.map((m,i)=>`<div class="ecalm${i===mesAtual?" now":""}">
-   <div class="ecmn">${m}</div>
-   <div class="ecbloco"><span class="eclbl">acontece</span><div class="ecmt">${esc(aconteceM[i].join(" · ")||"—")}</div></div>
-   <div class="ecbloco"><span class="eclbl prep">preparar</span><div class="ecmt prep">${esc(prepararM[i].join(" · ")||"—")}</div></div>
-  </div>`).join("")+`</div>`;
+ const colMes=(arr,cls)=>MESES.map((m,i)=>`<div class="ecalm${i===mesAtual?" now":""}">
+    <div class="ecmn">${m}</div>
+    <div class="ecmt${cls}">${esc(arr[i].join(" · ")||"—")}</div>
+   </div>`).join("");
+ $("ecal").innerHTML=`<div class="ecalduo">
+   <div class="ecalcol">
+    <div class="ecalh">acontece</div>
+    <div class="ecalgrid">${colMes(aconteceM,"")}</div>
+   </div>
+   <div class="ecalcol">
+    <div class="ecalh prep">preparar</div>
+    <div class="ecalgrid">${colMes(prepararM," prep")}</div>
+   </div>
+  </div>`;
  // oportunidade a atacar agora — cartão fixo no topo das frentes
  const op=oportunidadeAgora();
  let opCard="";
