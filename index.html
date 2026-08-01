@@ -36,7 +36,7 @@ body[data-theme="CASA"]{
 body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;padding:26px 18px 70px;min-height:100vh;transition:background .35s,color .35s;}
 body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.25;mix-blend-mode:multiply;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.92" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="linear" slope="1.35" intercept="-0.16"/><feFuncG type="linear" slope="1.35" intercept="-0.16"/><feFuncB type="linear" slope="1.35" intercept="-0.16"/></feComponentTransfer></filter><rect width="100%25" height="100%25" filter="url(%23n)"/></svg>');}
 body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
-.wrap{max-width:1760px;margin:0 auto;padding:0 clamp(16px,3.5vw,56px);}
+.wrap{max-width:1760px;margin:0 auto;padding:0 clamp(20px,4.5vw,72px);}
 @media(max-width:1100px){.wrap{padding:0;}}
 .mono{font-family:'IBM Plex Mono',monospace;}
 
@@ -88,11 +88,13 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .mbullet{color:var(--soft);flex-shrink:0;width:8px;}
 .mailrow.urg .mbullet{color:var(--acc);font-weight:700;}
 .mtxt{min-width:0;overflow:hidden;text-overflow:ellipsis;}
-.svrow{display:grid;grid-template-columns:minmax(0,1fr) 100px 116px 116px 116px 26px;gap:10px;align-items:center;padding:7px 16px;border-bottom:1px solid var(--line);font-size:12.5px;}
+.svrow{display:grid;grid-template-columns:minmax(0,1fr) 92px 104px 104px 104px 104px 26px;gap:9px;align-items:center;padding:7px 16px;border-bottom:1px solid var(--line);font-size:12.5px;}
+@media(max-width:1250px){.svrow{grid-template-columns:minmax(0,1fr) 96px 96px 96px 96px 24px;gap:7px;} .svrow .hm{display:none;}}
 .svnome{outline:none;min-width:0;}
 .svnome:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:5px;padding:1px 3px;}
 .svdots{display:flex;align-items:center;gap:4px;}
 .svlbl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft);width:20px;}
+.svdots [data-svk="esf"].on{background:var(--acc);}
 @media(max-width:900px){.svrow{grid-template-columns:minmax(0,1fr) 26px;row-gap:6px;}.svrow .hm,.svrow .svdots{grid-column:1/-1;}}
 .ideiaRow{cursor:default;}
 .ideiaTit:hover{color:var(--acc2);}
@@ -179,7 +181,7 @@ input.tempot{width:56px;color:var(--acc2);text-align:center;}
 .icorow .lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--soft);letter-spacing:.06em;}
 
 .view{display:none;}
-.view.on{display:block;padding:0 4px 40px;}
+.view.on{display:block;padding:0 clamp(4px,1vw,16px) 48px;}
 #v-HOJE.on{padding:0 0 40px;}
 h2.sec{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);margin:26px 0 14px;display:flex;align-items:center;gap:10px;}
 h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
@@ -817,7 +819,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="card" style="padding:10px 0" id="eideias"></div>
   <h2 class="sec">Princípios</h2>
   <div class="card" style="padding:10px 0" id="eprin"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Serviços<span style="display:flex;gap:6px;align-items:center"><select id="svOrd" class="pin"><option value="cat">por categoria</option><option value="pot">por potencial</option><option value="exp">por experiência</option><option value="val">por valor</option><option value="ambos">geral</option></select><button class="ico" style="width:28px;height:28px" title="Novo serviço" onclick="addServico()">＋</button></span></h2>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Serviços<span style="display:flex;gap:6px;align-items:center"><select id="svOrd" class="pin"><option value="cat">por categoria</option><option value="pot">por potencial</option><option value="exp">por experiência</option><option value="val">por valor</option><option value="esf">por esforço</option><option value="ambos">geral</option></select><button class="ico" style="width:28px;height:28px" title="Novo serviço" onclick="addServico()">＋</button></span></h2>
   <div class="card" style="padding:10px 0" id="svLista"></div>
 </div>
 
@@ -2453,10 +2455,15 @@ function rServicos(){
  const ord=$("svOrd")?$("svOrd").value:"cat";
  let arr=[...L];
  const val=s=>s.val===undefined?3:s.val;
+ const esf=s=>s.esf===undefined?3:s.esf;
+ // "geral": potencial + experiência + valor, penalizado pelo esforço.
+ // Esforço alto significa mais horas para o mesmo dinheiro, por isso baixa a pontuação.
+ const geral=s=>s.pot+s.exp+val(s)+(6-esf(s));
  if(ord==="pot")arr.sort((a,b)=>b.pot-a.pot||b.exp-a.exp);
  else if(ord==="exp")arr.sort((a,b)=>b.exp-a.exp||b.pot-a.pot);
  else if(ord==="val")arr.sort((a,b)=>val(b)-val(a)||b.pot-a.pot);
- else if(ord==="ambos")arr.sort((a,b)=>(b.pot+b.exp+val(b))-(a.pot+a.exp+val(a)));
+ else if(ord==="esf")arr.sort((a,b)=>esf(a)-esf(b)||val(b)-val(a));
+ else if(ord==="ambos")arr.sort((a,b)=>geral(b)-geral(a));
  else arr.sort((a,b)=>(a.cat||"").localeCompare(b.cat||"")||b.pot-a.pot);
  const dots=(v,tipo,id)=>[1,2,3,4,5].map(n=>`<button class="trkdot sm${v>=n?" on":""}" data-sv="${id}" data-svk="${tipo}" data-svv="${n}" title="${n}/5"></button>`).join("");
  let html="",catAnt=null;
@@ -2468,6 +2475,7 @@ function rServicos(){
     <span class="svdots"><span class="svlbl">pot</span>${dots(s.pot,"pot",s.id)}</span>
     <span class="svdots"><span class="svlbl">exp</span>${dots(s.exp,"exp",s.id)}</span>
     <span class="svdots"><span class="svlbl">€</span>${dots(val(s),"val",s.id)}</span>
+    <span class="svdots"><span class="svlbl" title="esforço: quanto mais pontos, mais horas custa">esf</span>${dots(esf(s),"esf",s.id)}</span>
     <button class="ico fdel" data-svdel="${s.id}" title="Apagar" style="position:static">✕</button>
    </div>`;
  });
@@ -2492,7 +2500,7 @@ async function addServico(){
  const cat=prompt("Categoria (ex: Ilustração, Design, Animação, Estratégia, Autoral):","Ilustração");
  if(cat===null)return;
  D.servicosComerciais=D.servicosComerciais||[];
- D.servicosComerciais.push({id:"sv"+Date.now(),nome:nome.trim(),cat:(cat||"outros").trim(),pot:3,exp:3,val:3});
+ D.servicosComerciais.push({id:"sv"+Date.now(),nome:nome.trim(),cat:(cat||"outros").trim(),pot:3,exp:3,val:3,esf:3});
  await save();rServicos();
 }
 document.addEventListener("change",e=>{if(e.target.id==="svOrd")rServicos();});
