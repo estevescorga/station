@@ -88,8 +88,18 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .mbullet{color:var(--soft);flex-shrink:0;width:8px;}
 .mailrow.urg .mbullet{color:var(--acc);font-weight:700;}
 .mtxt{min-width:0;overflow:hidden;text-overflow:ellipsis;}
-.svrow{display:grid;grid-template-columns:minmax(0,1fr) 92px 104px 104px 104px 104px 26px;gap:9px;align-items:center;padding:7px 16px;border-bottom:1px solid var(--line);font-size:12.5px;}
-@media(max-width:1250px){.svrow{grid-template-columns:minmax(0,1fr) 96px 96px 96px 96px 24px;gap:7px;} .svrow .hm{display:none;}}
+.svrow{display:grid;grid-template-columns:minmax(0,1fr) 84px 96px 96px 96px 96px 96px 26px;gap:8px;align-items:center;padding:7px 16px;border-bottom:1px solid var(--line);font-size:12.5px;}
+@media(max-width:1450px){.svrow{grid-template-columns:minmax(0,1fr) 76px 88px 88px 88px 88px 88px 24px;gap:6px;font-size:12px;}}
+@media(max-width:1100px){.svrow{grid-template-columns:minmax(0,1fr) 76px 24px;row-gap:6px;} .svrow .svdots{grid-column:1/-1;}}
+.svpreco{font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:right;cursor:pointer;color:var(--acc2);}
+.svpreco:hover{text-decoration:underline;}
+.svlbl.ia{color:var(--acc);}
+.svdots [data-svk="ia"].on{background:var(--acc);}
+.cond{display:inline-flex;align-items:center;gap:6px;}
+.condlbl{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);}
+.condbtns{display:inline-flex;gap:3px;}
+.condb{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:lowercase;padding:5px 9px;border-radius:8px;box-shadow:2px 2px 5px var(--sh-d),-2px -2px 5px var(--sh-l);}
+.condb.on{color:var(--acc2);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
 .svnome{outline:none;min-width:0;}
 .svnome:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:5px;padding:1px 3px;}
 .svdots{display:flex;align-items:center;gap:4px;}
@@ -634,6 +644,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <button data-v="COMERCIAL">Comercial</button>
   <button data-v="REDES">Redes</button>
   <button data-v="TAREFAS">Tarefas</button>
+  <button data-v="SERVICOS">Serviços</button>
   <button data-v="MUSICA">Música</button>
   <button data-v="ARTE">Arte</button>
   <button data-v="CASA">Casa</button>
@@ -678,13 +689,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 
 <!-- ============ PREÇÁRIO ============ -->
-<div class="view" id="v-PRECARIO">
-  <h2 class="sec">Serviços · valores de partida</h2>
-  <div class="card" style="padding:6px 0;margin-bottom:22px" id="pServ"></div>
-  <h2 class="sec">Valores</h2>
+<div class="view" id="v-SERVICOS">
+  <h2 class="sec">Valores de referência</h2>
   <div class="vgrid"><div class="card" style="padding:14px 18px" id="pTab"></div><div class="fcard card" id="pPar"></div></div>
   <h2 class="sec">Calculadora</h2>
-  <div class="card" style="padding:20px" id="pCalc"></div>
+  <div class="card" style="padding:20px;margin-bottom:26px" id="pCalc"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">Serviços
+   <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <span class="cond"><span class="condlbl">cliente</span><span class="condbtns" id="svCliente"></span></span>
+    <span class="cond"><span class="condlbl">dimensão</span><span class="condbtns" id="svDim"></span></span>
+    <select id="svOrd" class="pin"><option value="cat">por categoria</option><option value="pot">por potencial</option><option value="exp">por experiência</option><option value="val">por valor</option><option value="esf">por esforço</option><option value="ia">risco de IA</option><option value="seguro">aposta segura</option><option value="rentab">rentabilidade</option><option value="ambos">geral</option></select>
+    <button class="ico" style="width:28px;height:28px" title="Novo serviço" onclick="addServico()">＋</button>
+   </span>
+  </h2>
+  <div class="card" style="padding:10px 0" id="svLista"></div>
 </div>
 
 <!-- ============ TRACKER ============ -->
@@ -820,8 +838,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="card" style="padding:10px 0" id="eideias"></div>
   <h2 class="sec">Princípios</h2>
   <div class="card" style="padding:10px 0" id="eprin"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Serviços<span style="display:flex;gap:6px;align-items:center"><select id="svOrd" class="pin"><option value="cat">por categoria</option><option value="pot">por potencial</option><option value="exp">por experiência</option><option value="val">por valor</option><option value="esf">por esforço</option><option value="ambos">geral</option></select><button class="ico" style="width:28px;height:28px" title="Novo serviço" onclick="addServico()">＋</button></span></h2>
-  <div class="card" style="padding:10px 0" id="svLista"></div>
 </div>
 
 <!-- ============ REDES ============ -->
@@ -2362,7 +2378,6 @@ function rEstrategia(){
  document.querySelectorAll("[data-iopen]").forEach(el=>el.addEventListener("click",()=>{
   ideiaAberta=ideiaAberta===el.dataset.iopen?null:el.dataset.iopen;rEstrategia();
  }));
- rServicos();
  bindEstrategia();
 }
 function bindEstrategia(){
@@ -2450,33 +2465,58 @@ async function addTarefaComercial(){
   estado:"ativa",data:hoje(),prazo:null,responsavel:"Ricardo"});
  await save();rEstrategia();rAll();
 }
+let svCli="medio", svDimensao="medio";
+const DIM_MULT={pequeno:0.55,medio:1,longo:1.9};
+const CLI_MULT={baixo:0.75,medio:1,alto:1.35};
+function precoServico(s){
+ if(!s.base)return null;
+ const v=s.base*(CLI_MULT[svCli]||1)*(DIM_MULT[svDimensao]||1);
+ return s.unidade==="hora"?Math.round(v):Math.round(v/10)*10;
+}
+function rCondBtns(){
+ const c=$("svCliente"),d=$("svDim");
+ if(c)c.innerHTML=["baixo","medio","alto"].map(x=>`<button class="condb${svCli===x?" on":""}" data-cli="${x}">${x}</button>`).join("");
+ if(d)d.innerHTML=["pequeno","medio","longo"].map(x=>`<button class="condb${svDimensao===x?" on":""}" data-dim="${x}">${x}</button>`).join("");
+ document.querySelectorAll("[data-cli]").forEach(b=>b.addEventListener("click",()=>{svCli=b.dataset.cli;rServicos();}));
+ document.querySelectorAll("[data-dim]").forEach(b=>b.addEventListener("click",()=>{svDimensao=b.dataset.dim;rServicos();}));
+}
 function rServicos(){
  const box=$("svLista");if(!box)return;
+ rCondBtns();
  const L=D.servicosComerciais||[];
  const ord=$("svOrd")?$("svOrd").value:"cat";
  let arr=[...L];
  const val=s=>s.val===undefined?3:s.val;
  const esf=s=>s.esf===undefined?3:s.esf;
- // "geral": potencial + experiência + valor, penalizado pelo esforço.
- // Esforço alto significa mais horas para o mesmo dinheiro, por isso baixa a pontuação.
- const geral=s=>s.pot+s.exp+val(s)+(6-esf(s));
+ const ia=s=>s.ia===undefined?3:s.ia;
+ // geral: potencial + experiência + valor, penalizado por esforço alto e por risco de IA
+ const geral=s=>s.pot+s.exp+val(s)+(6-esf(s))+(6-ia(s));
+ // aposta segura: o que a IA dificilmente substitui e onde já és bom
+ const seguro=s=>(6-ia(s))*2+s.exp+val(s);
+ // rentabilidade: dinheiro a dividir pelo esforço
+ const rentab=s=>val(s)/esf(s);
  if(ord==="pot")arr.sort((a,b)=>b.pot-a.pot||b.exp-a.exp);
  else if(ord==="exp")arr.sort((a,b)=>b.exp-a.exp||b.pot-a.pot);
  else if(ord==="val")arr.sort((a,b)=>val(b)-val(a)||b.pot-a.pot);
  else if(ord==="esf")arr.sort((a,b)=>esf(a)-esf(b)||val(b)-val(a));
+ else if(ord==="ia")arr.sort((a,b)=>ia(b)-ia(a)||val(b)-val(a));
+ else if(ord==="seguro")arr.sort((a,b)=>seguro(b)-seguro(a));
+ else if(ord==="rentab")arr.sort((a,b)=>rentab(b)-rentab(a)||val(b)-val(a));
  else if(ord==="ambos")arr.sort((a,b)=>geral(b)-geral(a));
  else arr.sort((a,b)=>(a.cat||"").localeCompare(b.cat||"")||b.pot-a.pot);
  const dots=(v,tipo,id)=>[1,2,3,4,5].map(n=>`<button class="trkdot sm${v>=n?" on":""}" data-sv="${id}" data-svk="${tipo}" data-svv="${n}" title="${n}/5"></button>`).join("");
  let html="",catAnt=null;
  arr.forEach(s=>{
   if(ord==="cat"&&s.cat!==catAnt){catAnt=s.cat;html+=`<div class="hgrouph" style="padding:8px 16px 4px">${esc(s.cat)}</div>`;}
+  const pr=precoServico(s);
   html+=`<div class="svrow">
     <span class="svnome" contenteditable data-svt="${s.id}">${esc(s.nome)}</span>
-    ${ord!=="cat"?`<span class="hm">${esc(s.cat)}</span>`:"<span></span>"}
+    <span class="svpreco" title="valor base ${s.base?"€"+s.base+(s.unidade==="hora"?"/h":""):"por definir"} · ajustado ao cliente ${svCli} e a trabalho ${svDimensao}">${pr?`€${pr.toLocaleString("pt-PT")}${s.unidade==="hora"?"/h":""}`:"—"}</span>
     <span class="svdots"><span class="svlbl">pot</span>${dots(s.pot,"pot",s.id)}</span>
     <span class="svdots"><span class="svlbl">exp</span>${dots(s.exp,"exp",s.id)}</span>
     <span class="svdots"><span class="svlbl">€</span>${dots(val(s),"val",s.id)}</span>
     <span class="svdots"><span class="svlbl" title="esforço: quanto mais pontos, mais horas custa">esf</span>${dots(esf(s),"esf",s.id)}</span>
+    <span class="svdots"><span class="svlbl ia" title="risco de vir a ser feito por IA">ia</span>${dots(ia(s),"ia",s.id)}</span>
     <button class="ico fdel" data-svdel="${s.id}" title="Apagar" style="position:static">✕</button>
    </div>`;
  });
@@ -2488,6 +2528,21 @@ function rServicos(){
  box.querySelectorAll("[data-svt]").forEach(el=>el.addEventListener("blur",async()=>{
   const s=D.servicosComerciais.find(x=>x.id===el.dataset.svt);
   if(s){s.nome=el.textContent.trim();await save();}
+ }));
+ box.querySelectorAll(".svpreco").forEach(el=>el.addEventListener("click",async()=>{
+  const row=el.closest(".svrow"),id=row.querySelector("[data-svt]").dataset.svt;
+  const s=D.servicosComerciais.find(x=>x.id===id);if(!s)return;
+  const v=prompt(`Valor base de "${s.nome}" em € (sem multiplicadores).\nEscreve o número, ou "80/h" para preço à hora:`,s.base?(s.base+(s.unidade==="hora"?"/h":"")):"");
+  if(v===null)return;
+  const t=String(v).trim().toLowerCase().replace(",",".");
+  if(!t){s.base=null;s.unidade=null;}
+  else{
+   const hora=/\/h$|hora/.test(t);
+   const num=parseFloat(t);
+   if(isNaN(num)){setSt("valor inválido");return;}
+   s.base=num;s.unidade=hora?"hora":"fixo";
+  }
+  await save();rServicos();
  }));
  box.querySelectorAll("[data-svdel]").forEach(b=>b.addEventListener("click",async()=>{
   if(!confirm("Apagar este serviço?"))return;
@@ -2501,7 +2556,7 @@ async function addServico(){
  const cat=prompt("Categoria (ex: Ilustração, Design, Animação, Estratégia, Autoral):","Ilustração");
  if(cat===null)return;
  D.servicosComerciais=D.servicosComerciais||[];
- D.servicosComerciais.push({id:"sv"+Date.now(),nome:nome.trim(),cat:(cat||"outros").trim(),pot:3,exp:3,val:3,esf:3});
+ D.servicosComerciais.push({id:"sv"+Date.now(),nome:nome.trim(),cat:(cat||"outros").trim(),pot:3,exp:3,val:3,esf:3,ia:3,base:null,unidade:null});
  await save();rServicos();
 }
 document.addEventListener("change",e=>{if(e.target.id==="svOrd")rServicos();});
@@ -2704,15 +2759,6 @@ function addIdeiaRD(){
 }
 
 /* ============ preçário serviços ============ */
-function rServ(){
- const el=$("pServ");if(!el)return;
- const P=D.servicos||[];
- el.innerHTML=P.map(c=>`<div class="cgrouph">${esc(c.cat)}</div>`+c.itens.map(i=>`<div class="srow">
-   <span class="cnome"><span class="cli">${esc(i.s)}</span><span class="cdesc">${esc(i.n||"")}</span></span>
-   <span class="sval">desde <b>€${i.v.toLocaleString("pt-PT")}</b><span class="sub2" style="display:block">/${esc(i.u)}</span></span>
-  </div>`).join("")).join("")||`<div class="empty">sem serviços definidos</div>`;
-}
-
 /* ============ despesas ============ */
 const QUALIDADES=["fixa mensal","fixa trimestral","fixa anual","pontual","equipamento"];
 // padrões reconhecidos: [regex, registo sugerido, qualidade]
@@ -3569,10 +3615,10 @@ function rCom(){
 
 /* ============ nav ============ */
 function goPrecario(){
- document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));
+ document.querySelectorAll(".nav button").forEach(x=>{x.classList.toggle("on",x.dataset.v==="SERVICOS");});
  cat=null;document.body.dataset.theme="HOJE";
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
- $("v-PRECARIO").classList.add("on");rPrec();rServ();
+ $("v-SERVICOS").classList.add("on");rPrec();rServicos();
 }
 let nrSel={notasRima:null,notasRicardo:null};
 const CADERNOS={
@@ -3709,7 +3755,7 @@ $("nav").addEventListener("click",e=>{
   if(v==="AGENDA")rAgenda();
   if(v==="GESTAO"){rCom();rDesp();}
   if(v==="REGISTOS")rConta();
-  if(v==="PRECARIO"){rPrec();rServ();}
+  if(v==="SERVICOS"){rPrec();rServicos();}
   if(v==="COMERCIAL")rEstrategia();
   if(v==="REDES")rRedes();
   if(v==="TRACKER")rTracker();
