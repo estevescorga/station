@@ -88,9 +88,10 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .mbullet{color:var(--soft);flex-shrink:0;width:8px;}
 .mailrow.urg .mbullet{color:var(--acc);font-weight:700;}
 .mtxt{min-width:0;overflow:hidden;text-overflow:ellipsis;}
-.svrow{display:grid;grid-template-columns:minmax(0,1fr) 80px repeat(5,90px) 26px;gap:7px;align-items:center;padding:7px 16px;border-bottom:1px solid var(--line);font-size:12.5px;}
-@media(max-width:1550px){.svrow{grid-template-columns:minmax(0,1fr) 72px repeat(5,82px) 24px;gap:5px;font-size:12px;}}
-@media(max-width:1250px){.svrow{grid-template-columns:minmax(0,1fr) 72px 24px;row-gap:6px;} .svrow .svdots{grid-column:1/-1;}}
+.svrow{display:grid;grid-template-columns:minmax(0,0.85fr) 74px repeat(5,74px) 24px;gap:6px;align-items:center;padding:6px 16px;border-bottom:1px solid var(--line);font-size:12px;}
+.svrow>*{min-width:0;}
+@media(max-width:1550px){.svrow{grid-template-columns:minmax(0,0.7fr) 66px repeat(5,68px) 22px;gap:4px;font-size:11.5px;}}
+@media(max-width:1150px){.svrow{grid-template-columns:minmax(0,1fr) 66px 22px;row-gap:6px;} .svrow .svdots{grid-column:1/-1;}}
 .svlbl.esc{color:var(--ok);}
 .svdots [data-svk="esc"].on{background:var(--ok);}
 .svpreco{font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:right;cursor:pointer;color:var(--acc2);}
@@ -102,10 +103,10 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .condbtns{display:inline-flex;gap:3px;}
 .condb{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:lowercase;padding:5px 9px;border-radius:8px;box-shadow:2px 2px 5px var(--sh-d),-2px -2px 5px var(--sh-l);}
 .condb.on{color:var(--acc2);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
-.svnome{outline:none;min-width:0;}
+.svnome{outline:none;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .svnome:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:5px;padding:1px 3px;}
-.svdots{display:flex;align-items:center;gap:4px;}
-.svlbl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft);width:20px;}
+.svdots{display:flex;align-items:center;gap:3px;min-width:0;}
+.svlbl{font-family:'IBM Plex Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft);width:16px;flex-shrink:0;}
 .svdots [data-svk="esf"].on{background:var(--acc);}
 @media(max-width:900px){.svrow{grid-template-columns:minmax(0,1fr) 26px;row-gap:6px;}.svrow .hm,.svrow .svdots{grid-column:1/-1;}}
 .ideiaRow{cursor:default;}
@@ -127,6 +128,7 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .tcell:focus{outline:none;box-shadow:inset 0 0 0 1.5px var(--acc2);}
 .tsesta{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 8px;border-radius:8px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
 .trkdot.sm{width:7px;height:7px;}
+.svdots .trkdot.sm{width:6px;height:6px;}
 .trkrow.off{opacity:.4;}
 .dpx{width:18px !important;height:18px !important;font-size:8px !important;opacity:.5;}
 .dpx:hover{opacity:1;}
