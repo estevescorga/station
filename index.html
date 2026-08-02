@@ -88,9 +88,11 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .mbullet{color:var(--soft);flex-shrink:0;width:8px;}
 .mailrow.urg .mbullet{color:var(--acc);font-weight:700;}
 .mtxt{min-width:0;overflow:hidden;text-overflow:ellipsis;}
-.svrow{display:grid;grid-template-columns:minmax(0,1fr) 84px 96px 96px 96px 96px 96px 26px;gap:8px;align-items:center;padding:7px 16px;border-bottom:1px solid var(--line);font-size:12.5px;}
-@media(max-width:1450px){.svrow{grid-template-columns:minmax(0,1fr) 76px 88px 88px 88px 88px 88px 24px;gap:6px;font-size:12px;}}
-@media(max-width:1100px){.svrow{grid-template-columns:minmax(0,1fr) 76px 24px;row-gap:6px;} .svrow .svdots{grid-column:1/-1;}}
+.svrow{display:grid;grid-template-columns:minmax(0,1fr) 80px repeat(5,90px) 26px;gap:7px;align-items:center;padding:7px 16px;border-bottom:1px solid var(--line);font-size:12.5px;}
+@media(max-width:1550px){.svrow{grid-template-columns:minmax(0,1fr) 72px repeat(5,82px) 24px;gap:5px;font-size:12px;}}
+@media(max-width:1250px){.svrow{grid-template-columns:minmax(0,1fr) 72px 24px;row-gap:6px;} .svrow .svdots{grid-column:1/-1;}}
+.svlbl.esc{color:var(--ok);}
+.svdots [data-svk="esc"].on{background:var(--ok);}
 .svpreco{font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-align:right;cursor:pointer;color:var(--acc2);}
 .svpreco:hover{text-decoration:underline;}
 .svlbl.ia{color:var(--acc);}
@@ -699,7 +701,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
    <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <span class="cond"><span class="condlbl">cliente</span><span class="condbtns" id="svCliente"></span></span>
     <span class="cond"><span class="condlbl">dimensão</span><span class="condbtns" id="svDim"></span></span>
-    <select id="svOrd" class="pin"><option value="cat">por categoria</option><option value="pot">por potencial</option><option value="exp">por experiência</option><option value="val">por valor</option><option value="esf">por esforço</option><option value="ia">risco de IA</option><option value="seguro">aposta segura</option><option value="rentab">rentabilidade</option><option value="ambos">geral</option></select>
+    <select id="svOrd" class="pin"><option value="cat">por categoria</option><option value="pot">por potencial</option><option value="exp">por experiência</option><option value="val">por valor</option><option value="esf">por esforço</option><option value="ia">risco de IA</option><option value="esc">por escalabilidade</option><option value="seguro">aposta segura</option><option value="rentab">rentabilidade</option><option value="ambos">geral</option></select>
     <button class="ico" style="width:28px;height:28px" title="Novo serviço" onclick="addServico()">＋</button>
    </span>
   </h2>
@@ -2495,17 +2497,19 @@ function rServicos(){
  const val=s=>s.val===undefined?3:s.val;
  const esf=s=>s.esf===undefined?3:s.esf;
  const ia=s=>s.ia===undefined?3:s.ia;
- // geral: potencial + experiência + valor, penalizado por esforço alto e por risco de IA
- const geral=s=>s.pot+s.exp+val(s)+(6-esf(s))+(6-ia(s));
+ const esc_=s=>s.esc===undefined?1:s.esc;
+ // geral: potencial + experiência + valor + escalabilidade, penalizado por esforço alto e risco de IA
+ const geral=s=>s.pot+s.exp+val(s)+esc_(s)+(6-esf(s))+(6-ia(s));
  // aposta segura: o que a IA dificilmente substitui e onde já és bom
  const seguro=s=>(6-ia(s))*2+s.exp+val(s);
- // rentabilidade: dinheiro a dividir pelo esforço
- const rentab=s=>val(s)/esf(s);
+ // rentabilidade: dinheiro por unidade de esforço, com bónus para o que escala
+ const rentab=s=>(val(s)/esf(s))*(1+esc_(s)/10);
  if(ord==="pot")arr.sort((a,b)=>b.pot-a.pot||b.exp-a.exp);
  else if(ord==="exp")arr.sort((a,b)=>b.exp-a.exp||b.pot-a.pot);
  else if(ord==="val")arr.sort((a,b)=>val(b)-val(a)||b.pot-a.pot);
  else if(ord==="esf")arr.sort((a,b)=>esf(a)-esf(b)||val(b)-val(a));
  else if(ord==="ia")arr.sort((a,b)=>ia(b)-ia(a)||val(b)-val(a));
+ else if(ord==="esc")arr.sort((a,b)=>esc_(b)-esc_(a)||esf(a)-esf(b));
  else if(ord==="seguro")arr.sort((a,b)=>seguro(b)-seguro(a));
  else if(ord==="rentab")arr.sort((a,b)=>rentab(b)-rentab(a)||val(b)-val(a));
  else if(ord==="ambos")arr.sort((a,b)=>geral(b)-geral(a));
@@ -2523,6 +2527,7 @@ function rServicos(){
     <span class="svdots"><span class="svlbl">€</span>${dots(val(s),"val",s.id)}</span>
     <span class="svdots"><span class="svlbl" title="esforço: quanto mais pontos, mais horas custa">esf</span>${dots(esf(s),"esf",s.id)}</span>
     <span class="svdots"><span class="svlbl ia" title="risco de vir a ser feito por IA">ia</span>${dots(ia(s),"ia",s.id)}</span>
+    <span class="svdots"><span class="svlbl esc" title="escalabilidade: vender o mesmo trabalho muitas vezes sem o refazer">esc</span>${dots(esc_(s),"esc",s.id)}</span>
     <button class="ico fdel" data-svdel="${s.id}" title="Apagar" style="position:static">✕</button>
    </div>`;
  });
@@ -2562,7 +2567,7 @@ async function addServico(){
  const cat=prompt("Categoria (ex: Ilustração, Design, Animação, Estratégia, Autoral):","Ilustração");
  if(cat===null)return;
  D.servicosComerciais=D.servicosComerciais||[];
- D.servicosComerciais.push({id:"sv"+Date.now(),nome:nome.trim(),cat:(cat||"outros").trim(),pot:3,exp:3,val:3,esf:3,ia:3,base:null,unidade:null});
+ D.servicosComerciais.push({id:"sv"+Date.now(),nome:nome.trim(),cat:(cat||"outros").trim(),pot:3,exp:3,val:3,esf:3,ia:3,esc:1,base:null,unidade:null});
  await save();rServicos();
 }
 document.addEventListener("change",e=>{if(e.target.id==="svOrd")rServicos();});
