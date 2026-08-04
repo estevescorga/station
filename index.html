@@ -1784,6 +1784,7 @@ function estadoP(p){
  return p.estado;
 }
 const PROJECTOS_FIXOS=["inbox","com","Inbox","Comercial"];
+let catArqOpen={};
 function rCat(){
  if(!cat)return;
  const cn=$("catNovo");
@@ -1793,7 +1794,8 @@ function rCat(){
    :`<button class="ico" title="Novo projecto em ${esc(cat)}" onclick="novoProjectoLocal()">＋</button>`;
  }
  const zonas=[["pGridAlta",3],["pGridMedia",2],["pGridBaixa",1]];
- const ativos=(D.projectos||[]).filter(p=>p.categoria===cat&&p.estado!=="arquivado");
+ const ativos=(D.projectos||[]).filter(p=>p.categoria===cat&&p.estado!=="arquivado"&&p.estado!=="concluído");
+ const concluidos=(D.projectos||[]).filter(p=>p.categoria===cat&&(p.estado==="concluído"||p.estado==="arquivado"));
  const ehFixo=p=>PROJECTOS_FIXOS.includes(p.id)||PROJECTOS_FIXOS.includes(p.nome);
  const fixos=ativos.filter(ehFixo);
  const todos=ativos.filter(x=>!ehFixo(x));
@@ -1829,6 +1831,31 @@ function rCat(){
    </div>`);
   });
  });
+ const aw=$("arqWrap");
+ if(aw){
+  const open=catArqOpen[cat];
+  aw.innerHTML=concluidos.length?`<div class="cgroup"><div class="cgrouph acc" id="arqAcc"><span class="accarr">${open?"▾":"▸"}</span>concluídos · ${concluidos.length}</div><div class="cgbody pgrid" id="arqBody" style="display:${open?"grid":"none"}"></div></div>`:"";
+  const body=$("arqBody");
+  if(body){
+   concluidos.sort((a,b)=>(b.prazo||b.inicio||"").localeCompare(a.prazo||a.inicio||"")).forEach(p=>{
+    const ts=D.tarefas.filter(t=>t.categoria===cat&&t.projecto===p.nome);
+    const done=ts.filter(t=>t.estado==="concluída").length;
+    body.insertAdjacentHTML("beforeend",`<div class="pcard card" data-pc="${p.id}" style="opacity:.7">
+     <div class="pname">${esc(p.nome)}</div>
+     <div class="tags">
+      ${p.cliente?'<span class="chip hot">cliente</span>':'<span class="chip">interno</span>'}
+      ${p.marca?`<span class="chip">${p.marca}</span>`:""}
+      <span class="chip">${esc(p.estado)}</span>
+     </div>
+     <div class="accbar" style="background:${p.cor||"var(--acc)"}"></div>
+     <div class="pmeta"><span>${ts.length?`${done}/${ts.length} tarefas`:"sem tarefas"}</span><span></span></div>
+    </div>`);
+   });
+   body.querySelectorAll(".pcard").forEach(c=>c.addEventListener("click",()=>openP(c.dataset.pc)));
+  }
+  const acc=$("arqAcc");
+  if(acc)acc.addEventListener("click",()=>{catArqOpen[cat]=!catArqOpen[cat];rCat();});
+ }
  document.querySelectorAll(".fixchip").forEach(b=>b.addEventListener("click",()=>openP(b.dataset.pc)));
  // drag entre zonas e dentro da zona
  document.querySelectorAll(".pzone .pcard").forEach(c=>{
