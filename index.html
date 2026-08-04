@@ -104,6 +104,11 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .condbtns{display:inline-flex;gap:3px;}
 .condb{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:lowercase;padding:5px 9px;border-radius:8px;box-shadow:2px 2px 5px var(--sh-d),-2px -2px 5px var(--sh-l);}
 .condb.on{color:var(--acc2);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
+#anualGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:900px){#anualGrid{grid-template-columns:repeat(2,1fr);}}
+.anualm{display:flex;flex-direction:column;gap:8px;min-height:150px;}
+.anualMetas{display:flex;flex-direction:column;gap:4px;margin-top:2px;}
+.anualMeta{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:11px;padding:5px 8px;border-radius:8px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
 .svnome{outline:none;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .svnome:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:5px;padding:1px 3px;}
 .svdots{display:flex;align-items:center;justify-content:flex-end;gap:3px;min-width:0;}
@@ -690,7 +695,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ AGENDA ============ -->
 <div class="view" id="v-AGENDA">
+  <div class="cond" style="margin-bottom:16px">
+   <span class="condbtns" id="agTabs"></span>
+  </div>
   <div class="week" id="wGrid"></div>
+  <div id="anualWrap" hidden>
+   <div class="ecalgrid" id="anualGrid"></div>
+  </div>
 </div>
 
 <!-- ============ PREÇÁRIO ============ -->
@@ -1319,6 +1330,7 @@ async function load(){
  if(!D.ordemUrgente)D.ordemUrgente=[];
  if(D.timer===undefined)D.timer=null;
  if(!D.extrasCat)D.extrasCat={};
+ if(!D.metasAnuais)D.metasAnuais=[];
  if(!D.notasRicardo)D.notasRicardo=[
   {id:"np1",titulo:"Levar em viagem",corpo:"Carregadores, adaptador, auscultadores.\nCaderno e canetas.\nComprimidos.\n\nAjusta esta lista à tua."},
   {id:"np2",titulo:"Apontamentos de seminários",corpo:"Cola aqui o que trouxeres de seminários e workshops de ilustração."}
@@ -2324,6 +2336,22 @@ const DEFAULT_PROPOSTAS={
  ]
 };
 let ideiaAberta=null;
+function calcOportunidadesPorMes(){
+ const aconteceM=Array.from({length:12},()=>[]);
+ const prepararM=Array.from({length:12},()=>[]);
+ OPORTUNIDADES.forEach(o=>{
+  const rot=o.nome+(o.mesFim?"":o.dia?` (${o.dia})`:"");
+  if(o.mesFim){
+   for(let m=o.mes;m<=o.mesFim;m++)aconteceM[m-1].push(o.nome);
+  }else aconteceM[o.mes-1].push(rot);
+  let cm=o.cMes;
+  while(cm!==o.mes){
+   prepararM[cm-1].push(o.nome);
+   cm=cm===12?1:cm+1;
+  }
+ });
+ return {aconteceM,prepararM};
+}
 function rEstrategia(){
  const E=D.estrategia;if(!E)return;
  rAvisosComerciais();
@@ -2331,20 +2359,7 @@ function rEstrategia(){
  // calendário: dois blocos por mês — o que acontece e o que se prepara
  const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
  const mesAtual=new Date().getMonth();
- const aconteceM=Array.from({length:12},()=>[]);
- const prepararM=Array.from({length:12},()=>[]);
- OPORTUNIDADES.forEach(o=>{
-  const rot=o.nome+(o.mesFim?"":o.dia?` (${o.dia})`:"");
-  if(o.mesFim){ // evento longo: marca todos os meses do intervalo
-   for(let m=o.mes;m<=o.mesFim;m++)aconteceM[m-1].push(o.nome);
-  }else aconteceM[o.mes-1].push(rot);
-  // preparação: do mês de início de comunicação até ao mês antes do evento
-  let cm=o.cMes;
-  while(cm!==o.mes){
-   prepararM[cm-1].push(o.nome);
-   cm=cm===12?1:cm+1;
-  }
- });
+ const {aconteceM,prepararM}=calcOportunidadesPorMes();
  const colMes=(arr,cls)=>MESES.map((m,i)=>`<div class="ecalm${i===mesAtual?" now":""}">
     <div class="ecmn">${m}</div>
     <div class="ecmt${cls}">${esc(arr[i].join(" · ")||"—")}</div>
@@ -3409,6 +3424,44 @@ function rCal(){
 }
 
 /* ============ semana / mês ============ */
+let agModo="diario";
+function rAgTabs(){
+ const box=$("agTabs");if(!box)return;
+ box.innerHTML=`<button class="condb${agModo==="diario"?" on":""}" data-ag="diario">diário</button><button class="condb${agModo==="anual"?" on":""}" data-ag="anual">anual comercial</button>`;
+ box.querySelectorAll("[data-ag]").forEach(b=>b.addEventListener("click",()=>{
+  agModo=b.dataset.ag;
+  $("wGrid").hidden=agModo!=="diario";
+  $("anualWrap").hidden=agModo!=="anual";
+  rAgTabs();
+  if(agModo==="anual")rAnual();else rSemana();
+ }));
+}
+function rAnual(){
+ const box=$("anualGrid");if(!box)return;
+ const MESES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+ const {prepararM}=calcOportunidadesPorMes();
+ const mesAtual=new Date().getMonth();
+ if(!D.metasAnuais)D.metasAnuais=[];
+ box.innerHTML=MESES.map((m,i)=>{
+  const mn=i+1;
+  const metas=D.metasAnuais.filter(x=>x.mes===mn);
+  return `<div class="ecalm anualm${i===mesAtual?" now":""}">
+    <div class="ecmn" style="display:flex;justify-content:space-between;align-items:center">${m}<button class="ico" style="width:18px;height:18px;font-size:11px" data-anadd="${mn}" title="Novo objectivo">+</button></div>
+    <div class="ecbloco"><span class="eclbl prep">a preparar</span><div class="ecmt prep">${esc(prepararM[i].join(" · ")||"—")}</div></div>
+    <div class="anualMetas">${metas.map(x=>`<div class="anualMeta"><span>${esc(x.titulo)}</span><button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button></div>`).join("")}</div>
+   </div>`;
+ }).join("");
+ box.querySelectorAll("[data-anadd]").forEach(b=>b.addEventListener("click",async()=>{
+  const t=prompt("Objectivo para "+MESES[+b.dataset.anadd-1]+" (repete todos os anos):");
+  if(!t||!t.trim())return;
+  D.metasAnuais.push({id:"ma"+Date.now(),mes:+b.dataset.anadd,titulo:t.trim(),criado:hoje()});
+  await save();rAnual();
+ }));
+ box.querySelectorAll("[data-andel]").forEach(b=>b.addEventListener("click",async()=>{
+  D.metasAnuais=D.metasAnuais.filter(x=>x.id!==b.dataset.andel);
+  await save();rAnual();
+ }));
+}
 function rSemana(){
  const g=$("wGrid");g.innerHTML="";
  const start=new Date();start.setDate(start.getDate()-3);start.setHours(0,0,0,0);
@@ -3474,7 +3527,7 @@ function bindAgendaDnD(){
  });
 }
 let agMode="s",gSpan="m",mcY,mcM;
-function rAgenda(){ rSemana(); }
+function rAgenda(){ rAgTabs(); if(agModo==="anual")rAnual(); else rSemana(); }
 function rMes(){
  const n=new Date(),y=n.getFullYear();
  const ps=(D.projectos||[]).filter(p=>p.estado!=="arquivado");
