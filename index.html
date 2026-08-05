@@ -104,10 +104,10 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .condbtns{display:inline-flex;gap:3px;}
 .condb{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:lowercase;padding:5px 9px;border-radius:8px;box-shadow:2px 2px 5px var(--sh-d),-2px -2px 5px var(--sh-l);}
 .condb.on{color:var(--acc2);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
-.mesrow{display:grid;grid-template-columns:130px minmax(0,1fr);gap:16px;padding:12px 18px;border-bottom:1px solid var(--line);align-items:start;}
-.mesrow:last-child{border-bottom:none;}
-.mesrow.vazio{opacity:.45;padding:8px 18px;}
-.mesrow.now{box-shadow:inset 3px 0 0 var(--acc);}
+#anualGrid{display:flex;flex-direction:column;gap:10px;}
+.mesrow{display:grid;grid-template-columns:130px minmax(0,1fr);gap:16px;padding:14px 18px;align-items:start;}
+.mesrow.vazio{opacity:.5;padding:10px 18px;}
+.mesrow.now{box-shadow:inset 0 0 0 2px var(--acc),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
 .mescol{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .mesnome{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);}
 .mesrow.now .mesnome{color:var(--acc);font-weight:700;}
@@ -135,6 +135,9 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 [data-antit]{outline:none;}
 [data-antit]:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:5px;padding:0 3px;}
 button.metadot{border:none;cursor:pointer;padding:0;}
+.catpick{font-size:10.5px;padding:8px 12px;gap:7px;}
+.catpick.on{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);color:var(--txt);}
+#metaCats .metadot{width:8px;height:8px;}
 .metadot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
 .anualMeta{align-items:center;}
 .metarow{display:flex;gap:6px;align-items:baseline;font-size:11px;line-height:1.5;padding:2px 0;}
@@ -738,7 +741,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div id="anualWrap" hidden>
    <div id="anualTopo" class="anualTopo"></div>
    <div class="catlegs" id="anualLeg" style="margin-bottom:12px"></div>
-   <div class="card" style="padding:4px 0" id="anualGrid"></div>
+   <div id="anualGrid"></div>
   </div>
 </div>
 
@@ -816,6 +819,31 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div id="syncAviso"></div>
 
 <div id="timerBar"></div>
+
+<div class="ovl" id="confOvl">
+ <div class="modal card" style="max-width:400px">
+  <h3 id="confTit" style="font-size:15px;margin-bottom:8px"></h3>
+  <div class="hsub" id="confTxt" style="margin-bottom:18px"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end">
+   <button class="btn" id="confNao">cancelar</button>
+   <button class="btn" id="confSim" style="color:var(--acc)">apagar</button>
+  </div>
+ </div>
+</div>
+
+<div class="ovl" id="metaOvl">
+ <div class="modal card" style="max-width:460px">
+  <div class="mhead"><h3 id="metaTit"></h3><button class="ico" style="width:30px;height:30px;font-size:13px" onclick="fecharMeta()" title="Fechar">✕</button></div>
+  <label class="trkfl" style="display:block;margin-bottom:6px">objectivo</label>
+  <input class="pin" id="metaInput" placeholder="o que queres alcançar…" style="width:100%;margin-bottom:16px"/>
+  <label class="trkfl" style="display:block;margin-bottom:8px">categoria</label>
+  <div id="metaCats" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end">
+   <button class="btn" onclick="fecharMeta()">cancelar</button>
+   <button class="btn" id="metaOk" style="color:var(--acc2)">guardar</button>
+  </div>
+ </div>
+</div>
 
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
@@ -2498,8 +2526,8 @@ function bindEstrategia(){
  });
  document.querySelectorAll("[data-ei]").forEach(el=>el.addEventListener("blur",async()=>{const i=E.ideias.find(x=>x.id===el.dataset.iid);if(i){i[el.dataset.ei]=el.innerText.trim();await save();}}));
  document.querySelectorAll("[data-ep]").forEach(el=>el.addEventListener("blur",async()=>{E.principios[+el.dataset.ep]=el.innerText.trim();await save();}));
- document.querySelectorAll("[data-fdel]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Apagar esta frente?"))return;E.frentes=E.frentes.filter(x=>x.id!==b.dataset.fdel);await save();rEstrategia();}));
- document.querySelectorAll("[data-idel]").forEach(b=>b.addEventListener("click",async()=>{if(!confirm("Apagar esta ideia?"))return;E.ideias=E.ideias.filter(x=>x.id!==b.dataset.idel);await save();rEstrategia();}));
+ document.querySelectorAll("[data-fdel]").forEach(b=>b.addEventListener("click",()=>{const f=E.frentes.find(x=>x.id===b.dataset.fdel);confirmar("Apagar frente de ataque?",f?f.titulo:"",async()=>{E.frentes=E.frentes.filter(x=>x.id!==b.dataset.fdel);await save();rEstrategia();});}));
+ document.querySelectorAll("[data-idel]").forEach(b=>b.addEventListener("click",()=>{const i=E.ideias.find(x=>x.id===b.dataset.idel);confirmar("Apagar ideia?",i?i.titulo:"",async()=>{E.ideias=E.ideias.filter(x=>x.id!==b.dataset.idel);await save();rEstrategia();});}));
 }
 function lacunasComerciais(){
  // para cada oportunidade cuja janela está aberta ou abre em breve,
@@ -2665,9 +2693,11 @@ function rServicos(){
   await save();rServicos();
  }));
  box.querySelectorAll("[data-svdel]").forEach(b=>b.addEventListener("click",async()=>{
-  if(!confirm("Apagar este serviço?"))return;
-  D.servicosComerciais=D.servicosComerciais.filter(x=>x.id!==b.dataset.svdel);
-  await save();rServicos();
+  const s=D.servicosComerciais.find(x=>x.id===b.dataset.svdel);
+  confirmar("Apagar serviço?",s?s.nome:"",async()=>{
+   D.servicosComerciais=D.servicosComerciais.filter(x=>x.id!==b.dataset.svdel);
+   await save();rServicos();
+  });
  }));
 }
 async function addServico(){
@@ -2795,10 +2825,12 @@ function rPessoal(){
  }));
  document.querySelectorAll("#v-PESSOAL [data-pdel]").forEach(b=>b.addEventListener("click",async()=>{
   const [k,i]=b.dataset.pdel.split("|");
-  if(!confirm("Apagar este item?"))return;
-  if(k==="frases"){D.frases.splice(+i,1);D.fraseCiclo=null;}
-  else D.pessoal[k].splice(+i,1);
-  await save();rPessoal();
+  const alvo=k==="frases"?D.frases[+i]:D.pessoal[k][+i];
+  confirmar("Apagar item?",typeof alvo==="string"?alvo:(alvo&&alvo.t)||"",async()=>{
+   if(k==="frases"){D.frases.splice(+i,1);D.fraseCiclo=null;}
+   else D.pessoal[k].splice(+i,1);
+   await save();rPessoal();
+  });
  }));
 }
 function addPessoal(key){
@@ -3374,9 +3406,11 @@ function rTaskList(el,list){
   const t=D.tarefas.find(x=>x.id===b.dataset.mvset);
   if(t){t.projecto=b.dataset.mvto;t.categoria=b.dataset.mvcat;await save();rAll();}
  }));
- el.querySelectorAll("[data-tdel]").forEach(b=>b.addEventListener("click",async()=>{
-  if(!confirm("Apagar esta tarefa?"))return;
-  D.tarefas=D.tarefas.filter(x=>x.id!==b.dataset.tdel);await save();rAll();
+ el.querySelectorAll("[data-tdel]").forEach(b=>b.addEventListener("click",()=>{
+  const t=D.tarefas.find(x=>x.id===b.dataset.tdel);
+  confirmar("Apagar tarefa?",t?t.titulo:"",async()=>{
+   D.tarefas=D.tarefas.filter(x=>x.id!==b.dataset.tdel);await save();rAll();
+  });
  }));
 }
 let calY,calM;
@@ -3498,6 +3532,52 @@ function rAgTabs(){
   if(agModo==="anual")rAnual();else rSemana();
  }));
 }
+/* ============ confirmação com o visual do site ============ */
+function confirmar(titulo,texto,onSim,rotulo){
+ const ovl=$("confOvl");
+ $("confTit").textContent=titulo;
+ $("confTxt").textContent=texto||"";
+ $("confSim").textContent=rotulo||"apagar";
+ ovl.classList.add("on");
+ const fechar=()=>{ovl.classList.remove("on");$("confSim").onclick=null;$("confNao").onclick=null;};
+ $("confSim").onclick=async()=>{fechar();await onSim();};
+ $("confNao").onclick=fechar;
+}
+/* ============ criar/editar objectivo anual ============ */
+let metaCtx=null;
+function fecharMeta(){$("metaOvl").classList.remove("on");metaCtx=null;}
+function abrirMeta(ctx){
+ metaCtx=ctx;
+ const MESN=["o ano inteiro","janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+ $("metaTit").textContent=ctx.id?"Editar objectivo":"Novo objectivo · "+MESN[ctx.mes];
+ $("metaInput").value=ctx.titulo||"";
+ rMetaCats();
+ $("metaOvl").classList.add("on");
+ setTimeout(()=>$("metaInput").focus(),60);
+ $("metaOk").onclick=async()=>{
+  const t=$("metaInput").value.trim();
+  if(!t){setSt("escreve o objectivo");return;}
+  D.metasAnuais=D.metasAnuais||[];
+  if(metaCtx.id){
+   const m=D.metasAnuais.find(x=>x.id===metaCtx.id);
+   if(m){m.titulo=t;m.cat=metaCtx.cat;}
+  }else{
+   D.metasAnuais.push({id:"ma"+Date.now(),mes:metaCtx.mes,cat:metaCtx.cat,titulo:t,criado:hoje()});
+  }
+  fecharMeta();await save();rAnual();rHome();
+ };
+}
+function rMetaCats(){
+ const box=$("metaCats");if(!box||!metaCtx)return;
+ box.innerHTML=Object.entries(CATS_ANUAL).map(([k,c])=>
+  `<button class="btn catpick${metaCtx.cat===k?" on":""}" data-mcat="${k}"><i class="metadot" style="background:${c.cor}"></i>${c.nome}</button>`).join("");
+ box.querySelectorAll("[data-mcat]").forEach(b=>b.addEventListener("click",()=>{metaCtx.cat=b.dataset.mcat;rMetaCats();}));
+}
+document.addEventListener("keydown",e=>{
+ if(e.key!=="Escape")return;
+ if($("metaOvl").classList.contains("on"))fecharMeta();
+ if($("confOvl").classList.contains("on"))$("confOvl").classList.remove("on");
+});
 const CATS_ANUAL={
  planeamento:{nome:"planeamento",cor:"var(--acc2)"},
  conteudo:{nome:"criação de conteúdo",cor:"var(--ok)"},
@@ -3510,28 +3590,10 @@ function metaLinha(x,comDel){
  const c=catMeta(x);
  return `<div class="anualMeta"><button class="metadot" style="background:${c.cor}" data-ancat="${x.id}" title="${c.nome} · clica para mudar"></button><span contenteditable data-antit="${x.id}">${esc(x.titulo)}</span>${comDel?`<button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button>`:""}</div>`;
 }
-async function mudarCatMeta(id){
+function novaMeta(mes){abrirMeta({mes,cat:"planeamento"});}
+function editarMeta(id){
  const m=(D.metasAnuais||[]).find(x=>x.id===id);if(!m)return;
- const opts=Object.keys(CATS_ANUAL);
- const atual=m.cat==="publicacao"?"divulgacao":m.cat;
- const lista=opts.map((c,i)=>`${i+1}. ${CATS_ANUAL[c].nome}`).join("\n");
- const r=prompt(`Categoria de "${m.titulo}":\n\n${lista}`,String(opts.indexOf(atual)+1||1));
- if(r===null)return;
- const i=parseInt(String(r).trim(),10);
- if(!isNaN(i)&&i>=1&&i<=opts.length){m.cat=opts[i-1];await save();rAnual();rHome();}
-}
-async function novaMeta(mes){
- const t=prompt(mes===0?"Objectivo para o ano inteiro:":"Objectivo para este mês (repete todos os anos):");
- if(!t||!t.trim())return;
- const opts=Object.keys(CATS_ANUAL);
- const lista=opts.map((c,i)=>`${i+1}. ${CATS_ANUAL[c].nome}`).join("\n");
- const r=prompt(`Categoria:\n\n${lista}`,"1");
- if(r===null)return;
- const i=parseInt(String(r).trim(),10);
- const cat=(!isNaN(i)&&i>=1&&i<=opts.length)?opts[i-1]:"planeamento";
- D.metasAnuais=D.metasAnuais||[];
- D.metasAnuais.push({id:"ma"+Date.now(),mes,cat,titulo:t.trim(),criado:hoje()});
- await save();rAnual();rHome();
+ abrirMeta({id:m.id,mes:m.mes,cat:m.cat==="publicacao"?"divulgacao":m.cat,titulo:m.titulo});
 }
 function rAnual(){
  const box=$("anualGrid");if(!box)return;
@@ -3575,7 +3637,7 @@ function rAnual(){
   const metas=D.metasAnuais.filter(x=>x.mes===mn);
   const prep=prepararM[i];
   const vazio=!metas.length&&!prep.length;
-  return `<div class="mesrow${i===mesAtual?" now":""}${vazio?" vazio":""}">
+  return `<div class="card mesrow${i===mesAtual?" now":""}${vazio?" vazio":""}">
     <div class="mescol">
      <span class="mesnome">${m}</span>
      <button class="ico anualAdd" data-anadd="${mn}" title="Novo objectivo">+</button>
@@ -3594,11 +3656,14 @@ function rAnual(){
  const leg=$("anualLeg");
  if(leg)leg.innerHTML=Object.values(CATS_ANUAL).map(c=>`<span class="catleg"><i style="background:${c.cor}"></i>${c.nome}</span>`).join("");
  document.querySelectorAll("[data-anadd]").forEach(b=>b.addEventListener("click",()=>novaMeta(+b.dataset.anadd)));
- document.querySelectorAll("[data-andel]").forEach(b=>b.addEventListener("click",async()=>{
-  D.metasAnuais=D.metasAnuais.filter(x=>x.id!==b.dataset.andel);
-  await save();rAnual();rHome();
+ document.querySelectorAll("[data-andel]").forEach(b=>b.addEventListener("click",()=>{
+  const m=D.metasAnuais.find(x=>x.id===b.dataset.andel);
+  confirmar("Apagar objectivo?",m?m.titulo:"",async()=>{
+   D.metasAnuais=D.metasAnuais.filter(x=>x.id!==b.dataset.andel);
+   await save();rAnual();rHome();
+  });
  }));
- document.querySelectorAll("[data-ancat]").forEach(b=>b.addEventListener("click",()=>mudarCatMeta(b.dataset.ancat)));
+ document.querySelectorAll("[data-ancat]").forEach(b=>b.addEventListener("click",()=>editarMeta(b.dataset.ancat)));
  document.querySelectorAll("[data-antit]").forEach(el=>el.addEventListener("blur",async()=>{
   const m=D.metasAnuais.find(x=>x.id===el.dataset.antit);
   const t=el.textContent.trim();
@@ -3897,8 +3962,9 @@ function rCaderno(chave){
  det.querySelectorAll("[data-nkt],[data-nkc]").forEach(el=>el.addEventListener("blur",gravar));
  const db=det.querySelector("[data-nkdel]");
  if(db)db.addEventListener("click",async()=>{
-  if(!confirm("Apagar esta nota?"))return;
-  D[chave]=D[chave].filter(x=>x.id!==n.id);nrSel[chave]=null;await save();rCaderno(chave);
+  confirmar("Apagar nota?",n.titulo,async()=>{
+   D[chave]=D[chave].filter(x=>x.id!==n.id);nrSel[chave]=null;await save();rCaderno(chave);
+  });
  });
 }
 function addNota(chave){
