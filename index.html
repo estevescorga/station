@@ -112,6 +112,14 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .anualHead{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:0;background:var(--bg);padding-bottom:6px;z-index:1;}
 .anualHead .ecmn{letter-spacing:.06em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .anualAdd{width:20px !important;height:20px !important;font-size:12px;padding:0;flex-shrink:0;}
+.anualTopo{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+@media(max-width:760px){.anualTopo{grid-template-columns:1fr;}}
+.anualDest{padding:14px 16px;}
+.anualDest.now{box-shadow:inset 0 0 0 2px var(--acc),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
+.metadot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.anualMeta{align-items:center;}
+.metarow{display:flex;gap:6px;align-items:baseline;font-size:11px;line-height:1.5;padding:2px 0;}
+.metarow .metadot{margin-top:4px;}
 .anualMetas{display:flex;flex-direction:column;gap:4px;margin-top:2px;}
 .anualMeta{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:11px;line-height:1.35;padding:5px 8px;border-radius:8px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
 .anualMeta>span{min-width:0;overflow-wrap:anywhere;}
@@ -683,6 +691,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
       <div class="card hcard"><h5>em espera</h5><div id="hEspera"></div></div>
       <div id="hAlertas"></div>
+      <div id="hMetas"></div>
     </div>
     <div class="hcol">
       <div class="card hcard mini"><h5>aniversários</h5><div id="hAniv"></div></div>
@@ -708,6 +717,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   </div>
   <div class="week" id="wGrid"></div>
   <div id="anualWrap" hidden>
+   <div id="anualTopo" class="anualTopo"></div>
+   <div class="catlegs" id="anualLeg" style="margin-bottom:12px"></div>
    <div class="ecalgrid" id="anualGrid"></div>
   </div>
 </div>
@@ -1794,6 +1805,24 @@ function rHome(){
   const valPorFechar=porFechar.reduce((s,r)=>s+(+r[6]||0),0);
   if(porFechar.length)linhas.push(`<div class="hsub" style="margin-top:6px">${porFechar.length} proposta${porFechar.length===1?"":"s"} por fechar · €${valPorFechar.toLocaleString("pt-PT")}</div>`);
   hAl.innerHTML=`<div class="card hcard"><h5>comercial</h5>${linhas.join("")}</div>`;
+ }
+ // objectivos: ano inteiro + mês atual, em bullets curtos
+ const hm=$("hMetas");
+ if(hm){
+  const mesN=n.getMonth()+1;
+  const MESN=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const doAno=(D.metasAnuais||[]).filter(x=>x.mes===0);
+  const doMes=(D.metasAnuais||[]).filter(x=>x.mes===mesN);
+  const lin=x=>{
+   const c=(typeof CATS_ANUAL!=="undefined"&&CATS_ANUAL[x.cat])||{cor:"var(--soft)"};
+   return `<div class="metarow"><i class="metadot" style="background:${c.cor}"></i><span>${esc(x.titulo)}</span></div>`;
+  };
+  hm.innerHTML=(doAno.length||doMes.length)
+   ?`<div class="card hcard"><h5>objectivos</h5>`+
+    (doAno.length?`<div class="hgrouph">o ano inteiro</div>`+doAno.map(lin).join(""):"")+
+    (doMes.length?`<div class="hgrouph" style="margin-top:8px">${MESN[mesN-1]}</div>`+doMes.map(lin).join(""):"")+
+    `</div>`
+   :"";
  }
 }
 
@@ -3448,30 +3477,65 @@ function rAgTabs(){
   if(agModo==="anual")rAnual();else rSemana();
  }));
 }
+const CATS_ANUAL={
+ planeamento:{nome:"planeamento",cor:"var(--acc2)"},
+ conteudo:{nome:"criação de conteúdo",cor:"var(--ok)"},
+ publicacao:{nome:"publicação",cor:"var(--acc)"}
+};
+function metaLinha(x,comDel){
+ const c=CATS_ANUAL[x.cat]||CATS_ANUAL.planeamento;
+ return `<div class="anualMeta"><i class="metadot" style="background:${c.cor}" title="${c.nome}"></i><span>${esc(x.titulo)}</span>${comDel?`<button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button>`:""}</div>`;
+}
+async function novaMeta(mes){
+ const t=prompt(mes===0?"Objectivo para o ano inteiro:":"Objectivo para este mês (repete todos os anos):");
+ if(!t||!t.trim())return;
+ const opts=Object.keys(CATS_ANUAL);
+ const lista=opts.map((c,i)=>`${i+1}. ${CATS_ANUAL[c].nome}`).join("\n");
+ const r=prompt(`Categoria:\n\n${lista}`,"1");
+ if(r===null)return;
+ const i=parseInt(String(r).trim(),10);
+ const cat=(!isNaN(i)&&i>=1&&i<=opts.length)?opts[i-1]:"planeamento";
+ D.metasAnuais=D.metasAnuais||[];
+ D.metasAnuais.push({id:"ma"+Date.now(),mes,cat,titulo:t.trim(),criado:hoje()});
+ await save();rAnual();rHome();
+}
 function rAnual(){
  const box=$("anualGrid");if(!box)return;
  const MESES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
  const {prepararM}=calcOportunidadesPorMes();
  const mesAtual=new Date().getMonth();
  if(!D.metasAnuais)D.metasAnuais=[];
+ // dois blocos de destaque: ano inteiro + mês atual
+ const doAno=D.metasAnuais.filter(x=>x.mes===0);
+ const doMes=D.metasAnuais.filter(x=>x.mes===mesAtual+1);
+ const topo=$("anualTopo");
+ if(topo)topo.innerHTML=`
+  <div class="card anualDest">
+   <div class="anualHead"><span class="ecmn" style="margin:0">o ano inteiro</span><button class="ico anualAdd" data-anadd="0" title="Novo objectivo anual">+</button></div>
+   <div class="anualMetas">${doAno.map(x=>metaLinha(x,true)).join("")||`<div class="hsub">sem objectivos</div>`}</div>
+  </div>
+  <div class="card anualDest now">
+   <div class="anualHead"><span class="ecmn" style="margin:0">${MESES[mesAtual]} · agora</span><button class="ico anualAdd" data-anadd="${mesAtual+1}" title="Novo objectivo para este mês">+</button></div>
+   <div class="ecbloco" style="margin-bottom:6px"><span class="eclbl prep">a preparar</span><div class="ecmt prep">${esc(prepararM[mesAtual].join(" · ")||"—")}</div></div>
+   <div class="anualMetas">${doMes.map(x=>metaLinha(x,true)).join("")||`<div class="hsub">sem objectivos</div>`}</div>
+  </div>`;
+ // grelha dos 12 meses
  box.innerHTML=MESES.map((m,i)=>{
   const mn=i+1;
   const metas=D.metasAnuais.filter(x=>x.mes===mn);
   return `<div class="ecalm anualm${i===mesAtual?" now":""}">
     <div class="anualHead"><span class="ecmn" style="margin:0">${m}</span><button class="ico anualAdd" data-anadd="${mn}" title="Novo objectivo">+</button></div>
     <div class="ecbloco"><span class="eclbl prep">a preparar</span><div class="ecmt prep">${esc(prepararM[i].join(" · ")||"—")}</div></div>
-    <div class="anualMetas">${metas.map(x=>`<div class="anualMeta"><span>${esc(x.titulo)}</span><button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button></div>`).join("")}</div>
+    <div class="anualMetas">${metas.map(x=>metaLinha(x,true)).join("")}</div>
    </div>`;
  }).join("");
- box.querySelectorAll("[data-anadd]").forEach(b=>b.addEventListener("click",async()=>{
-  const t=prompt("Objectivo para "+MESES[+b.dataset.anadd-1]+" (repete todos os anos):");
-  if(!t||!t.trim())return;
-  D.metasAnuais.push({id:"ma"+Date.now(),mes:+b.dataset.anadd,titulo:t.trim(),criado:hoje()});
-  await save();rAnual();
- }));
- box.querySelectorAll("[data-andel]").forEach(b=>b.addEventListener("click",async()=>{
+ // legenda das categorias
+ const leg=$("anualLeg");
+ if(leg)leg.innerHTML=Object.values(CATS_ANUAL).map(c=>`<span class="catleg"><i style="background:${c.cor}"></i>${c.nome}</span>`).join("");
+ document.querySelectorAll("[data-anadd]").forEach(b=>b.addEventListener("click",()=>novaMeta(+b.dataset.anadd)));
+ document.querySelectorAll("[data-andel]").forEach(b=>b.addEventListener("click",async()=>{
   D.metasAnuais=D.metasAnuais.filter(x=>x.id!==b.dataset.andel);
-  await save();rAnual();
+  await save();rAnual();rHome();
  }));
 }
 function rSemana(){
