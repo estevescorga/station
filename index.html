@@ -112,16 +112,29 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .mesnome{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);}
 .mesrow.now .mesnome{color:var(--acc);font-weight:700;}
 .mesconteudo{display:flex;flex-direction:column;gap:7px;min-width:0;}
+.mesgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:start;}
+@media(max-width:900px){.mesgrid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){.mesgrid{grid-template-columns:1fr;}}
+.mescat{display:flex;flex-direction:column;gap:4px;min-width:0;}
 .mesprep{font-size:11.5px;color:var(--soft);line-height:1.5;font-style:italic;}
 .mesprep .eclbl{font-style:normal;margin-right:4px;}
 @media(max-width:640px){.mesrow{grid-template-columns:1fr;gap:8px;}}
 .anualHead{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:0;background:var(--bg);padding-bottom:6px;z-index:1;}
 .anualHead .ecmn{letter-spacing:.06em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .anualAdd{width:20px !important;height:20px !important;font-size:12px;padding:0;flex-shrink:0;}
-.anualTopo{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
-@media(max-width:760px){.anualTopo{grid-template-columns:1fr;}}
-.anualDest{padding:14px 16px;}
-.anualDest.now{box-shadow:inset 0 0 0 2px var(--acc),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
+.anualTopo{margin-bottom:16px;}
+.focobox{padding:16px 20px;box-shadow:inset 0 0 0 2px var(--acc),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
+.focotop{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);}
+.focogrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
+@media(max-width:900px){.focogrid{grid-template-columns:repeat(2,1fr);gap:14px;}}
+@media(max-width:560px){.focogrid{grid-template-columns:1fr;}}
+.fococol{display:flex;flex-direction:column;gap:5px;min-width:0;}
+.focoh{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);margin-bottom:2px;}
+.focosub{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft);opacity:.7;margin-top:4px;}
+.fococol .metadot{margin:0;}
+[data-antit]{outline:none;}
+[data-antit]:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:5px;padding:0 3px;}
+button.metadot{border:none;cursor:pointer;padding:0;}
 .metadot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
 .anualMeta{align-items:center;}
 .metarow{display:flex;gap:6px;align-items:baseline;font-size:11px;line-height:1.5;padding:2px 0;}
@@ -3493,7 +3506,17 @@ const CATS_ANUAL={
 function catMeta(x){return CATS_ANUAL[x.cat==="publicacao"?"divulgacao":x.cat]||CATS_ANUAL.planeamento;}
 function metaLinha(x,comDel){
  const c=catMeta(x);
- return `<div class="anualMeta"><i class="metadot" style="background:${c.cor}" title="${c.nome}"></i><span>${esc(x.titulo)}</span>${comDel?`<button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button>`:""}</div>`;
+ return `<div class="anualMeta"><button class="metadot" style="background:${c.cor}" data-ancat="${x.id}" title="${c.nome} · clica para mudar"></button><span contenteditable data-antit="${x.id}">${esc(x.titulo)}</span>${comDel?`<button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button>`:""}</div>`;
+}
+async function mudarCatMeta(id){
+ const m=(D.metasAnuais||[]).find(x=>x.id===id);if(!m)return;
+ const opts=Object.keys(CATS_ANUAL);
+ const atual=m.cat==="publicacao"?"divulgacao":m.cat;
+ const lista=opts.map((c,i)=>`${i+1}. ${CATS_ANUAL[c].nome}`).join("\n");
+ const r=prompt(`Categoria de "${m.titulo}":\n\n${lista}`,String(opts.indexOf(atual)+1||1));
+ if(r===null)return;
+ const i=parseInt(String(r).trim(),10);
+ if(!isNaN(i)&&i>=1&&i<=opts.length){m.cat=opts[i-1];await save();rAnual();rHome();}
 }
 async function novaMeta(mes){
  const t=prompt(mes===0?"Objectivo para o ano inteiro:":"Objectivo para este mês (repete todos os anos):");
@@ -3517,16 +3540,32 @@ function rAnual(){
  // dois blocos de destaque: ano inteiro + mês atual
  const doAno=D.metasAnuais.filter(x=>x.mes===0);
  const doMes=D.metasAnuais.filter(x=>x.mes===mesAtual+1);
+ // bloco único de foco: ano inteiro + mês atual, organizados por categoria
  const topo=$("anualTopo");
- if(topo)topo.innerHTML=`
-  <div class="card anualDest">
-   <div class="anualHead"><span class="ecmn" style="margin:0">o ano inteiro</span><button class="ico anualAdd" data-anadd="0" title="Novo objectivo anual">+</button></div>
-   <div class="anualMetas">${doAno.map(x=>metaLinha(x,true)).join("")||`<div class="hsub">sem objectivos</div>`}</div>
-  </div>
-  <div class="card anualDest now">
-   <div class="anualHead"><span class="ecmn" style="margin:0">${MESES[mesAtual]} · agora</span><button class="ico anualAdd" data-anadd="${mesAtual+1}" title="Novo objectivo para este mês">+</button></div>
-   <div class="ecbloco" style="margin-bottom:6px"><span class="eclbl prep">a preparar</span><div class="ecmt prep">${esc(prepararM[mesAtual].join(" · ")||"—")}</div></div>
-   <div class="anualMetas">${doMes.map(x=>metaLinha(x,true)).join("")||`<div class="hsub">sem objectivos</div>`}</div>
+ const cats=Object.keys(CATS_ANUAL);
+ const colunaCat=(k)=>{
+  const c=CATS_ANUAL[k];
+  const doAnoC=doAno.filter(x=>(x.cat==="publicacao"?"divulgacao":x.cat)===k);
+  const doMesC=doMes.filter(x=>(x.cat==="publicacao"?"divulgacao":x.cat)===k);
+  if(!doAnoC.length&&!doMesC.length)return `<div class="fococol"><div class="focoh"><i class="metadot" style="background:${c.cor}"></i>${c.nome}</div><div class="hsub">—</div></div>`;
+  return `<div class="fococol">
+    <div class="focoh"><i class="metadot" style="background:${c.cor}"></i>${c.nome}</div>
+    ${doAnoC.length?`<div class="focosub">todo o ano</div>${doAnoC.map(x=>metaLinha(x,true)).join("")}`:""}
+    ${doMesC.length?`<div class="focosub">${MESES[mesAtual]}</div>${doMesC.map(x=>metaLinha(x,true)).join("")}`:""}
+   </div>`;
+ };
+ if(topo)topo.innerHTML=`<div class="card focobox">
+   <div class="focotop">
+    <div>
+     <div class="ecmn" style="margin:0">em foco · ${MESES[mesAtual]}</div>
+     ${prepararM[mesAtual].length?`<div class="mesprep" style="margin-top:4px"><span class="eclbl prep">a preparar</span> ${esc(prepararM[mesAtual].join(" · "))}</div>`:""}
+    </div>
+    <span style="display:flex;gap:6px;align-items:center">
+     <button class="btn" data-anadd="0" style="font-size:10px;padding:6px 11px">+ ano</button>
+     <button class="btn" data-anadd="${mesAtual+1}" style="font-size:10px;padding:6px 11px">+ mês</button>
+    </span>
+   </div>
+   <div class="focogrid">${cats.map(colunaCat).join("")}</div>
   </div>`;
  // linhas por mês: mês à esquerda, preparação e objectivos à direita
  box.innerHTML=MESES.map((m,i)=>{
@@ -3541,7 +3580,10 @@ function rAnual(){
     </div>
     <div class="mesconteudo">
      ${prep.length?`<div class="mesprep"><span class="eclbl prep">a preparar</span> ${esc(prep.join(" · "))}</div>`:""}
-     ${metas.length?`<div class="anualMetas">${metas.map(x=>metaLinha(x,true)).join("")}</div>`:""}
+     ${metas.length?`<div class="mesgrid">${Object.keys(CATS_ANUAL).map(k=>{
+       const ms=metas.filter(x=>(x.cat==="publicacao"?"divulgacao":x.cat)===k);
+       return `<div class="mescat">${ms.map(x=>metaLinha(x,true)).join("")}</div>`;
+      }).join("")}</div>`:""}
      ${vazio?`<span class="hsub">—</span>`:""}
     </div>
    </div>`;
@@ -3553,6 +3595,12 @@ function rAnual(){
  document.querySelectorAll("[data-andel]").forEach(b=>b.addEventListener("click",async()=>{
   D.metasAnuais=D.metasAnuais.filter(x=>x.id!==b.dataset.andel);
   await save();rAnual();rHome();
+ }));
+ document.querySelectorAll("[data-ancat]").forEach(b=>b.addEventListener("click",()=>mudarCatMeta(b.dataset.ancat)));
+ document.querySelectorAll("[data-antit]").forEach(el=>el.addEventListener("blur",async()=>{
+  const m=D.metasAnuais.find(x=>x.id===el.dataset.antit);
+  const t=el.textContent.trim();
+  if(m&&t&&t!==m.titulo){m.titulo=t;await save();rHome();}
  }));
 }
 function rSemana(){
