@@ -1369,6 +1369,8 @@ async function load(){
  if(D.timer===undefined)D.timer=null;
  if(!D.extrasCat)D.extrasCat={};
  if(!D.metasAnuais)D.metasAnuais=[];
+ // objectivos criados antes de existirem categorias caem em planeamento, para nunca ficarem invisíveis
+ D.metasAnuais.forEach(m=>{if(!m.cat)m.cat="planeamento";});
  if(!D.notasRicardo)D.notasRicardo=[
   {id:"np1",titulo:"Levar em viagem",corpo:"Carregadores, adaptador, auscultadores.\nCaderno e canetas.\nComprimidos.\n\nAjusta esta lista à tua."},
   {id:"np2",titulo:"Apontamentos de seminários",corpo:"Cola aqui o que trouxeres de seminários e workshops de ilustração."}
