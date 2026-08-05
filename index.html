@@ -104,11 +104,17 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .condbtns{display:inline-flex;gap:3px;}
 .condb{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:lowercase;padding:5px 9px;border-radius:8px;box-shadow:2px 2px 5px var(--sh-d),-2px -2px 5px var(--sh-l);}
 .condb.on{color:var(--acc2);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
-#anualGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-@media(max-width:900px){#anualGrid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:560px){#anualGrid{grid-template-columns:1fr;}}
-.anualm{display:flex;flex-direction:column;gap:8px;aspect-ratio:1/1;overflow-y:auto;padding:12px 14px;}
-@media(max-width:560px){.anualm{aspect-ratio:auto;min-height:180px;}}
+.mesrow{display:grid;grid-template-columns:130px minmax(0,1fr);gap:16px;padding:12px 18px;border-bottom:1px solid var(--line);align-items:start;}
+.mesrow:last-child{border-bottom:none;}
+.mesrow.vazio{opacity:.45;padding:8px 18px;}
+.mesrow.now{box-shadow:inset 3px 0 0 var(--acc);}
+.mescol{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.mesnome{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);}
+.mesrow.now .mesnome{color:var(--acc);font-weight:700;}
+.mesconteudo{display:flex;flex-direction:column;gap:7px;min-width:0;}
+.mesprep{font-size:11.5px;color:var(--soft);line-height:1.5;font-style:italic;}
+.mesprep .eclbl{font-style:normal;margin-right:4px;}
+@media(max-width:640px){.mesrow{grid-template-columns:1fr;gap:8px;}}
 .anualHead{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:0;background:var(--bg);padding-bottom:6px;z-index:1;}
 .anualHead .ecmn{letter-spacing:.06em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .anualAdd{width:20px !important;height:20px !important;font-size:12px;padding:0;flex-shrink:0;}
@@ -719,7 +725,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div id="anualWrap" hidden>
    <div id="anualTopo" class="anualTopo"></div>
    <div class="catlegs" id="anualLeg" style="margin-bottom:12px"></div>
-   <div class="ecalgrid" id="anualGrid"></div>
+   <div class="card" style="padding:4px 0" id="anualGrid"></div>
   </div>
 </div>
 
@@ -1814,7 +1820,7 @@ function rHome(){
   const doAno=(D.metasAnuais||[]).filter(x=>x.mes===0);
   const doMes=(D.metasAnuais||[]).filter(x=>x.mes===mesN);
   const lin=x=>{
-   const c=(typeof CATS_ANUAL!=="undefined"&&CATS_ANUAL[x.cat])||{cor:"var(--soft)"};
+   const c=(typeof catMeta==="function"&&catMeta(x))||{cor:"var(--soft)"};
    return `<div class="metarow"><i class="metadot" style="background:${c.cor}"></i><span>${esc(x.titulo)}</span></div>`;
   };
   hm.innerHTML=(doAno.length||doMes.length)
@@ -3480,10 +3486,13 @@ function rAgTabs(){
 const CATS_ANUAL={
  planeamento:{nome:"planeamento",cor:"var(--acc2)"},
  conteudo:{nome:"criação de conteúdo",cor:"var(--ok)"},
- publicacao:{nome:"publicação",cor:"var(--acc)"}
+ divulgacao:{nome:"divulgação",cor:"var(--acc)"},
+ reestruturacao:{nome:"reestruturação",cor:"#A87CA8"}
 };
+// dados antigos usavam "publicacao"
+function catMeta(x){return CATS_ANUAL[x.cat==="publicacao"?"divulgacao":x.cat]||CATS_ANUAL.planeamento;}
 function metaLinha(x,comDel){
- const c=CATS_ANUAL[x.cat]||CATS_ANUAL.planeamento;
+ const c=catMeta(x);
  return `<div class="anualMeta"><i class="metadot" style="background:${c.cor}" title="${c.nome}"></i><span>${esc(x.titulo)}</span>${comDel?`<button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button>`:""}</div>`;
 }
 async function novaMeta(mes){
@@ -3519,14 +3528,22 @@ function rAnual(){
    <div class="ecbloco" style="margin-bottom:6px"><span class="eclbl prep">a preparar</span><div class="ecmt prep">${esc(prepararM[mesAtual].join(" · ")||"—")}</div></div>
    <div class="anualMetas">${doMes.map(x=>metaLinha(x,true)).join("")||`<div class="hsub">sem objectivos</div>`}</div>
   </div>`;
- // grelha dos 12 meses
+ // linhas por mês: mês à esquerda, preparação e objectivos à direita
  box.innerHTML=MESES.map((m,i)=>{
   const mn=i+1;
   const metas=D.metasAnuais.filter(x=>x.mes===mn);
-  return `<div class="ecalm anualm${i===mesAtual?" now":""}">
-    <div class="anualHead"><span class="ecmn" style="margin:0">${m}</span><button class="ico anualAdd" data-anadd="${mn}" title="Novo objectivo">+</button></div>
-    <div class="ecbloco"><span class="eclbl prep">a preparar</span><div class="ecmt prep">${esc(prepararM[i].join(" · ")||"—")}</div></div>
-    <div class="anualMetas">${metas.map(x=>metaLinha(x,true)).join("")}</div>
+  const prep=prepararM[i];
+  const vazio=!metas.length&&!prep.length;
+  return `<div class="mesrow${i===mesAtual?" now":""}${vazio?" vazio":""}">
+    <div class="mescol">
+     <span class="mesnome">${m}</span>
+     <button class="ico anualAdd" data-anadd="${mn}" title="Novo objectivo">+</button>
+    </div>
+    <div class="mesconteudo">
+     ${prep.length?`<div class="mesprep"><span class="eclbl prep">a preparar</span> ${esc(prep.join(" · "))}</div>`:""}
+     ${metas.length?`<div class="anualMetas">${metas.map(x=>metaLinha(x,true)).join("")}</div>`:""}
+     ${vazio?`<span class="hsub">—</span>`:""}
+    </div>
    </div>`;
  }).join("");
  // legenda das categorias
