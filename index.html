@@ -250,8 +250,6 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .now #nowTxt{flex:1;min-width:0;}
 #btnRotina{flex-shrink:0;width:32px;height:32px;}
 .home{display:grid;grid-template-columns:1.15fr .95fr .95fr;gap:16px;}
-.home3{grid-template-columns:1fr 1fr;}
-@media(max-width:900px){.home3{grid-template-columns:1fr;}}
 .home>*{min-width:0;}
 .hcol{display:flex;flex-direction:column;gap:16px;}
 .hcol .hcard{margin-bottom:0;}
@@ -703,25 +701,27 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="hometop">
     <div class="now card"><div class="pip"></div><div id="nowTxt">—</div><button class="ico" id="btnRotina" title="Ver rotina completa" onclick="abrirRotina()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button></div>
   </div>
-  <div class="home home3">
+  <div class="home">
     <div class="hcol">
+      <div class="card hcard mini"><h5>aniversários</h5><div id="hAniv"></div></div>
       <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
       <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
       <div class="card hcard"><h5>em espera</h5><div id="hEspera"></div></div>
-      <div id="hAlertas"></div>
-      <div id="hMetas"></div>
+      <div class="card hcard"><h5>emails</h5><div id="hMail"></div></div>
     </div>
     <div class="hcol">
-      <div class="card hcard mini"><h5>aniversários</h5><div id="hAniv"></div></div>
+      <div id="hAlertas"></div>
+      <div id="hMetas"></div>
+      <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
+    </div>
+    <div class="hcol">
+      <div class="card hcard"><h5>inbox · genéricas</h5><input class="pin" id="hInboxNew" placeholder="nova tarefa genérica… (Enter)" style="width:100%;margin-bottom:8px"/><div id="hInbox"></div></div>
       <div class="card hcard">
         <h5>pesquisar tarefas</h5>
         <input class="pin" id="hSearch" placeholder="escreve para procurar…" style="width:100%;margin-bottom:8px"/>
         <div id="hSearchRes"></div>
       </div>
-      <div class="card hcard"><h5>inbox · genéricas</h5><input class="pin" id="hInboxNew" placeholder="nova tarefa genérica… (Enter)" style="width:100%;margin-bottom:8px"/><div id="hInbox"></div></div>
       <div class="card hcard mini"><h5>projectos de cliente</h5><div id="hProj"></div></div>
-      <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
-      <div class="card hcard"><h5>emails</h5><div id="hMail"></div></div>
     </div>
   </div>
 </div>
