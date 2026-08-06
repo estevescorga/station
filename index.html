@@ -246,18 +246,18 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 /* ================= HOJE ================= */
 .hometop{display:flex;gap:14px;align-items:center;margin-bottom:16px;}
 .hometop .now{flex:1;margin-bottom:0;}
+.now{display:flex;align-items:center;gap:12px;}
+.now #nowTxt{flex:1;min-width:0;}
+#btnRotina{flex-shrink:0;width:32px;height:32px;}
 .home{display:grid;grid-template-columns:1.15fr .95fr .95fr;gap:16px;}
+.home3{grid-template-columns:1fr 1fr;}
+@media(max-width:900px){.home3{grid-template-columns:1fr;}}
 .home>*{min-width:0;}
 .hcol{display:flex;flex-direction:column;gap:16px;}
 .hcol .hcard{margin-bottom:0;}
 @media(min-width:1000px){
- .home{height:calc(100vh - 210px);min-height:430px;align-items:stretch;}
- .home .rot{overflow:auto;}
- .hcol .rot{flex:1;min-height:0;}
- .hcol{min-height:0;}
- .hcol .hcard{flex:0 1 auto;min-height:0;overflow:auto;max-height:340px;}
- .hcol .hcard.grow{flex:1;}
- .hcard.mini{flex:0 0 auto !important;overflow:visible;}
+ .hcol .hcard{max-height:420px;overflow:auto;}
+ .hcard.mini{overflow:visible;}
 }
 @media(max-width:999px){.home{grid-template-columns:1fr;}}
 @media(max-width:760px){.hometop{flex-wrap:wrap;}}
@@ -701,13 +701,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <!-- ============ HOME ============ -->
 <div class="view on" id="v-HOJE">
   <div class="hometop">
-    <div class="now card"><div class="pip"></div><div id="nowTxt">—</div></div>
-
+    <div class="now card"><div class="pip"></div><div id="nowTxt">—</div><button class="ico" id="btnRotina" title="Ver rotina completa" onclick="abrirRotina()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button></div>
   </div>
-  <div class="home">
-    <div class="hcol">
-      <div class="rot card" id="rotList"></div>
-    </div>
+  <div class="home home3">
     <div class="hcol">
       <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
       <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
@@ -727,8 +723,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
       <div class="card hcard"><h5>emails</h5><div id="hMail"></div></div>
     </div>
-  </div>
-  </div>
   </div>
 </div>
 
@@ -819,6 +813,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div id="syncAviso"></div>
 
 <div id="timerBar"></div>
+
+<div class="ovl" id="rotOvl">
+ <div class="modal card" style="max-width:620px">
+  <div class="mhead"><h3>Rotina de hoje</h3><button class="ico" style="width:30px;height:30px;font-size:13px" onclick="fecharRotina()" title="Fechar">✕</button></div>
+  <div class="rot" id="rotList" style="max-height:70vh;overflow:auto"></div>
+ </div>
+</div>
 
 <div class="ovl" id="confOvl">
  <div class="modal card" style="max-width:400px">
@@ -1627,6 +1628,9 @@ function tkLabel(ref){
  const concluida=t.estado==="concluída";
  return `<span class="tk${foraDeHoje?" tkfora":""}${concluida?" tkdone":""}" title="${foraDeHoje?"já não é de hoje ("+t.data+")":concluida?"concluída":""}">${esc(t.titulo)}${foraDeHoje?" ⤳":""}${concluida?" ✓":""}</span>`;
 }
+function abrirRotina(){$("rotOvl").classList.add("on");rHoje();}
+function fecharRotina(){$("rotOvl").classList.remove("on");}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("rotOvl").classList.contains("on"))fecharRotina();});
 let rotPassOpen=false;
 function rHoje(){
  const el=$("rotList");el.innerHTML="";
