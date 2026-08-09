@@ -112,8 +112,9 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .mesnome{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);}
 .mesrow.now .mesnome{color:var(--acc);font-weight:700;}
 .mesconteudo{display:flex;flex-direction:column;gap:7px;min-width:0;}
-.mesgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:start;}
-@media(max-width:900px){.mesgrid{grid-template-columns:repeat(2,1fr);}}
+.mesgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:start;}
+@media(max-width:1200px){.mesgrid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:760px){.mesgrid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:560px){.mesgrid{grid-template-columns:1fr;}}
 .mescat{display:flex;flex-direction:column;gap:4px;min-width:0;}
 .mesprep{font-size:11.5px;color:var(--soft);line-height:1.5;font-style:italic;}
@@ -125,8 +126,9 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .anualTopo{margin-bottom:16px;}
 .focobox{padding:16px 20px;box-shadow:inset 0 0 0 2px var(--acc),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
 .focotop{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);}
-.focogrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
-@media(max-width:900px){.focogrid{grid-template-columns:repeat(2,1fr);gap:14px;}}
+.focogrid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+@media(max-width:1200px){.focogrid{grid-template-columns:repeat(3,1fr);gap:14px;}}
+@media(max-width:760px){.focogrid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:560px){.focogrid{grid-template-columns:1fr;}}
 .fococol{display:flex;flex-direction:column;gap:5px;min-width:0;}
 .focoh{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);margin-bottom:2px;}
@@ -208,10 +210,6 @@ input.tempot{width:56px;color:var(--acc2);text-align:center;}
 .trksub{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);margin:14px 0 8px;}
 .catbtn{margin-left:8px;border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:6px;box-shadow:inset 1px 1px 3px var(--sh-d),inset -1px -1px 3px var(--sh-l);}
 .catbtn:hover{color:var(--acc2);}
-#extraBtn{position:fixed;right:18px;bottom:64px;z-index:75;box-shadow:0 8px 22px rgba(20,18,14,.22),0 2px 8px rgba(20,18,14,.14);}
-@media(max-width:700px){#extraBtn{right:10px;bottom:52px;font-size:10px;padding:8px 12px;}}
-#almocoBtn{position:fixed;right:18px;bottom:18px;z-index:75;box-shadow:0 8px 22px rgba(20,18,14,.22),0 2px 8px rgba(20,18,14,.14);}
-@media(max-width:700px){#almocoBtn{right:10px;bottom:10px;font-size:10px;padding:8px 12px;}}
 .ditem.on{box-shadow:inset 0 0 0 1.5px var(--acc2);}
 .fixrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
 .fixchip{display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:12.5px;padding:9px 16px;border-radius:12px;box-shadow:3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);transition:all .2s;}
@@ -249,6 +247,21 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .now{display:flex;align-items:center;gap:12px;}
 .now #nowTxt{flex:1;min-width:0;}
 #btnRotina{flex-shrink:0;width:32px;height:32px;}
+.nowtimer{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--acc);padding:4px 10px;border-radius:8px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;flex-shrink:0;}
+.semcard{display:flex;align-items:center;gap:12px;padding:12px 16px;flex-shrink:0;}
+.semaforo{width:26px;height:26px;border-radius:50%;border:none;padding:0;cursor:pointer;flex-shrink:0;transition:background .3s,box-shadow .3s;}
+.semaforo.sem-verde{background:var(--ok);box-shadow:0 0 10px color-mix(in srgb,var(--ok) 55%,transparent);}
+.semaforo.sem-vermelho{background:var(--acc);box-shadow:0 0 10px color-mix(in srgb,var(--acc) 55%,transparent);animation:tbpulse 1.8s ease-in-out infinite;}
+.semaforo.sem-laranja{background:#C77B3C;box-shadow:0 0 10px rgba(199,123,60,.5);}
+.semaforo.sem-off{background:var(--bg);box-shadow:inset 3px 3px 6px var(--sh-d),inset -3px -3px 6px var(--sh-l);}
+#btnAlmoco{width:30px;height:30px;flex-shrink:0;}
+.lightbtn{width:24px !important;height:24px !important;color:var(--soft);opacity:.4;}
+.lightbtn.on{color:var(--acc2);opacity:1;}
+.lightproj{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft);opacity:.75;margin:8px 0 4px;}
+.lightrow{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid var(--line);font-size:13px;}
+.lightrow:last-child{border-bottom:none;}
+#metaLight.on{color:var(--acc2);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
+@media(max-width:760px){.semcard{padding:10px 12px;gap:8px;}.nowtimer{max-width:120px;font-size:10px;}}
 .home{display:grid;grid-template-columns:1.15fr .95fr .95fr;gap:16px;}
 .home>*{min-width:0;}
 .hcol{display:flex;flex-direction:column;gap:16px;}
@@ -674,6 +687,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
     <button class="ico" style="width:30px;height:30px" title="Preçário" onclick="goPrecario()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Notas práticas" onclick="goNotasRima()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></button>
+    <button class="ico" style="width:30px;height:30px" title="Light tasks" onclick="abrirLight()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5c0 7-6 12-13 12H4c0-7 5-12 12-12 2 0 4 0 4 0Z"/><path d="M4 21c2-5 6-8 11-9"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Tracker" onclick="goTracker()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></button>
     <button class="ico" id="btnSom" style="width:30px;height:30px" title="Som ao mudar de bloco" onclick="toggleSom()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Melhorias da Station" onclick="openNotas()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
@@ -699,7 +713,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <!-- ============ HOME ============ -->
 <div class="view on" id="v-HOJE">
   <div class="hometop">
-    <div class="now card"><div class="pip"></div><div id="nowTxt">—</div><button class="ico" id="btnRotina" title="Ver rotina completa" onclick="abrirRotina()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button></div>
+    <div class="now card"><div class="pip"></div><div id="nowTxt">—</div><span id="nowTimer" class="nowtimer" hidden></span><button class="ico" id="btnRotina" title="Ver rotina completa" onclick="abrirRotina()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button></div>
+    <div class="card semcard">
+     <button class="semaforo" id="semaforo" title=""></button>
+     <button class="ico" id="btnAlmoco" onclick="iniciarAlmoco()" title="Iniciar pausa de almoço"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h1a2 2 0 0 0 2-2V2"/><path d="M6 11v11"/><path d="M17 2v20"/><path d="M17 8c1.7 0 3-1.3 3-3s-1.3-3-3-3"/></svg></button>
+    </div>
   </div>
   <div class="home">
     <div class="hcol">
@@ -807,12 +825,17 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 
 <!-- ============ MODAL DE PROJECTO ============ -->
-<button class="btn" id="extraBtn" onclick="registarExtra()" title="Registar tempo em algo não planeado"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>extra</button>
-<button class="btn" id="almocoBtn" onclick="iniciarAlmoco()" title="Marca o início da pausa de almoço"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h1a2 2 0 0 0 2-2V2"/><path d="M6 11v11"/><path d="M17 2v20"/><path d="M17 8c1.7 0 3-1.3 3-3s-1.3-3-3-3"/></svg>almoço</button>
-
 <div id="syncAviso"></div>
 
 <div id="timerBar"></div>
+
+<div class="ovl" id="lightOvl">
+ <div class="modal card" style="max-width:640px">
+  <div class="mhead"><h3>Light tasks</h3><button class="ico" style="width:30px;height:30px;font-size:13px" onclick="fecharLight()" title="Fechar">✕</button></div>
+  <div class="hsub" style="margin-bottom:12px">Coisas que dão para fazer fora do estúdio: sala de espera, sofá, transportes.</div>
+  <div id="lightList" style="max-height:65vh;overflow:auto"></div>
+ </div>
+</div>
 
 <div class="ovl" id="rotOvl">
  <div class="modal card" style="max-width:620px">
@@ -838,7 +861,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <label class="trkfl" style="display:block;margin-bottom:6px">objectivo</label>
   <input class="pin" id="metaInput" placeholder="o que queres alcançar…" style="width:100%;margin-bottom:16px"/>
   <label class="trkfl" style="display:block;margin-bottom:8px">categoria</label>
-  <div id="metaCats" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px"></div>
+  <div id="metaCats" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
+  <button class="btn" id="metaLight" style="margin-bottom:20px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5c0 7-6 12-13 12H4c0-7 5-12 12-12 2 0 4 0 4 0Z"/></svg>light task</button>
   <div style="display:flex;gap:8px;justify-content:flex-end">
    <button class="btn" onclick="fecharMeta()">cancelar</button>
    <button class="btn" id="metaOk" style="color:var(--acc2)">guardar</button>
@@ -1628,6 +1652,40 @@ function tkLabel(ref){
  const concluida=t.estado==="concluída";
  return `<span class="tk${foraDeHoje?" tkfora":""}${concluida?" tkdone":""}" title="${foraDeHoje?"já não é de hoje ("+t.data+")":concluida?"concluída":""}">${esc(t.titulo)}${foraDeHoje?" ⤳":""}${concluida?" ✓":""}</span>`;
 }
+function abrirLight(){$("lightOvl").classList.add("on");rLight();}
+function fecharLight(){$("lightOvl").classList.remove("on");}
+function rLight(){
+ const box=$("lightList");if(!box)return;
+ const ts=(D.tarefas||[]).filter(t=>t.light&&t.estado!=="concluída"&&t.estado!=="arquivada");
+ const ms=(D.metasAnuais||[]).filter(m=>m.light);
+ if(!ts.length&&!ms.length){box.innerHTML=`<div class="empty">Sem light tasks. Marca-as com a pena na lista de tarefas.</div>`;return;}
+ // agrupar por categoria e projecto
+ const porCat={};
+ ts.forEach(t=>{
+  const c=t.categoria||"RIMA",p=t.projecto||"sem projecto";
+  porCat[c]=porCat[c]||{};porCat[c][p]=porCat[c][p]||[];porCat[c][p].push(t);
+ });
+ let html="";
+ Object.keys(porCat).sort().forEach(c=>{
+  html+=`<div class="hgrouph" style="margin-top:10px">${esc(c)}</div>`;
+  Object.keys(porCat[c]).sort().forEach(p=>{
+   html+=`<div class="lightproj">${esc(p)}</div>`;
+   porCat[c][p].forEach(t=>{
+    html+=`<div class="lightrow"><button class="chk" data-lchk="${t.id}" aria-label="concluir"></button><span>${esc(t.titulo)}</span></div>`;
+   });
+  });
+ });
+ if(ms.length){
+  html+=`<div class="hgrouph" style="margin-top:14px">objectivos</div>`;
+  ms.forEach(m=>{html+=`<div class="lightrow"><span class="metadot" style="background:${catMeta(m).cor}"></span><span>${esc(m.titulo)}</span></div>`;});
+ }
+ box.innerHTML=html;
+ box.querySelectorAll("[data-lchk]").forEach(b=>b.addEventListener("click",async()=>{
+  const t=D.tarefas.find(x=>x.id===b.dataset.lchk);
+  if(t){t.estado="concluída";await save();rLight();rAll();}
+ }));
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("lightOvl").classList.contains("on"))fecharLight();});
 function abrirRotina(){$("rotOvl").classList.add("on");rHoje();}
 function fecharRotina(){$("rotOvl").classList.remove("on");}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("rotOvl").classList.contains("on"))fecharRotina();});
@@ -3299,10 +3357,40 @@ async function toggleTimer(tid){
  D.timer={tid,proj:t.projecto||"sem projecto",titulo:t.titulo,inicio:Date.now(),dia:hoje(),pausadoTotal:0,pausadoEm:null};
  await save();setSt(`a contar: ${t.titulo}`);rAll();
 }
+// semáforo: verde se em bloco de trabalho com tarefa a contar,
+// laranja se a contar algo que não é tarefa, vermelho se em trabalho sem contar nada
+function estadoSemaforo(){
+ const its=rot&&rot.data===hoje()?rot.itens:null;
+ if(!its)return {cor:"off",txt:"sem rotina para hoje"};
+ const nm=new Date().getHours()*60+new Date().getMinutes();
+ const s=[...its].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
+ let atual=null;
+ s.forEach((it,i)=>{
+  const nx=i<s.length-1?min(s[i+1].q):1440,m=min(it.q);
+  if(m!==null&&nm>=m&&nm<nx)atual=it;
+ });
+ const emTrabalho=atual&&/^Bloco de trabalho/i.test(atual.t);
+ if(!emTrabalho)return {cor:"off",txt:atual?atual.t:"fora de horas"};
+ if(!D.timer)return {cor:"vermelho",txt:"em bloco de trabalho, sem nada a contar. Clica para registar."};
+ if(D.timer.tid)return {cor:"verde",txt:"a contar: "+(D.timer.titulo||"")};
+ return {cor:"laranja",txt:"a contar (fora de tarefa): "+(D.timer.titulo||"")};
+}
+function rSemaforo(){
+ const el=$("semaforo");if(!el)return;
+ const st=estadoSemaforo();
+ el.className="semaforo sem-"+st.cor;
+ el.title=st.txt;
+ el.onclick=()=>{
+  if(st.cor==="vermelho"||st.cor==="laranja"||st.cor==="off")registarExtra();
+  else pararTimer();
+ };
+}
 function rTimerBar(){
  const el=$("timerBar");if(!el)return;
- if(!D.timer){el.classList.remove("on");el.innerHTML="";return;}
+ if(!D.timer){el.classList.remove("on");el.innerHTML="";const nt=$("nowTimer");if(nt)nt.hidden=true;rSemaforo();return;}
  el.classList.add("on");
+ const nt=$("nowTimer");
+ if(nt){nt.hidden=false;nt.textContent=fmtDur(timerDecorridoMs())+" · "+(D.timer.titulo||"");}
  const pausado=!!D.timer.pausadoEm;
  el.classList.toggle("pausado",pausado);
  el.innerHTML=`<span class="tbdot"></span><span class="tbtit">${esc(D.timer.titulo||"")}${pausado?' <span class="hsub" style="display:inline">em pausa</span>':""}</span><span class="tbtime mono">${fmtDur(timerDecorridoMs())}</span>`+
@@ -3312,6 +3400,7 @@ function rTimerBar(){
   `<button class="ico" style="width:26px;height:26px" title="Parar e registar" onclick="pararTimer()"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></button>`;
 }
 setInterval(()=>{if(D&&D.timer)rTimerBar();},1000);
+setInterval(()=>{if(D)rSemaforo();},20000);
 function rTaskList(el,list){
  el.innerHTML="";
  if(!list.length){el.innerHTML=`<div class="empty">sem tarefas</div>`;return;}
@@ -3335,6 +3424,7 @@ function rTaskList(el,list){
       ${(D.projectos||[]).filter(p=>p.estado!=="arquivado"&&p.nome!==t.projecto).map(p=>`<button data-mvset="${t.id}" data-mvto="${esc(p.nome)}" data-mvcat="${p.categoria}">${esc(p.nome)}</button>`).join("")}
      </div>
     </span>
+    <button class="ico lightbtn${t.light?" on":""}" data-tlight="${t.id}" title="${t.light?"é light task":"marcar como light task"}"><svg width="11" height="11" viewBox="0 0 24 24" fill="${t.light?"currentColor":"none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5c0 7-6 12-13 12H4c0-7 5-12 12-12 2 0 4 0 4 0Z"/></svg></button>
     ${t.estado==="concluída"||t.estado==="arquivada"?"":`<button class="ico tmrbtn${D.timer&&D.timer.tid===t.id?" run":""}" style="width:24px;height:24px" data-tmr="${t.id}" title="${D.timer&&D.timer.tid===t.id?"parar cronómetro":"iniciar cronómetro"}">${D.timer&&D.timer.tid===t.id?`<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>`:`<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>`}</button>`}
     <button class="ico" style="width:24px;height:24px;font-size:11px" data-tdel="${t.id}" title="apagar">✕</button>
    </span>
@@ -3346,6 +3436,11 @@ function rTaskList(el,list){
  }));
  el.querySelectorAll("[data-a=es]").forEach(s=>s.addEventListener("change",async()=>{
   D.tarefas.find(x=>x.id===s.dataset.id).estado=s.value;await save();rAll();
+ }));
+ el.querySelectorAll("[data-tlight]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();
+  const t=D.tarefas.find(x=>x.id===b.dataset.tlight);
+  if(t){t.light=!t.light;await save();rAll();}
  }));
  el.querySelectorAll("[data-httid]").forEach(inp=>inp.addEventListener("change",async()=>{
   const tid=inp.dataset.httid;
@@ -3556,6 +3651,9 @@ function abrirMeta(ctx){
  $("metaTit").textContent=ctx.id?"Editar objectivo":"Novo objectivo · "+MESN[ctx.mes];
  $("metaInput").value=ctx.titulo||"";
  rMetaCats();
+ const lb=$("metaLight");
+ lb.classList.toggle("on",!!ctx.light);
+ lb.onclick=()=>{metaCtx.light=!metaCtx.light;lb.classList.toggle("on",!!metaCtx.light);};
  $("metaOvl").classList.add("on");
  setTimeout(()=>$("metaInput").focus(),60);
  $("metaOk").onclick=async()=>{
@@ -3564,9 +3662,9 @@ function abrirMeta(ctx){
   D.metasAnuais=D.metasAnuais||[];
   if(metaCtx.id){
    const m=D.metasAnuais.find(x=>x.id===metaCtx.id);
-   if(m){m.titulo=t;m.cat=metaCtx.cat;}
+   if(m){m.titulo=t;m.cat=metaCtx.cat;m.light=!!metaCtx.light;}
   }else{
-   D.metasAnuais.push({id:"ma"+Date.now(),mes:metaCtx.mes,cat:metaCtx.cat,titulo:t,criado:hoje()});
+   D.metasAnuais.push({id:"ma"+Date.now(),mes:metaCtx.mes,cat:metaCtx.cat,titulo:t,light:!!metaCtx.light,criado:hoje()});
   }
   fecharMeta();await save();rAnual();rHome();
  };
@@ -3586,6 +3684,7 @@ const CATS_ANUAL={
  planeamento:{nome:"planeamento",cor:"var(--acc2)"},
  conteudo:{nome:"criação de conteúdo",cor:"var(--ok)"},
  divulgacao:{nome:"divulgação",cor:"var(--acc)"},
+ producao:{nome:"produção",cor:"#C77B3C"},
  reestruturacao:{nome:"reestruturação",cor:"#A87CA8"}
 };
 // dados antigos usavam "publicacao"
@@ -3597,7 +3696,7 @@ function metaLinha(x,comDel){
 function novaMeta(mes){abrirMeta({mes,cat:"planeamento"});}
 function editarMeta(id){
  const m=(D.metasAnuais||[]).find(x=>x.id===id);if(!m)return;
- abrirMeta({id:m.id,mes:m.mes,cat:m.cat==="publicacao"?"divulgacao":m.cat,titulo:m.titulo});
+ abrirMeta({id:m.id,mes:m.mes,cat:m.cat==="publicacao"?"divulgacao":m.cat,titulo:m.titulo,light:m.light});
 }
 function rAnual(){
  const box=$("anualGrid");if(!box)return;
@@ -4070,7 +4169,7 @@ $("nav").addEventListener("click",e=>{
   if(v==="TRACKER")rTracker();
  }
 });
-function rAll(){rTimerBar();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
+function rAll(){rTimerBar();rSemaforo();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
 const PIN_OK="Rimmmmmma1";  // senha de entrada
 let _booted=false;
 async function boot(){
