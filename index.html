@@ -125,6 +125,8 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .anualAdd{width:20px !important;height:20px !important;font-size:12px;padding:0;flex-shrink:0;}
 .anualTopo{margin-bottom:16px;}
 .focobox{padding:16px 20px;box-shadow:inset 0 0 0 2px var(--acc),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
+.anobox{padding:16px 20px;margin-bottom:12px;box-shadow:inset 3px 3px 8px var(--sh-d),inset -3px -3px 8px var(--sh-l);}
+.anobox .focotop{border-bottom-style:dashed;}
 .focotop{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);}
 .focogrid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
 @media(max-width:1200px){.focogrid{grid-template-columns:repeat(3,1fr);gap:14px;}}
@@ -841,6 +843,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
  <div class="modal card" style="max-width:620px">
   <div class="mhead"><h3>Rotina de hoje</h3><button class="ico" style="width:30px;height:30px;font-size:13px" onclick="fecharRotina()" title="Fechar">✕</button></div>
   <div class="rot" id="rotList" style="max-height:70vh;overflow:auto"></div>
+ </div>
+</div>
+
+<div class="ovl" id="inpOvl">
+ <div class="modal card" style="max-width:480px">
+  <div class="mhead"><h3 id="inpTit"></h3><button class="ico" style="width:30px;height:30px;font-size:13px" onclick="fecharInput()" title="Fechar">✕</button></div>
+  <div class="hsub" id="inpSub" style="margin-bottom:14px"></div>
+  <div id="inpCampos"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+   <button class="btn" onclick="fecharInput()">cancelar</button>
+   <button class="btn" id="inpOk" style="color:var(--acc2)">guardar</button>
+  </div>
  </div>
 </div>
 
@@ -1748,15 +1762,17 @@ function fraseDoDia(){
  return fr[fc.ordem[fc.pos]]||fr[0];
 }
 async function addTarefaRapida(){
- const t=prompt("Nova tarefa para hoje:");
+ const r=await pedir({titulo:"Nova tarefa para hoje",campos:[{tipo:"texto",nome:"t",label:"tarefa",ph:"o que precisas de fazer…"}]});
+ if(!r)return;const t=r.t;
  if(!t||!t.trim())return;
  D.tarefas.push({id:"t"+Date.now(),categoria:"RIMA",projecto:"Inbox",titulo:t.trim(),
   estado:"ativa",data:hoje(),prazo:null,responsavel:"Ricardo"});
  await save();rHome();rAll();setSt("tarefa criada para hoje");
 }
-function addFrase(){
- const nv=prompt("Nova frase de motivação:");
- if(nv&&nv.trim()){D.frases.push(nv.trim());D.fraseCiclo=null;save().then(()=>{rHome();if($("v-PESSOAL").classList.contains("on"))rPessoal();});}
+async function addFrase(){
+ const r=await pedir({titulo:"Nova frase de motivação",campos:[{tipo:"texto",nome:"nv",label:"frase"}]});
+ if(!r)return;const nv=r.nv;
+ if(nv&&nv.trim()){D.frases.push(nv.trim());D.fraseCiclo=null;await save();rHome();if($("v-PESSOAL").classList.contains("on"))rPessoal();}
 }
 function rSearchTasks(q,elId){
  const el=$(elId||"hSearchRes");if(!el)return;
@@ -2142,13 +2158,10 @@ function rTrkProj(){
  box.querySelectorAll("[data-cat]").forEach(b=>b.addEventListener("click",async()=>{
   const nome=b.dataset.cat;
   const opts=Object.keys(CATEGORIAS_TEMPO).filter(c=>c!=="cliente");
-  const lista=opts.map((c,i)=>`${i+1}. ${c}`).join("\n");
-  const r=prompt(`Categoria de "${nome}":\n\n${lista}`,String(opts.indexOf(tipoRegisto(nome))+1));
-  if(r===null)return;
-  const i=parseInt(String(r).trim(),10);
-  const nova=(!isNaN(i)&&i>=1&&i<=opts.length)?opts[i-1]:String(r).trim();
-  if(!CATEGORIAS_TEMPO[nova]){setSt("categoria inválida");return;}
-  D.extrasCat[nome]=nova;await save();rTrkProj();
+  const r=await pedir({titulo:"Categoria",sub:nome,campos:[{tipo:"escolha",nome:"cat",label:"tipo de tempo",valor:tipoRegisto(nome),
+   opcoes:opts.map(c=>({v:c,txt:c,cor:(CATEGORIAS_TEMPO[c]||{}).cor}))}]});
+  if(!r||!CATEGORIAS_TEMPO[r.cat])return;
+  D.extrasCat[nome]=r.cat;await save();rTrkProj();
  }));
 }
 document.addEventListener("click",e=>{
@@ -2638,7 +2651,8 @@ function rAvisosComerciais(){
  box.querySelectorAll("[data-lac]").forEach(b=>b.addEventListener("click",async()=>{
   const nome=b.dataset.lac;
   const o=lacunasComerciais().find(x=>x.nome===nome);
-  const sug=prompt("Tarefa para esta oportunidade:",`Preparar ${nome}`);
+  const rr=await pedir({titulo:"Tarefa para esta oportunidade",sub:nome,campos:[{tipo:"texto",nome:"t",label:"tarefa",valor:`Preparar ${nome}`}]});
+  if(!rr)return;const sug=rr.t;
   if(!sug||!sug.trim())return;
   const prazo=o?isoLocal(o.evento):null;
   D.tarefas.push({id:"t"+Date.now(),categoria:"RIMA",projecto:"Comercial",titulo:sug.trim(),
@@ -2659,7 +2673,8 @@ function rTarefasComerciais(){
  if(acc)acc.addEventListener("click",()=>{cmDoneOpen=!cmDoneOpen;rTarefasComerciais();});
 }
 async function addTarefaComercial(){
- const t=prompt("Nova tarefa comercial:");
+ const r=await pedir({titulo:"Nova tarefa comercial",campos:[{tipo:"texto",nome:"t",label:"tarefa"}]});
+ if(!r)return;const t=r.t;
  if(!t||!t.trim())return;
  D.tarefas.push({id:"t"+Date.now(),categoria:"RIMA",projecto:"Comercial",titulo:t.trim(),
   estado:"ativa",data:hoje(),prazo:null,responsavel:"Ricardo"});
@@ -2742,9 +2757,11 @@ function rServicos(){
  box.querySelectorAll(".svpreco").forEach(el=>el.addEventListener("click",async()=>{
   const row=el.closest(".svrow"),id=row.querySelector("[data-svt]").dataset.svt;
   const s=D.servicosComerciais.find(x=>x.id===id);if(!s)return;
-  const v=prompt(`Valor base de "${s.nome}" em € (sem multiplicadores).\nEscreve o número, ou "80/h" para preço à hora:`,s.base?(s.base+(s.unidade==="hora"?"/h":"")):"");
-  if(v===null)return;
-  const t=String(v).trim().toLowerCase().replace(",",".");
+  const rr=await pedir({titulo:"Valor base",sub:s.nome,campos:[
+   {tipo:"texto",nome:"v",label:"valor em € (sem multiplicadores)",ph:'ex: 450 ou 80/h',valor:s.base?(s.base+(s.unidade==="hora"?"/h":"")):""}
+  ]});
+  if(!rr)return;
+  const t=String(rr.v||"").trim().toLowerCase().replace(",",".");
   if(!t){s.base=null;s.unidade=null;}
   else{
    const hora=/\/h$|hora/.test(t);
@@ -2763,10 +2780,13 @@ function rServicos(){
  }));
 }
 async function addServico(){
- const nome=prompt("Nome do serviço:");
+ const cats=[...new Set((D.servicosComerciais||[]).map(s=>s.cat))].filter(Boolean);
+ const r=await pedir({titulo:"Novo serviço",campos:[
+  {tipo:"texto",nome:"nome",label:"nome do serviço"},
+  {tipo:"escolha",nome:"cat",label:"categoria",valor:cats[0]||"Ilustração",opcoes:cats.map(c=>({v:c,txt:c}))}
+ ]});
+ if(!r)return;const nome=r.nome,cat=r.cat;
  if(!nome||!nome.trim())return;
- const cat=prompt("Categoria (ex: Ilustração, Design, Animação, Estratégia, Autoral):","Ilustração");
- if(cat===null)return;
  D.servicosComerciais=D.servicosComerciais||[];
  D.servicosComerciais.push({id:"sv"+Date.now(),nome:nome.trim(),cat:(cat||"outros").trim(),pot:3,exp:3,val:3,esf:3,ia:3,esc:1,base:null,unidade:null});
  await save();rServicos();
@@ -2853,7 +2873,8 @@ function copiarNotas(){
 const PAL_LOCAL=["#C74A3C","#3AAFA9","#D99A3C","#6B92E5","#A87CA8","#7FA88B","#B85C7A","#5C8AA8","#8A7B63","#6E8F5A","#7A3C8F","#4AA3C7"];
 async function novoProjectoLocal(){
  if(!cat||cat==="RIMA")return;
- const nome=prompt(`Novo projecto em ${cat}:`);
+ const r=await pedir({titulo:`Novo projecto em ${cat}`,campos:[{tipo:"texto",nome:"nome",label:"nome do projecto"}]});
+ if(!r)return;const nome=r.nome;
  if(!nome||!nome.trim())return;
  const nm=nome.trim();
  if((D.projectos||[]).some(p=>p.categoria===cat&&p.nome.toLowerCase()===nm.toLowerCase())){
@@ -2895,9 +2916,10 @@ function rPessoal(){
   });
  }));
 }
-function addPessoal(key){
- const nv=prompt(key==="treino"?"Nova habilidade a treinar:":"Novo aspeto do dia a dia a melhorar:");
- if(nv&&nv.trim()){D.pessoal[key].unshift(nv.trim());save().then(rPessoal);}
+async function addPessoal(key){
+ const r=await pedir({titulo:key==="treino"?"Nova habilidade a treinar":"Novo aspeto do dia a dia",campos:[{tipo:"texto",nome:"nv",label:"descrição"}]});
+ if(!r)return;const nv=r.nv;
+ if(nv&&nv.trim()){D.pessoal[key].unshift(nv.trim());await save();rPessoal();}
 }
 
 /* ============ redes sociais ============ */
@@ -3119,9 +3141,9 @@ function rDesp(){
  // registo editável
  el.querySelectorAll("[data-reg]").forEach(s=>s.addEventListener("click",async()=>{
   const m=movs[+s.dataset.reg];
-  const nv=prompt("Descrição do movimento:",m.registo||"");
-  if(nv===null)return;
-  m.registo=nv.trim()||null;await save();rDesp();
+  const r=await pedir({titulo:"Descrição do movimento",sub:m.desc||"",campos:[{tipo:"texto",nome:"nv",label:"a que corresponde",valor:m.registo||""}]});
+  if(!r)return;
+  m.registo=(r.nv||"").trim()||null;await save();rDesp();
  }));
  // menu de qualidade
  el.querySelectorAll("[data-qbtn]").forEach(b=>b.addEventListener("click",e=>{
@@ -3246,9 +3268,13 @@ function rGastos(p){
 }
 async function addGasto(){
  const p=D.projectos.find(x=>x.id===mP);if(!p)return;
- const desc=prompt("Descrição do gasto:");
+ const r=await pedir({titulo:"Novo gasto",sub:p.nome,campos:[
+  {tipo:"texto",nome:"desc",label:"descrição"},
+  {tipo:"numero",nome:"valor",label:"valor (€)",step:"0.01"}
+ ]});
+ if(!r)return;const desc=r.desc;
  if(!desc||!desc.trim())return;
- const valor=parseFloat(String(prompt("Valor (€):")||"").replace(",","."));
+ const valor=parseFloat(String(r.valor||"").replace(",","."));
  if(isNaN(valor)||valor<0){setSt("valor inválido");return;}
  p.gastos=p.gastos||[];
  p.gastos.push({desc:desc.trim(),valor,data:hoje()});
@@ -3330,9 +3356,12 @@ async function pararTimer(silencioso){
  if(t&&(!t.projecto||t.projecto==="Inbox"))proj=t.titulo;
  let horas=timerDecorridoMs()/3600000;
  if(horas>TIMER_MAX_H){
-  const resp=prompt(`O cronómetro esteve ${fmtH(horas)} em "${t?t.titulo:(D.timer.titulo||proj)}" — parece de mais.\nQuantas horas queres registar? (0 para descartar)`,TIMER_MAX_H.toFixed(1));
-  if(resp===null){return;}
-  horas=Math.max(0,parseFloat(String(resp).replace(",","."))||0);
+  const r=await pedir({titulo:"Cronómetro esteve muito tempo a contar",
+   sub:`${fmtH(horas)} em "${t?t.titulo:(D.timer.titulo||proj)}". Quantas horas queres mesmo registar? (0 descarta)`,
+   campos:[{tipo:"texto",nome:"h",label:"horas a registar",valor:TIMER_MAX_H.toFixed(1)}]});
+  if(!r){return;}
+  const ph=parseH(String(r.h||""));
+  horas=Math.max(0,ph===null?0:ph);
  }
  const dia=D.timer.dia||hoje();
  const tidRegisto=D.timer.tid||null;
@@ -3631,6 +3660,49 @@ function rAgTabs(){
   if(agModo==="anual")rAnual();else rSemana();
  }));
 }
+/* ============ caixa de entrada com o visual do site ============ */
+// pedir({titulo, sub, campos:[{tipo:"texto"|"numero"|"escolha", nome, label, valor, opcoes:[{v,txt,cor}]}]})
+// devolve Promise com um objecto {nome:valor} ou null se cancelar
+let inpEstado=null,inpResolve=null;
+function fecharInput(){$("inpOvl").classList.remove("on");if(inpResolve){inpResolve(null);inpResolve=null;}inpEstado=null;}
+function rInpCampos(){
+ const box=$("inpCampos");if(!box||!inpEstado)return;
+ box.innerHTML=inpEstado.campos.map(c=>{
+  if(c.tipo==="escolha"){
+   return `<div style="margin-bottom:16px"><label class="trkfl" style="display:block;margin-bottom:8px">${esc(c.label||c.nome)}</label>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">${c.opcoes.map(o=>`<button class="btn catpick${inpEstado.valores[c.nome]===o.v?" on":""}" data-inpop="${c.nome}|${o.v}">${o.cor?`<i class="metadot" style="background:${o.cor}"></i>`:""}${esc(o.txt)}</button>`).join("")}</div></div>`;
+  }
+  return `<div style="margin-bottom:16px"><label class="trkfl" style="display:block;margin-bottom:6px">${esc(c.label||c.nome)}</label>
+   <input class="pin" data-inpc="${c.nome}" type="${c.tipo==="numero"?"number":"text"}" ${c.step?`step="${c.step}"`:""} placeholder="${esc(c.ph||"")}" value="${esc(String(inpEstado.valores[c.nome]??""))}" style="width:100%"/></div>`;
+ }).join("");
+ box.querySelectorAll("[data-inpop]").forEach(b=>b.addEventListener("click",()=>{
+  const [n,v]=b.dataset.inpop.split("|");
+  inpEstado.valores[n]=v;rInpCampos();
+ }));
+ box.querySelectorAll("[data-inpc]").forEach(el=>el.addEventListener("input",()=>{inpEstado.valores[el.dataset.inpc]=el.value;}));
+}
+function pedir(cfg){
+ return new Promise(res=>{
+  inpResolve=res;
+  inpEstado={campos:cfg.campos,valores:{}};
+  cfg.campos.forEach(c=>{inpEstado.valores[c.nome]=c.valor!==undefined?c.valor:"";});
+  $("inpTit").textContent=cfg.titulo||"";
+  $("inpSub").textContent=cfg.sub||"";
+  $("inpSub").style.display=cfg.sub?"":"none";
+  rInpCampos();
+  $("inpOvl").classList.add("on");
+  setTimeout(()=>{const f=$("inpCampos").querySelector("input");if(f)f.focus();},60);
+  $("inpOk").onclick=()=>{
+   const v={...inpEstado.valores};
+   $("inpOvl").classList.remove("on");inpEstado=null;
+   const r=inpResolve;inpResolve=null;r(v);
+  };
+ });
+}
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"&&$("inpOvl").classList.contains("on"))fecharInput();
+ if(e.key==="Enter"&&$("inpOvl").classList.contains("on")&&e.target.tagName==="INPUT")$("inpOk").click();
+});
 /* ============ confirmação com o visual do site ============ */
 function confirmar(titulo,texto,onSim,rotulo){
  const ovl=$("confOvl");
@@ -3710,29 +3782,29 @@ function rAnual(){
  // bloco único de foco: ano inteiro + mês atual, organizados por categoria
  const topo=$("anualTopo");
  const cats=Object.keys(CATS_ANUAL);
- const colunaCat=(k)=>{
+ const colCat=(k,arr)=>{
   const c=CATS_ANUAL[k];
-  const doAnoC=doAno.filter(x=>(x.cat==="publicacao"?"divulgacao":x.cat)===k);
-  const doMesC=doMes.filter(x=>(x.cat==="publicacao"?"divulgacao":x.cat)===k);
-  if(!doAnoC.length&&!doMesC.length)return `<div class="fococol"><div class="focoh"><i class="metadot" style="background:${c.cor}"></i>${c.nome}</div><div class="hsub">—</div></div>`;
-  return `<div class="fococol">
-    <div class="focoh"><i class="metadot" style="background:${c.cor}"></i>${c.nome}</div>
-    ${doAnoC.length?`<div class="focosub">todo o ano</div>${doAnoC.map(x=>metaLinha(x,true)).join("")}`:""}
-    ${doMesC.length?`<div class="focosub">${MESES[mesAtual]}</div>${doMesC.map(x=>metaLinha(x,true)).join("")}`:""}
-   </div>`;
+  if(!arr.length)return `<div class="fococol"><div class="focoh"><i class="metadot" style="background:${c.cor}"></i>${c.nome}</div><div class="hsub">—</div></div>`;
+  return `<div class="fococol"><div class="focoh"><i class="metadot" style="background:${c.cor}"></i>${c.nome}</div>${arr.map(x=>metaLinha(x,true)).join("")}</div>`;
  };
- if(topo)topo.innerHTML=`<div class="card focobox">
+ const daCat=(lst,k)=>lst.filter(x=>(x.cat==="publicacao"?"divulgacao":x.cat)===k);
+ if(topo)topo.innerHTML=`
+  <div class="card anobox">
+   <div class="focotop">
+    <div><div class="ecmn" style="margin:0">todo o ano</div><div class="hsub" style="margin-top:2px">objectivos permanentes, sem mês atribuído</div></div>
+    <button class="btn" data-anadd="0" style="font-size:10px;padding:6px 11px">+ objectivo</button>
+   </div>
+   <div class="focogrid">${cats.map(k=>colCat(k,daCat(doAno,k))).join("")}</div>
+  </div>
+  <div class="card focobox">
    <div class="focotop">
     <div>
-     <div class="ecmn" style="margin:0">em foco · ${MESES[mesAtual]}</div>
+     <div class="ecmn" style="margin:0;color:var(--acc)">${MESES[mesAtual]} · agora</div>
      ${prepararM[mesAtual].length?`<div class="mesprep" style="margin-top:4px"><span class="eclbl prep">a preparar</span> ${esc(prepararM[mesAtual].join(" · "))}</div>`:""}
     </div>
-    <span style="display:flex;gap:6px;align-items:center">
-     <button class="btn" data-anadd="0" style="font-size:10px;padding:6px 11px">+ ano</button>
-     <button class="btn" data-anadd="${mesAtual+1}" style="font-size:10px;padding:6px 11px">+ mês</button>
-    </span>
+    <button class="btn" data-anadd="${mesAtual+1}" style="font-size:10px;padding:6px 11px">+ objectivo</button>
    </div>
-   <div class="focogrid">${cats.map(colunaCat).join("")}</div>
+   <div class="focogrid">${cats.map(k=>colCat(k,daCat(doMes,k))).join("")}</div>
   </div>`;
  // linhas por mês: mês à esquerda, preparação e objectivos à direita
  box.innerHTML=MESES.map((m,i)=>{
@@ -3819,7 +3891,9 @@ function bindAgendaDnD(){
    if(pid){openP(pid);}
    else{ // tarefa da inbox sem projecto: abre edição rápida via alerta simples
     const t=D.tarefas.find(x=>x.id===el.dataset.tid);
-    if(t){const nv=prompt("Editar tarefa:",t.titulo);if(nv!==null&&nv.trim()){t.titulo=nv.trim();save().then(rSemana);}}
+    if(t)pedir({titulo:"Editar tarefa",campos:[{tipo:"texto",nome:"nv",label:"título",valor:t.titulo}]}).then(async r=>{
+     if(r&&r.nv&&r.nv.trim()){t.titulo=r.nv.trim();await save();rSemana();}
+    });
    }
   });
   el.addEventListener("dragstart",e=>{el._dragging=true;dragTid=el.dataset.tid;el.classList.add("dragging");});
@@ -3974,7 +4048,8 @@ function ttsPlay(){
 function ttsStop(){try{speechSynthesis.cancel();}catch(e){}}
 async function addDocNota(){
  const pj=D.projectos.find(x=>x.id===mP);if(!pj)return;
- const t=prompt("Título da nota:");
+ const r=await pedir({titulo:"Nova nota",sub:pj.nome,campos:[{tipo:"texto",nome:"t",label:"título"}]});
+ if(!r)return;const t=r.t;
  if(!t||!t.trim())return;
  const doc={id:"d"+Date.now(),titulo:t.trim(),categoria:pj.categoria,projecto:pj.nome,
   caderno:"notas",criado:hoje(),corpo:"",img:null};
@@ -4070,8 +4145,9 @@ function rCaderno(chave){
   });
  });
 }
-function addNota(chave){
- const t=prompt("Título da nota:");
+async function addNota(chave){
+ const r=await pedir({titulo:"Nova nota",campos:[{tipo:"texto",nome:"t",label:"título"}]});
+ if(!r)return;const t=r.t;
  if(!t||!t.trim())return;
  D[chave]=D[chave]||[];
  D[chave].unshift({id:"n"+Date.now(),titulo:t.trim(),corpo:""});
@@ -4089,26 +4165,32 @@ const EXTRAS_SUGESTOES=[
  ["Imprevisto","estrutura"]
 ];
 async function registarExtra(){
- const lista=EXTRAS_SUGESTOES.map(([s,c],i)=>`${i+1}. ${s} (${c})`).join("\n");
- const nome=prompt(`O que estás (ou estiveste) a fazer?\n\n${lista}\n\nEscreve o nome ou o número:`);
- if(nome===null)return;
- const nt=nome.trim();if(!nt)return;
- const idx=parseInt(nt,10);
- let titulo=nt,catAuto=null;
- if(!isNaN(idx)&&idx>=1&&idx<=EXTRAS_SUGESTOES.length){titulo=EXTRAS_SUGESTOES[idx-1][0];catAuto=EXTRAS_SUGESTOES[idx-1][1];}
+ const r=await pedir({
+  titulo:"Registar tempo",
+  sub:"O que estás (ou estiveste) a fazer?",
+  campos:[
+   {tipo:"escolha",nome:"sug",label:"tipo",valor:EXTRAS_SUGESTOES[0][0],
+    opcoes:EXTRAS_SUGESTOES.map(([s])=>({v:s,txt:s}))},
+   {tipo:"texto",nome:"outro",label:"ou escreve outro nome",ph:"deixa vazio para usar o tipo escolhido"},
+   {tipo:"texto",nome:"horas",label:"horas já gastas",ph:"vazio = começar a contar agora"}
+  ]
+ });
+ if(!r)return;
+ const outro=(r.outro||"").trim();
+ const titulo=outro||r.sug;
+ if(!titulo){setSt("escolhe ou escreve o que estiveste a fazer");return;}
+ const par=EXTRAS_SUGESTOES.find(([s])=>s===titulo);
  D.extrasCat=D.extrasCat||{};
- if(!D.extrasCat[titulo])D.extrasCat[titulo]=catAuto||"estrutura";
- const quando=prompt(`"${titulo}"\n\nDeixa vazio para começar a contar agora,\nou escreve as horas já gastas (ex: 2 ou 1.5):`,"");
- if(quando===null)return;
- const q=String(quando).trim().replace(",",".");
+ if(!D.extrasCat[titulo])D.extrasCat[titulo]=par?par[1]:"estrutura";
+ const q=String(r.horas||"").trim().replace(",",".");
  if(q===""){
   if(D.timer)await pararTimer(true);
   D.timer={tid:null,proj:titulo,titulo,inicio:Date.now(),dia:hoje(),extra:true,pausadoTotal:0,pausadoEm:null};
   await save();setSt(`a contar: ${titulo}`);rAll();
   return;
  }
- const horas=parseFloat(q);
- if(isNaN(horas)||horas<=0){setSt("valor inválido");return;}
+ const horas=parseH(q);
+ if(horas===null||isNaN(horas)||horas<=0){setSt("valor inválido");return;}
  const dia=hoje();
  trk[dia]=trk[dia]||{};trk[dia].horas=trk[dia].horas||{};
  trk[dia].horas[titulo]=Math.round(((trk[dia].horas[titulo]||0)+horas)*100)/100;
