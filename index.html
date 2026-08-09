@@ -145,7 +145,7 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .catpick.on{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);color:var(--txt);}
 #metaCats .metadot{width:8px;height:8px;}
 .metadot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
-.pstar{flex-shrink:0;}
+.pmk{flex-shrink:0;}
 .anualMeta{align-items:center;}
 .metarow{display:flex;gap:6px;align-items:baseline;font-size:11px;line-height:1.5;padding:2px 0;}
 .metarow .metadot{margin-top:4px;}
@@ -952,10 +952,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 
 <div class="view" id="v-COMERCIAL">
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Tarefas comerciais<button class="ico" style="width:28px;height:28px" title="Nova tarefa comercial" onclick="addTarefaComercial()">＋</button></h2>
-  <div id="cmAvisos"></div>
-  <div class="card" style="padding:6px 0;margin-bottom:6px" id="cmTarefas"></div>
-  <div id="cmOpCard"></div>
+  <div id="cmFixos"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Projectos comerciais<button class="ico" style="width:28px;height:28px" title="Novo projecto comercial" onclick="novoProjComercial()">＋</button></h2>
   <h2 class="sec">Prioridade alta</h2>
   <div class="pgrid pzone" id="cmGridAlta" data-cpri="3"></div>
@@ -966,7 +963,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div id="cmArqWrap" style="margin-top:10px"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Ideias<button class="ico" style="width:28px;height:28px" title="Nova ideia" onclick="addIdeia()">＋</button></h2>
   <div class="card" style="padding:10px 0" id="eideias"></div>
-  <h2 class="sec">Princípios</h2>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Princípios<button class="ico" style="width:28px;height:28px" title="Novo princípio" onclick="addPrincipio()">＋</button></h2>
   <div class="card" style="padding:10px 0" id="eprin"></div>
 </div>
 
@@ -1808,7 +1805,7 @@ function rHome(){
  const agOk=agenda&&agenda.atualizado===hoje();
  const evHoje=agOk?(agenda.eventos||[]).filter(e=>e.data===hoje()):[];
  const anivHoje=agOk?(agenda.aniversarios||[]).filter(a=>a.data===hoje()):[];
- const linhaEv=e=>`<div class="hitem"><span class="hm" style="margin:0 0 0 0">${esc(e.h||"")}</span><span>${esc(e.t)}${e.quem?` <span class="chip" style="display:inline;color:var(--acc2)">${esc(e.quem)}</span>`:""}</span></div>`;
+ const linhaEv=e=>`<div class="hitem"><span class="hm" style="margin:0 0 0 0">${esc(e.h||"")}</span>${evmark()}<span>${esc(e.t)}${e.quem?` <span class="chip" style="display:inline;color:var(--acc2)">${esc(e.quem)}</span>`:""}</span></div>`;
  if(!agOk){$("hAg").innerHTML=`<div class="hsub">por atualizar</div>`;}
  else{
   let html=evHoje.map(linhaEv).join("")||`<div class="hsub">sem eventos hoje</div>`;
@@ -2523,34 +2520,7 @@ function calcOportunidadesPorMes(){
 }
 function rEstrategia(){
  const E=D.estrategia;if(!E)return;
- rAvisosComerciais();
- rTarefasComerciais();
  rProjComerciais();
- // oportunidade a atacar agora — cartão fixo no topo das frentes
- const op=oportunidadeAgora();
- let opCard="";
- if(op){
-  const h=new Date();h.setHours(0,0,0,0);
-  if(op.tipo==="ativo"){
-   const faltam=diffDias(h,op.evento);
-   opCard=`<div class="pcard card fcard2 opnow">
-     <div class="pname">🎯 Atacar agora: ${esc(op.nome)}</div>
-     <div class="accbar" style="background:var(--acc)"></div>
-     <div class="fcorpo" style="margin-top:8px">${esc(op.nota)}</div>
-     <div class="hsub" style="margin-top:6px">${faltam===0?"é hoje":faltam===1?"falta 1 dia":`faltam ${faltam} dias`} · janela aberta desde ${op.inicio.toLocaleDateString("pt-PT")}</div>
-    </div>`;
-  }else{
-   const faltam=diffDias(h,op.inicio);
-   opCard=`<div class="pcard card fcard2 opnow soon">
-     <div class="pname">🎯 A seguir: ${esc(op.nome)}</div>
-     <div class="accbar" style="background:var(--acc2)"></div>
-     <div class="fcorpo" style="margin-top:8px">${esc(op.nota)}</div>
-     <div class="hsub" style="margin-top:6px">janela abre em ${faltam} dia${faltam===1?"":"s"} · ${op.inicio.toLocaleDateString("pt-PT")}</div>
-    </div>`;
-  }
- }
- const oc=$("cmOpCard");
- if(oc)oc.innerHTML=opCard?`<div class="pgrid" style="margin-bottom:6px">${opCard}</div>`:"";
  // ideias
  $("eideias").innerHTML=E.ideias.map(i=>{
    const ab=ideiaAberta===i.id;
@@ -2613,40 +2583,14 @@ function lacunasComerciais(){
   });
  }).sort((a,b)=>a.evento-b.evento);
 }
-function rAvisosComerciais(){
- const box=$("cmAvisos");if(!box)return;
- const lac=lacunasComerciais();
- if(!lac.length){box.innerHTML="";return;}
- const h0=new Date();h0.setHours(0,0,0,0);
- box.innerHTML=lac.map(o=>{
-  const dEvento=diffDias(h0,o.evento);
-  const aberta=o.inicio<=h0;
-  const txt=aberta
-   ?`A janela de <b>${esc(o.nome)}</b> já está aberta e faltam <b>${dEvento} dia${dEvento===1?"":"s"}</b> para a data. Não há nenhuma tarefa a apontar para lá.`
-   :`<b>${esc(o.nome)}</b>: a janela abre em <b>${o.abreEm} dia${o.abreEm===1?"":"s"}</b> e ainda não existe nenhuma tarefa preparada.`;
-  return `<div class="lacuna">
-    <div style="flex:1;min-width:0"><div class="lactxt">${txt}</div><div class="hsub" style="margin-top:3px">${esc(o.nota)}</div></div>
-    <button class="btn" data-lac="${esc(o.nome)}">criar tarefa</button>
-   </div>`;
- }).join("");
- box.querySelectorAll("[data-lac]").forEach(b=>b.addEventListener("click",async()=>{
-  const nome=b.dataset.lac;
-  const o=lacunasComerciais().find(x=>x.nome===nome);
-  const rr=await pedir({titulo:"Tarefa para esta oportunidade",sub:nome,campos:[{tipo:"texto",nome:"t",label:"tarefa",valor:`Preparar ${nome}`}]});
-  if(!rr)return;const sug=rr.t;
-  if(!sug||!sug.trim())return;
-  const prazo=o?isoLocal(o.evento):null;
-  D.tarefas.push({id:"t"+Date.now(),categoria:"RIMA",projecto:"Comercial",titulo:sug.trim(),
-   estado:"ativa",data:hoje(),prazo,responsavel:"Ricardo"});
-  await save();rEstrategia();rAll();
- }));
-}
-let cmDoneOpen=false;
 let cmArqOpen=false;
 function rProjComerciais(){
  const zonas=[["cmGridAlta",3],["cmGridMedia",2],["cmGridBaixa",1]];
  const todos=(D.projectos||[]).filter(p=>p.categoria==="COMERCIAL"&&p.estado!=="arquivado"&&p.estado!=="concluído"&&p.nome!=="Comercial");
  const feitos=(D.projectos||[]).filter(p=>p.categoria==="COMERCIAL"&&(p.estado==="concluído"||p.estado==="arquivado"));
+ const fx=$("cmFixos");
+ const geral=(D.projectos||[]).find(p=>p.nome==="Comercial");
+ if(fx)fx.innerHTML=geral?`<div class="fixrow"><button class="fixchip" data-cpc="${geral.id}"><i class="pdot" style="background:${geral.cor||"var(--acc)"}"></i>${esc(geral.nome)} · tarefas soltas</button></div>`:"";
  const cardP=p=>{
   const ts=D.tarefas.filter(t=>t.projecto===p.nome);
   const done=ts.filter(t=>t.estado==="concluída").length;
@@ -2696,25 +2640,6 @@ async function novoProjComercial(){
   cliente:false,marca:"studio",prioridade:2,inicio:hoje(),prazo:null,horasPrevistas:null,
   horasGastas:0,orcamento:null,adjudicado:true,cor:CORES[Math.floor(Math.random()*CORES.length)],gastos:[]});
  await save();rEstrategia();
-}
-function rTarefasComerciais(){
- const box=$("cmTarefas");if(!box)return;
- const all=(D.tarefas||[]).filter(t=>t.projecto==="Comercial"&&t.estado!=="arquivada");
- const ativas=all.filter(t=>t.estado!=="concluída").sort((a,b)=>(a.data||a.prazo||"9999").localeCompare(b.data||b.prazo||"9999"));
- const feitas=all.filter(t=>t.estado==="concluída");
- box.innerHTML=`<div id="cmAtivas"></div>`+(feitas.length?`<div class="cgroup"><div class="cgrouph acc" id="cmDoneAcc"><span class="accarr">${cmDoneOpen?"▾":"▸"}</span>concluídas · ${feitas.length}</div><div class="cgbody" id="cmDoneBody" style="display:${cmDoneOpen?"block":"none"}"></div></div>`:"");
- rTaskList($("cmAtivas"),ativas);
- if(feitas.length)rTaskList($("cmDoneBody"),feitas);
- const acc=$("cmDoneAcc");
- if(acc)acc.addEventListener("click",()=>{cmDoneOpen=!cmDoneOpen;rTarefasComerciais();});
-}
-async function addTarefaComercial(){
- const r=await pedir({titulo:"Nova tarefa comercial",campos:[{tipo:"texto",nome:"t",label:"tarefa"}]});
- if(!r)return;const t=r.t;
- if(!t||!t.trim())return;
- D.tarefas.push({id:"t"+Date.now(),categoria:"RIMA",projecto:"Comercial",titulo:t.trim(),
-  estado:"ativa",data:hoje(),prazo:null,responsavel:"Ricardo"});
- await save();rEstrategia();rAll();
 }
 let svCli="medio", svDimensao="medio";
 const DIM_MULT={pequeno:0.55,medio:1,longo:1.9};
@@ -2828,6 +2753,13 @@ async function addServico(){
  await save();rServicos();
 }
 document.addEventListener("change",e=>{if(e.target.id==="svOrd")rServicos();});
+async function addPrincipio(){
+ const r=await pedir({titulo:"Novo princípio",campos:[{tipo:"texto",nome:"t",label:"princípio"}]});
+ if(!r||!r.t||!r.t.trim())return;
+ D.estrategia.principios=D.estrategia.principios||[];
+ D.estrategia.principios.push(r.t.trim());
+ await save();rEstrategia();
+}
 function addFrente(){D.estrategia.frentes.unshift({id:"f"+Date.now(),titulo:"Nova frente",estado:"ideia",corpo:"Descreve a oportunidade em 2-3 parágrafos."});save().then(rEstrategia);}
 function addIdeia(){D.estrategia.ideias.unshift({id:"i"+Date.now(),titulo:"Nova ideia",corpo:"Descrição crua."});save().then(rEstrategia);}
 
@@ -3362,12 +3294,22 @@ async function mAdd(){
 
 /* ============ tarefas ============ */
 function pcor(t){const p=(D.projectos||[]).find(x=>x.nome===t.projecto&&x.categoria===t.categoria);return p&&p.cor?p.cor:"#999";}
-// tarefas comerciais distinguem-se por uma estrela em vez do ponto colorido
+// cada categoria tem um marcador próprio, na cor do projecto
+const MARCAS={
+ COMERCIAL:'<path d="m12 2 2.9 6.3 6.8.8-5 4.7 1.3 6.7L12 17.3 6 20.5l1.3-6.7-5-4.7 6.8-.8Z"/>',
+ CASA:'<path d="M12 2.6 2.5 10.4V21a1 1 0 0 0 1 1h5.2v-6.4h6.6V22h5.2a1 1 0 0 0 1-1V10.4Z"/>',
+ MUSICA:'<path d="M20 2.2 9.4 4.6v11.7a3.4 3.4 0 1 0 2 3.1V9.1l8.6-2v6a3.4 3.4 0 1 0 2 3.1Z"/>',
+ ARTE:'<path d="M20.9 3.1a2.1 2.1 0 0 0-3 0l-1.7 1.7 3 3 1.7-1.7a2.1 2.1 0 0 0 0-3ZM14.8 6.2 3 18v3h3L17.8 9.2Z"/>'
+};
 function pmark(t){
  const cor=pcor(t);
- if(t.categoria==="COMERCIAL")
-  return `<svg class="pstar" width="11" height="11" viewBox="0 0 24 24" fill="${cor}" stroke="none"><path d="m12 2 2.9 6.3 6.8.8-5 4.7 1.3 6.7L12 17.3 6 20.5l1.3-6.7-5-4.7 6.8-.8Z"/></svg>`;
+ const d=MARCAS[t.categoria];
+ if(d)return `<svg class="pmk" width="11" height="11" viewBox="0 0 24 24" fill="${cor}" stroke="none">${d}</svg>`;
  return `<i class="pdot" style="background:${cor}"></i>`;
+}
+// eventos do Google Calendar
+function evmark(){
+ return `<svg class="pmk" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--acc2)" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`;
 }
 /* ============ cronómetro por tarefa ============ */
 const TIMER_MAX_H=8; // travão: acima disto pergunta em vez de gravar às cegas
@@ -3912,7 +3854,7 @@ function rSemana(){
    cell.dataset.day=iso;
    cell.innerHTML=`<div class="wch"><span class="wcn">${nmDia} ${d.getDate()}</span>${d.getDate()===1||i===0&&w===0?`<span class="wcm">${d.toLocaleDateString("pt-PT",{month:"short"})}</span>`:""}</div>`+
     anivs.map(a=>`<div class="wev">🎂 ${esc(a.nome)}</div>`).join("")+
-    evs.map(e=>`<div class="wev">${e.h?`<b>${esc(e.h)}</b> `:""}${esc(e.t||"")}${e.quem?` <span class="wm">${esc(e.quem)}</span>`:""}</div>`).join("")+
+    evs.map(e=>`<div class="wev">${evmark()} ${e.h?`<b>${esc(e.h)}</b> `:""}${esc(e.t||"")}${e.quem?` <span class="wm">${esc(e.quem)}</span>`:""}</div>`).join("")+
     ts.map(t=>taskChip(t,iso)).join("")+
     prazos.map(t=>taskChip(t,iso,true)).join("");
    row.appendChild(cell);
