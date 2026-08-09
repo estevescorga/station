@@ -119,6 +119,8 @@ body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
 .mescat{display:flex;flex-direction:column;gap:4px;min-width:0;}
 .mesprep{font-size:11.5px;color:var(--soft);line-height:1.5;font-style:italic;}
 .mesprep .eclbl{font-style:normal;margin-right:4px;}
+.mesacon{font-style:normal;color:var(--txt);opacity:.85;}
+.mesacon .eclbl{color:var(--acc2);}
 @media(max-width:640px){.mesrow{grid-template-columns:1fr;gap:8px;}}
 .anualHead{display:flex;justify-content:space-between;align-items:center;gap:8px;position:sticky;top:0;background:var(--bg);padding-bottom:6px;z-index:1;}
 .anualHead .ecmn{letter-spacing:.06em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -143,6 +145,7 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .catpick.on{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);color:var(--txt);}
 #metaCats .metadot{width:8px;height:8px;}
 .metadot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.pstar{flex-shrink:0;}
 .anualMeta{align-items:center;}
 .metarow{display:flex;gap:6px;align-items:baseline;font-size:11px;line-height:1.5;padding:2px 0;}
 .metarow .metadot{margin-top:4px;}
@@ -952,10 +955,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Tarefas comerciais<button class="ico" style="width:28px;height:28px" title="Nova tarefa comercial" onclick="addTarefaComercial()">＋</button></h2>
   <div id="cmAvisos"></div>
   <div class="card" style="padding:6px 0;margin-bottom:6px" id="cmTarefas"></div>
-  <h2 class="sec">Calendário comercial</h2>
-  <div class="card" style="padding:16px" id="ecal"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Frentes de ataque<button class="ico" style="width:28px;height:28px" title="Nova frente" onclick="addFrente()">＋</button></h2>
-  <div class="pgrid" id="efrentes"></div>
+  <div id="cmOpCard"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Projectos comerciais<button class="ico" style="width:28px;height:28px" title="Novo projecto comercial" onclick="novoProjComercial()">＋</button></h2>
+  <h2 class="sec">Prioridade alta</h2>
+  <div class="pgrid pzone" id="cmGridAlta" data-cpri="3"></div>
+  <h2 class="sec">Prioridade média</h2>
+  <div class="pgrid pzone" id="cmGridMedia" data-cpri="2"></div>
+  <h2 class="sec">Prioridade baixa</h2>
+  <div class="pgrid pzone" id="cmGridBaixa" data-cpri="1"></div>
+  <div id="cmArqWrap" style="margin-top:10px"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Ideias<button class="ico" style="width:28px;height:28px" title="Nova ideia" onclick="addIdeia()">＋</button></h2>
   <div class="card" style="padding:10px 0" id="eideias"></div>
   <h2 class="sec">Princípios</h2>
@@ -989,7 +997,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div id="inboxList"></div>
     </div>
     <div class="filters">
-      <select id="fCat"><option value="">todas categorias</option><option>RIMA</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
+      <select id="fCat"><option value="">todas categorias</option><option>RIMA</option><option>COMERCIAL</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
       <select id="fProj"><option value="">todos projectos</option></select>
       <select id="fEst"><option value="">ativas</option><option value="ativa">ativa</option><option>em espera</option><option>concluída</option><option value="*">todas</option></select>
       <select id="fOrd"><option value="data">ordenar: data</option><option value="manual">ordenar: manual</option></select>
@@ -1000,7 +1008,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
    <div class="cal card" id="calBox"></div>
   </div>
   <div class="addrow">
-    <select id="nCat"><option>RIMA</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
+    <select id="nCat"><option>RIMA</option><option>COMERCIAL</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
     <input id="nProj" placeholder="projecto" style="min-width:110px" />
     <input id="nTit" class="g2" placeholder="nova tarefa" />
     <input id="nData" type="date" />
@@ -1782,7 +1790,7 @@ function rSearchTasks(q,elId){
  el.innerHTML=res.map(t=>{
   const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
   const done=t.estado==="concluída";
-  return `<div class="hitem"><button class="hchk${done?" c":""}" data-sc="${t.id}" aria-label="concluir"></button><span ${pid?`data-sop="${pid}" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;min-width:0"`:"style=\"display:flex;align-items:center;gap:6px;flex:1;min-width:0\""}><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${done?'text-decoration:line-through;opacity:.5':''}">${esc(t.titulo)}</span></span><span class="hm" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px;flex-shrink:0" title="${esc(t.projecto||"")}">${esc(t.projecto||"")}</span></div>`;
+  return `<div class="hitem"><button class="hchk${done?" c":""}" data-sc="${t.id}" aria-label="concluir"></button><span ${pid?`data-sop="${pid}" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;min-width:0"`:"style=\"display:flex;align-items:center;gap:6px;flex:1;min-width:0\""}>${pmark(t)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${done?'text-decoration:line-through;opacity:.5':''}">${esc(t.titulo)}</span></span><span class="hm" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px;flex-shrink:0" title="${esc(t.projecto||"")}">${esc(t.projecto||"")}</span></div>`;
  }).join("")||`<div class="hsub">sem resultados</div>`;
  el.querySelectorAll("[data-sc]").forEach(b=>b.addEventListener("click",async e=>{
   e.stopPropagation();const t=D.tarefas.find(x=>x.id===b.dataset.sc);if(!t)return;
@@ -1859,7 +1867,7 @@ function rHome(){
   const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
   const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
   const manual=ordem.indexOf(t.id)!==-1;
-  return `<div class="hitem urgrow" draggable="true" data-urg="${t.id}"><span class="grip" title="arrastar para priorizar">⠿</span><button class="hchk" data-hc="${t.id}" aria-label="concluir"></button><span ${pid?`data-op="${pid}" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;min-width:0"`:"style=\"display:flex;align-items:center;gap:6px;flex:1;min-width:0\""}><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap${manual?";font-weight:600":""}">${esc(t.titulo)}</span></span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?(dl<0?`${-dl}d atraso`:`${dl}d`):"hoje"}</span></div>`;
+  return `<div class="hitem urgrow" draggable="true" data-urg="${t.id}"><span class="grip" title="arrastar para priorizar">⠿</span><button class="hchk" data-hc="${t.id}" aria-label="concluir"></button><span ${pid?`data-op="${pid}" style="cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;min-width:0"`:"style=\"display:flex;align-items:center;gap:6px;flex:1;min-width:0\""}>${pmark(t)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap${manual?";font-weight:600":""}">${esc(t.titulo)}</span></span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?(dl<0?`${-dl}d atraso`:`${dl}d`):"hoje"}</span></div>`;
  };
  $("hUrg").innerHTML=urg.map(linhaUrg).join("")||`<div class="hsub">nada urgente</div>`;
  $("hUrgMarta").innerHTML=urgM.length?`<div class="hgrouph" style="margin-top:12px">Marta · ${urgM.length}</div>`+urgM.map(linhaUrg).join(""):"";
@@ -1868,7 +1876,7 @@ function rHome(){
  $("hEspera").innerHTML=esp.map(t=>{
   const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
   const quem=(t.responsavel||"Ricardo")==="Marta"?` <span class="chip" style="display:inline;color:var(--acc2)">Marta</span>`:"";
-  return `<div class="hitem"${pid?` data-op="${pid}" style="cursor:pointer"`:""}><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0">${esc(t.titulo)}${quem}</span><span class="hm">${esc(t.projecto||"")}</span></div>`;
+  return `<div class="hitem"${pid?` data-op="${pid}" style="cursor:pointer"`:""}>${pmark(t)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0">${esc(t.titulo)}${quem}</span><span class="hm">${esc(t.projecto||"")}</span></div>`;
  }).join("")||`<div class="hsub">nada em espera</div>`;
  $("hEspera").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
  document.querySelectorAll("#hUrgMarta [data-hc]").forEach(b=>b.addEventListener("click",async e=>{
@@ -1881,7 +1889,7 @@ function rHome(){
  bindUrgDrag(urg);
  // inbox / genéricas
  const gen=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&!["concluída","arquivada"].includes(t.estado));
- $("hInbox").innerHTML=gen.map(t=>`<div class="hitem"><button class="hchk" data-hc2="${t.id}" aria-label="concluir"></button><i class="pdot" style="background:${pcor(t)}"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo)}</span></div>`).join("")||`<div class="hsub">inbox limpa</div>`;
+ $("hInbox").innerHTML=gen.map(t=>`<div class="hitem"><button class="hchk" data-hc2="${t.id}" aria-label="concluir"></button>${pmark(t)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo)}</span></div>`).join("")||`<div class="hsub">inbox limpa</div>`;
  $("hInbox").querySelectorAll("[data-hc2]").forEach(b=>b.addEventListener("click",async()=>{
   const t=D.tarefas.find(x=>x.id===b.dataset.hc2);if(!t)return;t.estado="concluída";await save();rHome();rAll();
  }));
@@ -2517,28 +2525,7 @@ function rEstrategia(){
  const E=D.estrategia;if(!E)return;
  rAvisosComerciais();
  rTarefasComerciais();
- // calendário: dois blocos por mês — o que acontece e o que se prepara
- const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
- const mesAtual=new Date().getMonth();
- const {aconteceM,prepararM}=calcOportunidadesPorMes();
- const colMes=(arr,cls,comMetas)=>MESES.map((m,i)=>{
-   const metas=comMetas?(D.metasAnuais||[]).filter(x=>x.mes===i+1):[];
-   return `<div class="ecalm${i===mesAtual?" now":""}">
-    <div class="ecmn">${m}</div>
-    <div class="ecmt${cls}">${esc(arr[i].join(" · ")||"—")}</div>
-    ${metas.length?`<div class="anualMetas">${metas.map(x=>`<div class="anualMeta"><span>${esc(x.titulo)}</span></div>`).join("")}</div>`:""}
-   </div>`;
-  }).join("");
- $("ecal").innerHTML=`<div class="ecalduo">
-   <div class="ecalcol">
-    <div class="ecalh">acontece</div>
-    <div class="ecalgrid">${colMes(aconteceM,"")}</div>
-   </div>
-   <div class="ecalcol">
-    <div class="ecalh prep">preparar</div>
-    <div class="ecalgrid">${colMes(prepararM," prep",true)}</div>
-   </div>
-  </div>`;
+ rProjComerciais();
  // oportunidade a atacar agora — cartão fixo no topo das frentes
  const op=oportunidadeAgora();
  let opCard="";
@@ -2562,14 +2549,8 @@ function rEstrategia(){
     </div>`;
   }
  }
- // frentes
- const ESTADOS=["ideia","a trabalhar","em pausa","ganha","perdida"];
- $("efrentes").innerHTML=opCard+E.frentes.map(f=>`<div class="pcard card fcard2" data-fid="${f.id}">
-   <div class="pname" contenteditable data-ef="titulo" data-fid="${f.id}">${esc(f.titulo)}</div>
-   <select data-ef="estado" data-fid="${f.id}" class="fsel">${ESTADOS.map(s=>`<option ${f.estado===s?"selected":""}>${s}</option>`).join("")}</select>
-   <div class="fcorpo" contenteditable data-ef="corpo" data-fid="${f.id}">${esc(f.corpo).replace(/\n/g,"<br>")}</div>
-   <button class="ico fdel" data-fdel="${f.id}" title="Apagar">✕</button>
-  </div>`).join("")||opCard||`<div class="empty">sem frentes — usa o ＋</div>`;
+ const oc=$("cmOpCard");
+ if(oc)oc.innerHTML=opCard?`<div class="pgrid" style="margin-bottom:6px">${opCard}</div>`:"";
  // ideias
  $("eideias").innerHTML=E.ideias.map(i=>{
    const ab=ideiaAberta===i.id;
@@ -2661,6 +2642,61 @@ function rAvisosComerciais(){
  }));
 }
 let cmDoneOpen=false;
+let cmArqOpen=false;
+function rProjComerciais(){
+ const zonas=[["cmGridAlta",3],["cmGridMedia",2],["cmGridBaixa",1]];
+ const todos=(D.projectos||[]).filter(p=>p.categoria==="COMERCIAL"&&p.estado!=="arquivado"&&p.estado!=="concluído"&&p.nome!=="Comercial");
+ const feitos=(D.projectos||[]).filter(p=>p.categoria==="COMERCIAL"&&(p.estado==="concluído"||p.estado==="arquivado"));
+ const cardP=p=>{
+  const ts=D.tarefas.filter(t=>t.projecto===p.nome);
+  const done=ts.filter(t=>t.estado==="concluída").length;
+  const st=estadoP(p);
+  return `<div class="pcard card" draggable="true" data-cpc="${p.id}">
+   <div class="pname">${esc(p.nome)}</div>
+   <div class="tags"><span class="chip">${esc(st)}</span>${p.marca?`<span class="chip">${p.marca}</span>`:""}</div>
+   <div class="accbar" style="background:${p.cor||"var(--acc)"}"></div>
+   <div class="pmeta"><span>${ts.length?`${done}/${ts.length} tarefas`:"sem tarefas"}</span><span></span></div>
+  </div>`;
+ };
+ zonas.forEach(([id,pri])=>{
+  const el=$(id);if(!el)return;
+  const arr=todos.filter(p=>(p.prioridade||2)===pri);
+  el.innerHTML=arr.map(cardP).join("")||`<div class="empty">—</div>`;
+ });
+ // arrastar entre zonas
+ document.querySelectorAll("#v-COMERCIAL .pzone").forEach(z=>{
+  z.addEventListener("dragover",e=>{e.preventDefault();z.classList.add("dragover");});
+  z.addEventListener("dragleave",()=>z.classList.remove("dragover"));
+  z.addEventListener("drop",async e=>{
+   e.preventDefault();z.classList.remove("dragover");
+   const p=D.projectos.find(x=>x.id===cmDragId);
+   if(p){p.prioridade=+z.dataset.cpri;await save();rEstrategia();}
+  });
+ });
+ document.querySelectorAll("[data-cpc]").forEach(c=>{
+  c.addEventListener("click",()=>openP(c.dataset.cpc));
+  c.addEventListener("dragstart",()=>{cmDragId=c.dataset.cpc;c.classList.add("dragging");});
+  c.addEventListener("dragend",()=>c.classList.remove("dragging"));
+ });
+ // concluídos
+ const aw=$("cmArqWrap");
+ if(aw){
+  aw.innerHTML=feitos.length?`<div class="cgroup"><div class="cgrouph acc" id="cmArqAcc"><span class="accarr">${cmArqOpen?"▾":"▸"}</span>concluídos · ${feitos.length}</div><div class="cgbody pgrid" id="cmArqBody" style="display:${cmArqOpen?"grid":"none"}">${cmArqOpen?feitos.map(cardP).join(""):""}</div></div>`:"";
+  const acc=$("cmArqAcc");
+  if(acc)acc.addEventListener("click",()=>{cmArqOpen=!cmArqOpen;rEstrategia();});
+  if(cmArqOpen)document.querySelectorAll("#cmArqBody [data-cpc]").forEach(c=>c.addEventListener("click",()=>openP(c.dataset.cpc)));
+ }
+}
+let cmDragId=null;
+async function novoProjComercial(){
+ const r=await pedir({titulo:"Novo projecto comercial",campos:[{tipo:"texto",nome:"nome",label:"nome do projecto"}]});
+ if(!r||!r.nome||!r.nome.trim())return;
+ const CORES=["#C74A3C","#3AAFA9","#7FA88B","#C77B3C","#6B92E5","#A87CA8","#94A83C"];
+ D.projectos.push({id:"cm"+Date.now(),categoria:"COMERCIAL",nome:r.nome.trim(),estado:"em curso",
+  cliente:false,marca:"studio",prioridade:2,inicio:hoje(),prazo:null,horasPrevistas:null,
+  horasGastas:0,orcamento:null,adjudicado:true,cor:CORES[Math.floor(Math.random()*CORES.length)],gastos:[]});
+ await save();rEstrategia();
+}
 function rTarefasComerciais(){
  const box=$("cmTarefas");if(!box)return;
  const all=(D.tarefas||[]).filter(t=>t.projecto==="Comercial"&&t.estado!=="arquivada");
@@ -3326,6 +3362,13 @@ async function mAdd(){
 
 /* ============ tarefas ============ */
 function pcor(t){const p=(D.projectos||[]).find(x=>x.nome===t.projecto&&x.categoria===t.categoria);return p&&p.cor?p.cor:"#999";}
+// tarefas comerciais distinguem-se por uma estrela em vez do ponto colorido
+function pmark(t){
+ const cor=pcor(t);
+ if(t.categoria==="COMERCIAL")
+  return `<svg class="pstar" width="11" height="11" viewBox="0 0 24 24" fill="${cor}" stroke="none"><path d="m12 2 2.9 6.3 6.8.8-5 4.7 1.3 6.7L12 17.3 6 20.5l1.3-6.7-5-4.7 6.8-.8Z"/></svg>`;
+ return `<i class="pdot" style="background:${cor}"></i>`;
+}
 /* ============ cronómetro por tarefa ============ */
 const TIMER_MAX_H=8; // travão: acima disto pergunta em vez de gravar às cegas
 function timerDecorridoMs(){
@@ -3440,7 +3483,7 @@ function rTaskList(el,list){
   const generica=!t.projecto||t.projecto==="Inbox";
   el.insertAdjacentHTML("beforeend",`<div class="trow ${t.estado==="concluída"?"done":""} ${t.estado==="em espera"?"espera":""}" draggable="true" data-drag="${t.id}">
    <button class="chk${t.estado==="concluída"?" c":""}" data-a="tg" data-id="${t.id}" aria-label="concluir"></button>
-   <span style="display:flex;align-items:baseline;min-width:0;cursor:pointer" data-op="${(D.projectos.find(x=>x.nome===t.projecto)||{}).id||""}"><i class="pdot" style="background:${pcor(t)}"></i><span style="min-width:0"><span class="tt">${esc(t.titulo)}${urg?' <span class="meta urg">⚠</span>':""}${t.responsavel&&t.responsavel!=="Ricardo"?` <span class="chip hot" style="display:inline">${esc(t.responsavel)}</span>`:""}</span><span class="sub2">${t.categoria} · ${esc(t.projecto)}</span></span></span>
+   <span style="display:flex;align-items:baseline;min-width:0;cursor:pointer" data-op="${(D.projectos.find(x=>x.nome===t.projecto)||{}).id||""}">${pmark(t)}<span style="min-width:0"><span class="tt">${esc(t.titulo)}${urg?' <span class="meta urg">⚠</span>':""}${t.responsavel&&t.responsavel!=="Ricardo"?` <span class="chip hot" style="display:inline">${esc(t.responsavel)}</span>`:""}</span><span class="sub2">${t.categoria} · ${esc(t.projecto)}</span></span></span>
    <span class="tctrl">
     ${(()=>{const ht=horasTarefa(t);return `<input class="tcell tempot" data-httid="${t.id}" data-htold="${ht}" value="${ht>0?fmtH(ht):""}" placeholder="—" title="tempo registado nesta tarefa · edita para ajustar" />`;})()}
     ${dateChip("t:"+t.id+":data",t.data?fmtDataCurta(t.data):"dia",t.data,"")}
@@ -3773,7 +3816,7 @@ function editarMeta(id){
 function rAnual(){
  const box=$("anualGrid");if(!box)return;
  const MESES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
- const {prepararM}=calcOportunidadesPorMes();
+ const {aconteceM,prepararM}=calcOportunidadesPorMes();
  const mesAtual=new Date().getMonth();
  if(!D.metasAnuais)D.metasAnuais=[];
  // dois blocos de destaque: ano inteiro + mês atual
@@ -3800,7 +3843,8 @@ function rAnual(){
    <div class="focotop">
     <div>
      <div class="ecmn" style="margin:0;color:var(--acc)">${MESES[mesAtual]} · agora</div>
-     ${prepararM[mesAtual].length?`<div class="mesprep" style="margin-top:4px"><span class="eclbl prep">a preparar</span> ${esc(prepararM[mesAtual].join(" · "))}</div>`:""}
+     ${aconteceM[mesAtual].length?`<div class="mesprep" style="margin-top:4px"><span class="eclbl">acontece</span> ${esc(aconteceM[mesAtual].join(" · "))}</div>`:""}
+     ${prepararM[mesAtual].length?`<div class="mesprep" style="margin-top:3px"><span class="eclbl prep">a preparar</span> ${esc(prepararM[mesAtual].join(" · "))}</div>`:""}
     </div>
     <button class="btn" data-anadd="${mesAtual+1}" style="font-size:10px;padding:6px 11px">+ objectivo</button>
    </div>
@@ -3810,14 +3854,15 @@ function rAnual(){
  box.innerHTML=MESES.map((m,i)=>{
   const mn=i+1;
   const metas=D.metasAnuais.filter(x=>x.mes===mn);
-  const prep=prepararM[i];
-  const vazio=!metas.length&&!prep.length;
+  const prep=prepararM[i],acon=aconteceM[i];
+  const vazio=!metas.length&&!prep.length&&!acon.length;
   return `<div class="card mesrow${i===mesAtual?" now":""}${vazio?" vazio":""}">
     <div class="mescol">
      <span class="mesnome">${m}</span>
      <button class="ico anualAdd" data-anadd="${mn}" title="Novo objectivo">+</button>
     </div>
     <div class="mesconteudo">
+     ${acon.length?`<div class="mesprep mesacon"><span class="eclbl">acontece</span> ${esc(acon.join(" · "))}</div>`:""}
      ${prep.length?`<div class="mesprep"><span class="eclbl prep">a preparar</span> ${esc(prep.join(" · "))}</div>`:""}
      ${metas.length?`<div class="mesgrid">${Object.keys(CATS_ANUAL).map(k=>{
        const ms=metas.filter(x=>(x.cat==="publicacao"?"divulgacao":x.cat)===k);
@@ -3879,7 +3924,7 @@ function rSemana(){
 function taskChip(t,iso,isPrazo){
  const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
  const late=t.prazo&&t.prazo<hoje();
- return `<div class="wt${late?" late":""}${isPrazo?" prazo":""}" draggable="true" data-tid="${t.id}" data-pid="${pid}"><i class="pdot" style="background:${pcor(t)}"></i><span>${esc(t.titulo)}${isPrazo?' <span class="wm">prazo</span>':""}</span></div>`;
+ return `<div class="wt${late?" late":""}${isPrazo?" prazo":""}" draggable="true" data-tid="${t.id}" data-pid="${pid}">${pmark(t)}<span>${esc(t.titulo)}${isPrazo?' <span class="wm">prazo</span>':""}</span></div>`;
 }
 let dragTid=null;
 function bindAgendaDnD(){
