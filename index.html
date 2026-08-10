@@ -145,7 +145,18 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .catpick.on{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);color:var(--txt);}
 #metaCats .metadot{width:8px;height:8px;}
 .metadot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
-.pmk{flex-shrink:0;}
+.pmk{flex-shrink:0;margin-right:7px;vertical-align:-1px;}
+.precorow{display:grid;grid-template-columns:minmax(120px,1fr) 110px minmax(0,2fr) 26px;gap:12px;align-items:start;padding:9px 16px;border-bottom:1px solid var(--line);font-size:12.5px;}
+.precorow>*{min-width:0;}
+.preconome{font-weight:600;outline:none;}
+.precoval{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--acc2);outline:none;}
+.precocond{font-size:11.5px;color:var(--soft);line-height:1.5;outline:none;white-space:pre-wrap;}
+.preconome:focus,.precoval:focus,.precocond:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:6px;padding:2px 5px;}
+@media(max-width:760px){.precorow{grid-template-columns:minmax(0,1fr) 26px;row-gap:5px;}.precorow .precocond{grid-column:1/-1;}}
+.boxgrip{cursor:grab;color:var(--soft);opacity:.3;font-size:10px;margin-right:7px;user-select:none;}
+.hcard:hover .boxgrip{opacity:.75;}
+.boxdragging{opacity:.4;}
+.home .hcol>[data-box]{transition:opacity .15s;}
 .anualMeta{align-items:center;}
 .metarow{display:flex;gap:6px;align-items:baseline;font-size:11px;line-height:1.5;padding:2px 0;}
 .metarow .metadot{margin-top:4px;}
@@ -690,7 +701,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <a class="ico glink" href="https://news.google.com" target="_blank" rel="noopener" title="Google Notícias"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9h4"/><path d="M10 6h8M10 10h8M10 14h4"/></svg></a>
     <span class="hsep"></span>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
-    <button class="ico" style="width:30px;height:30px" title="Preçário" onclick="goPrecario()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Notas práticas" onclick="goNotasRima()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Light tasks" onclick="abrirLight()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5c0 7-6 12-13 12H4c0-7 5-12 12-12 2 0 4 0 4 0Z"/><path d="M4 21c2-5 6-8 11-9"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Tracker" onclick="goTracker()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></button>
@@ -704,11 +714,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <button data-v="HOJE" class="on">Home</button>
   <button data-v="AGENDA">Agenda</button>
   <button data-v="RIMA">Rima</button>
-  <button data-v="GESTAO">Gestão</button>
-  <button data-v="REGISTOS">Registos</button>
   <button data-v="COMERCIAL">Comercial</button>
   <button data-v="REDES">Redes</button>
   <button data-v="TAREFAS">Tarefas</button>
+  <button data-v="GESTAO">Gestão</button>
+  <button data-v="REGISTOS">Registos</button>
   <button data-v="SERVICOS">Serviços</button>
   <button data-v="MUSICA">Música</button>
   <button data-v="ARTE">Arte</button>
@@ -725,26 +735,27 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     </div>
   </div>
   <div class="home">
-    <div class="hcol">
-      <div class="card hcard mini"><h5>aniversários</h5><div id="hAniv"></div></div>
-      <div class="card hcard"><h5>agenda</h5><div id="hAg"></div></div>
-      <div class="card hcard"><h5 style="display:flex;justify-content:space-between;align-items:center">urgente<button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
-      <div class="card hcard"><h5>em espera</h5><div id="hEspera"></div></div>
-      <div class="card hcard"><h5>emails</h5><div id="hMail"></div></div>
+    <div class="hcol" data-col="0">
+      <div class="card hcard mini" data-box="aniv"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>aniversários</h5><div id="hAniv"></div></div>
+      <div class="card hcard" data-box="agenda"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>agenda</h5><div id="hAg"></div></div>
+      <div class="card hcard" data-box="urgente"><h5 style="display:flex;justify-content:space-between;align-items:center"><span><span class="boxgrip" title="arrastar para reorganizar">⠿</span>urgente</span><button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
+      <div class="card hcard" data-box="espera"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>em espera</h5><div id="hEspera"></div></div>
+      <div class="card hcard" data-box="emails"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>emails</h5><div id="hMail"></div></div>
     </div>
-    <div class="hcol">
-      <div id="hAlertas"></div>
-      <div id="hMetas"></div>
-      <div class="card hcard"><h5>por adjudicar</h5><div id="hAdj"></div></div>
+    <div class="hcol" data-col="1">
+      <div id="hAlertas" data-box="comercial"></div>
+      <div id="hMetas" data-box="objectivos"></div>
+      <div class="card hcard" data-box="adjudicar"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>por adjudicar</h5><div id="hAdj"></div></div>
+      <div class="card hcard" data-box="pessoais"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>casa · arte · música</h5><div id="hOutras"></div></div>
     </div>
-    <div class="hcol">
-      <div class="card hcard"><h5>inbox · genéricas</h5><input class="pin" id="hInboxNew" placeholder="nova tarefa genérica… (Enter)" style="width:100%;margin-bottom:8px"/><div id="hInbox"></div></div>
-      <div class="card hcard">
-        <h5>pesquisar tarefas</h5>
+    <div class="hcol" data-col="2">
+      <div class="card hcard" data-box="inbox"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>inbox · genéricas</h5><input class="pin" id="hInboxNew" placeholder="nova tarefa genérica… (Enter)" style="width:100%;margin-bottom:8px"/><div id="hInbox"></div></div>
+      <div class="card hcard" data-box="pesquisa">
+        <h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>pesquisar tarefas</h5>
         <input class="pin" id="hSearch" placeholder="escreve para procurar…" style="width:100%;margin-bottom:8px"/>
         <div id="hSearchRes"></div>
       </div>
-      <div class="card hcard mini"><h5>projectos de cliente</h5><div id="hProj"></div></div>
+      <div class="card hcard mini" data-box="projectos"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>projectos de cliente</h5><div id="hProj"></div></div>
     </div>
   </div>
 </div>
@@ -778,6 +789,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
    </span>
   </h2>
   <div class="card" style="padding:10px 0" id="svLista"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">Preços e condições<button class="ico" style="width:28px;height:28px" title="Nova entrada" onclick="addPreco()">＋</button></h2>
+  <div class="card" style="padding:10px 0" id="precoLista"></div>
 </div>
 
 <!-- ============ TRACKER ============ -->
@@ -1441,6 +1454,7 @@ async function load(){
  if(D.timer===undefined)D.timer=null;
  if(!D.extrasCat)D.extrasCat={};
  if(!D.metasAnuais)D.metasAnuais=[];
+ if(!D.precosCondicoes)D.precosCondicoes=[];
  // objectivos criados antes de existirem categorias caem em planeamento, para nunca ficarem invisíveis
  D.metasAnuais.forEach(m=>{if(!m.cat)m.cat="planeamento";});
  if(!D.notasRicardo)D.notasRicardo=[
@@ -1799,6 +1813,54 @@ document.addEventListener("input",e=>{
  if(e.target.id==="hSearch")rSearchTasks(e.target.value,"hSearchRes");
  if(e.target.id==="tSearch")rSearchTasks(e.target.value,"tSearchRes");
 });
+/* ============ reorganizar caixas da home por arrasto ============ */
+let boxDrag=null;
+function aplicarLayoutHome(){
+ const L=D.layoutHome;
+ if(!L)return;
+ document.querySelectorAll(".home .hcol").forEach(col=>{
+  const ordem=L[col.dataset.col];
+  if(!ordem)return;
+  ordem.forEach(nome=>{
+   const el=document.querySelector(`.home [data-box="${nome}"]`);
+   if(el)col.appendChild(el);
+  });
+ });
+}
+async function guardarLayoutHome(){
+ const L={};
+ document.querySelectorAll(".home .hcol").forEach(col=>{
+  L[col.dataset.col]=[...col.querySelectorAll("[data-box]")].map(e=>e.dataset.box);
+ });
+ D.layoutHome=L;await save();
+}
+function bindHomeDrag(){
+ document.querySelectorAll(".home [data-box]").forEach(box=>{
+  const grip=box.querySelector(".boxgrip");
+  if(grip){
+   grip.onmousedown=()=>{box.draggable=true;};
+   grip.ontouchstart=()=>{box.draggable=true;};
+  }else box.draggable=true;
+  box.ondragstart=e=>{boxDrag=box;box.classList.add("boxdragging");e.dataTransfer.effectAllowed="move";};
+  box.ondragend=()=>{box.classList.remove("boxdragging");box.draggable=!box.querySelector(".boxgrip");boxDrag=null;
+   document.querySelectorAll(".boxover").forEach(x=>x.classList.remove("boxover"));guardarLayoutHome();};
+  box.ondragover=e=>{
+   if(!boxDrag||boxDrag===box)return;
+   e.preventDefault();
+   const r=box.getBoundingClientRect();
+   const meio=r.top+r.height/2;
+   box.parentNode.insertBefore(boxDrag,e.clientY<meio?box:box.nextSibling);
+  };
+ });
+ document.querySelectorAll(".home .hcol").forEach(col=>{
+  col.ondragover=e=>{if(boxDrag)e.preventDefault();};
+  col.ondrop=e=>{
+   if(!boxDrag)return;
+   e.preventDefault();
+   if(!col.contains(boxDrag))col.appendChild(boxDrag);
+  };
+ });
+}
 function rHome(){
  const n=new Date();
  // agenda do dia
@@ -1937,6 +1999,28 @@ function rHome(){
   const valPorFechar=porFechar.reduce((s,r)=>s+(+r[6]||0),0);
   if(porFechar.length)linhas.push(`<div class="hsub" style="margin-top:6px">${porFechar.length} proposta${porFechar.length===1?"":"s"} por fechar · €${valPorFechar.toLocaleString("pt-PT")}</div>`);
   hAl.innerHTML=`<div class="card hcard"><h5>comercial</h5>${linhas.join("")}</div>`;
+ }
+ // urgentes fora da RIMA: casa, arte, música
+ aplicarLayoutHome();bindHomeDrag();
+ const ho=$("hOutras");
+ if(ho){
+  const outras=D.tarefas.filter(t=>{
+   if(["arquivada","concluída","em espera"].includes(t.estado))return false;
+   if(!["CASA","ARTE","MUSICA"].includes(t.categoria))return false;
+   const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
+   return (dl!==null&&dl<=14)||t.data===hoje();
+  }).sort((a,b)=>(a.prazo||a.data||"9999").localeCompare(b.prazo||b.data||"9999")).slice(0,8);
+  ho.innerHTML=outras.map(t=>{
+   const pid=(D.projectos.find(x=>x.nome===t.projecto&&x.categoria===t.categoria)||{}).id||"";
+   const ref=t.prazo||t.data;
+   const dl=ref?Math.ceil((new Date(ref)-n)/864e5):null;
+   return `<div class="hitem"${pid?` data-op="${pid}" style="cursor:pointer"`:""}><button class="hchk" data-ho="${t.id}" aria-label="concluir"></button>${pmark(t)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0">${esc(t.titulo)}</span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?(dl<0?"atraso":dl+"d"):"hoje"}</span></div>`;
+  }).join("")||`<div class="hsub">nada urgente</div>`;
+  ho.querySelectorAll("[data-ho]").forEach(b=>b.addEventListener("click",async e=>{
+   e.stopPropagation();const t=D.tarefas.find(x=>x.id===b.dataset.ho);
+   if(t){t.estado="concluída";await save();rAll();}
+  }));
+  ho.querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
  }
  // objectivos: ano inteiro + mês atual, em bullets curtos
  const hm=$("hMetas");
@@ -2740,6 +2824,40 @@ function rServicos(){
   });
  }));
 }
+function rPrecos(){
+ const box=$("precoLista");if(!box)return;
+ const L=D.precosCondicoes||[];
+ box.innerHTML=L.map(x=>`<div class="precorow">
+   <span class="preconome" contenteditable data-pcn="${x.id}">${esc(x.nome)}</span>
+   <span class="precoval" contenteditable data-pcv="${x.id}">${esc(x.valor||"")}</span>
+   <span class="precocond" contenteditable data-pcc="${x.id}">${esc(x.cond||"")}</span>
+   <button class="ico fdel" data-pcdel="${x.id}" title="Apagar" style="position:static">✕</button>
+  </div>`).join("")||`<div class="empty">sem entradas — usa o ＋</div>`;
+ const grava=async(id,campo,el)=>{
+  const x=D.precosCondicoes.find(y=>y.id===id);
+  if(x){x[campo]=el.innerText.trim();await save();}
+ };
+ box.querySelectorAll("[data-pcn]").forEach(el=>el.addEventListener("blur",()=>grava(el.dataset.pcn,"nome",el)));
+ box.querySelectorAll("[data-pcv]").forEach(el=>el.addEventListener("blur",()=>grava(el.dataset.pcv,"valor",el)));
+ box.querySelectorAll("[data-pcc]").forEach(el=>el.addEventListener("blur",()=>grava(el.dataset.pcc,"cond",el)));
+ box.querySelectorAll("[data-pcdel]").forEach(b=>b.addEventListener("click",()=>{
+  const x=D.precosCondicoes.find(y=>y.id===b.dataset.pcdel);
+  confirmar("Apagar entrada?",x?x.nome:"",async()=>{
+   D.precosCondicoes=D.precosCondicoes.filter(y=>y.id!==b.dataset.pcdel);
+   await save();rPrecos();
+  });
+ }));
+}
+async function addPreco(){
+ const r=await pedir({titulo:"Nova entrada de preço",campos:[
+  {tipo:"texto",nome:"nome",label:"nome"},
+  {tipo:"texto",nome:"valor",label:"valor",ph:"ex: 60€, 40-80€, sob consulta"}
+ ]});
+ if(!r||!r.nome||!r.nome.trim())return;
+ D.precosCondicoes=D.precosCondicoes||[];
+ D.precosCondicoes.push({id:"pc"+Date.now(),nome:r.nome.trim(),valor:(r.valor||"").trim(),cond:""});
+ await save();rPrecos();
+}
 async function addServico(){
  const cats=[...new Set((D.servicosComerciais||[]).map(s=>s.cat))].filter(Boolean);
  const r=await pedir({titulo:"Novo serviço",campos:[
@@ -2793,6 +2911,7 @@ const COMANDOS=[
  {cmd:"ORDEM DE TRABALHO",label:"ordem de trabalho",icon:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'},
  {cmd:"NOVO PROJECTO",label:"novo projecto",icon:'<path d="M12 5v14M5 12h14"/>'},
  {cmd:"CONTABILIDADE MENSAL",label:"contabilidade mensal",icon:'<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'},
+ {cmd:"AVALIAÇÃO COMERCIAL",label:"avaliação comercial",icon:'<path d="M3 3v18h18"/><path d="m7 14 3-3 3 3 5-6"/><circle cx="18" cy="8" r="1.5" fill="currentColor"/>'},
  {cmd:"CHECK DE REGISTOS",label:"check de registos",icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="m8 12 2.5 2.5L16 9"/>'},
  {cmd:"NOVOS POSTS",label:"novos posts",icon:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>'},
  {cmd:"FECHAR CONTABILIDADE MENSAL",label:"fechar contabilidade",icon:'<path d="M20 6 9 17l-5-5"/>'},
@@ -3296,6 +3415,7 @@ async function mAdd(){
 function pcor(t){const p=(D.projectos||[]).find(x=>x.nome===t.projecto&&x.categoria===t.categoria);return p&&p.cor?p.cor:"#999";}
 // cada categoria tem um marcador próprio, na cor do projecto
 const MARCAS={
+ INBOX:'<path d="M6 3.5 20 12 6 20.5Z"/>',
  COMERCIAL:'<path d="m12 2 2.9 6.3 6.8.8-5 4.7 1.3 6.7L12 17.3 6 20.5l1.3-6.7-5-4.7 6.8-.8Z"/>',
  CASA:'<path d="M12 2.6 2.5 10.4V21a1 1 0 0 0 1 1h5.2v-6.4h6.6V22h5.2a1 1 0 0 0 1-1V10.4Z"/>',
  MUSICA:'<path d="M20 2.2 9.4 4.6v11.7a3.4 3.4 0 1 0 2 3.1V9.1l8.6-2v6a3.4 3.4 0 1 0 2 3.1Z"/>',
@@ -3303,7 +3423,8 @@ const MARCAS={
 };
 function pmark(t){
  const cor=pcor(t);
- const d=MARCAS[t.categoria];
+ const semProjecto=!t.projecto||t.projecto==="Inbox";
+ const d=semProjecto?MARCAS.INBOX:MARCAS[t.categoria];
  if(d)return `<svg class="pmk" width="11" height="11" viewBox="0 0 24 24" fill="${cor}" stroke="none">${d}</svg>`;
  return `<i class="pdot" style="background:${cor}"></i>`;
 }
@@ -4087,7 +4208,7 @@ function goPrecario(){
  document.querySelectorAll(".nav button").forEach(x=>{x.classList.toggle("on",x.dataset.v==="SERVICOS");});
  cat=null;document.body.dataset.theme="HOJE";
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
- $("v-SERVICOS").classList.add("on");rPrec();rServicos();
+ $("v-SERVICOS").classList.add("on");rPrec();rServicos();rPrecos();
 }
 let nrSel={notasRima:null,notasRicardo:null};
 const CADERNOS={
@@ -4232,7 +4353,7 @@ $("nav").addEventListener("click",e=>{
   if(v==="AGENDA")rAgenda();
   if(v==="GESTAO"){rCom();rDesp();}
   if(v==="REGISTOS")rConta();
-  if(v==="SERVICOS"){rPrec();rServicos();}
+  if(v==="SERVICOS"){rPrec();rServicos();rPrecos();}
   if(v==="COMERCIAL")rEstrategia();
   if(v==="REDES")rRedes();
   if(v==="TRACKER")rTracker();
