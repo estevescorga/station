@@ -32,10 +32,20 @@ body[data-theme="CASA"]{
   --acc:#0E7C72; --acc2:#3AA99C; --ok:#4F8F6B;
 }
 
+/* ---- modo escuro: sobrepõe-se a qualquer tema ---- */
+body.dark{
+  --bg:#22242A; --txt:#E6E4DF; --soft:#8B8D96; --line:#31343C;
+  --sh-d:#16171B; --sh-l:#2E313A;
+  --acc:#E06A58; --acc2:#4FC7C0; --ok:#8FBF9B;
+}
+body.dark[data-theme="ARTE"]{--acc:#D9743C; --acc2:#E0A050; --ok:#8FAE78;}
+body.dark[data-theme="CASA"]{--acc:#3FB8AA; --acc2:#5EC4B6; --ok:#7FBF97;}
+body.dark[data-theme="MUSICA"]{--acc:#B98FB9; --acc2:#7FA0C9;}
+
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;padding:26px 18px 24px;transition:background .35s,color .35s;}
 body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.25;mix-blend-mode:multiply;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.92" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="linear" slope="1.35" intercept="-0.16"/><feFuncG type="linear" slope="1.35" intercept="-0.16"/><feFuncB type="linear" slope="1.35" intercept="-0.16"/></feComponentTransfer></filter><rect width="100%25" height="100%25" filter="url(%23n)"/></svg>');}
-body[data-theme="MUSICA"]::after{opacity:.09;mix-blend-mode:screen;}
+body[data-theme="MUSICA"]::after,body.dark::after{opacity:.09;mix-blend-mode:screen;}
 .wrap{max-width:1760px;margin:0 auto;padding:0 clamp(20px,4.5vw,72px);}
 @media(max-width:1100px){.wrap{padding:0;}}
 .mono{font-family:'IBM Plex Mono',monospace;}
@@ -705,6 +715,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <button class="ico" style="width:30px;height:30px" title="Light tasks" onclick="abrirLight()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5c0 7-6 12-13 12H4c0-7 5-12 12-12 2 0 4 0 4 0Z"/><path d="M4 21c2-5 6-8 11-9"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Tracker" onclick="goTracker()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></button>
     <button class="ico" id="btnSom" style="width:30px;height:30px" title="Som ao mudar de bloco" onclick="toggleSom()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
+    <button class="ico" id="btnDark" style="width:30px;height:30px" title="Modo escuro" onclick="toggleDark()"></button>
     <button class="ico" style="width:30px;height:30px" title="Melhorias da Station" onclick="openNotas()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
     <div class="clock"><div class="d" id="cD">—</div><div class="h" id="cH">—</div></div>
   </div>
@@ -780,6 +791,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div id="refBox" hidden style="margin-bottom:26px">
    <div class="vgrid"><div class="card" style="padding:14px 18px" id="pTab"></div><div class="fcard card" id="pPar"></div></div>
   </div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Preços e condições<button class="ico" style="width:28px;height:28px" title="Nova entrada" onclick="addPreco()">＋</button></h2>
+  <div class="card" style="padding:10px 0;margin-bottom:26px" id="precoLista"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">Serviços
    <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <span class="cond"><span class="condlbl">cliente</span><span class="condbtns" id="svCliente"></span></span>
@@ -789,8 +802,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
    </span>
   </h2>
   <div class="card" style="padding:10px 0" id="svLista"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">Preços e condições<button class="ico" style="width:28px;height:28px" title="Nova entrada" onclick="addPreco()">＋</button></h2>
-  <div class="card" style="padding:10px 0" id="precoLista"></div>
 </div>
 
 <!-- ============ TRACKER ============ -->
@@ -2929,6 +2940,24 @@ function rCmdBtns(){
   setTimeout(()=>{b.classList.remove("copiado");lbl.textContent=old;},1200);
  }));
 }
+const ICO_LUA='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>';
+const ICO_SOL='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>';
+function rDarkBtn(){
+ const b=$("btnDark");if(!b)return;
+ const on=document.body.classList.contains("dark");
+ b.innerHTML=on?ICO_SOL:ICO_LUA;
+ b.title=on?"Modo claro":"Modo escuro";
+}
+async function toggleDark(){
+ const on=!document.body.classList.contains("dark");
+ document.body.classList.toggle("dark",on);
+ D.darkMode=on;rDarkBtn();
+ try{await save();}catch(e){}
+}
+function aplicarDark(){
+ document.body.classList.toggle("dark",!!(D&&D.darkMode));
+ rDarkBtn();
+}
 function openNotas(){
  $("nTxt").value=D.notasStation||"";
  $("nStatus").textContent="";
@@ -4359,7 +4388,7 @@ $("nav").addEventListener("click",e=>{
   if(v==="TRACKER")rTracker();
  }
 });
-function rAll(){rTimerBar();rSemaforo();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
+function rAll(){aplicarDark();rTimerBar();rSemaforo();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
 const PIN_OK="Rimmmmmma1";  // senha de entrada
 let _booted=false;
 async function boot(){
