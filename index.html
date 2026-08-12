@@ -155,6 +155,8 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .catpick.on{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);color:var(--txt);}
 #metaCats .metadot{width:8px;height:8px;}
 .metadot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.metatraco{border:none;background:none;cursor:pointer;padding:0;font-size:13px;line-height:1;flex-shrink:0;font-weight:700;}
+.legtraco{font-style:normal;font-weight:700;flex-shrink:0;line-height:1;}
 .pmk{flex-shrink:0;margin-right:7px;vertical-align:-1px;}
 .precorow{display:grid;grid-template-columns:minmax(120px,1fr) 110px minmax(0,2fr) 26px;gap:12px;align-items:start;padding:9px 16px;border-bottom:1px solid var(--line);font-size:12.5px;}
 .precorow>*{min-width:0;}
@@ -761,7 +763,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div class="card hcard" data-box="emails"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>emails</h5><div id="hMail"></div></div>
     </div>
     <div class="hcol" data-col="1">
-      <div id="hAlertas" data-box="comercial"></div>
       <div id="hMetas" data-box="objectivos"></div>
       <div class="card hcard" data-box="adjudicar"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>por adjudicar</h5><div id="hAdj"></div></div>
       <div class="card hcard" data-box="pessoais"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>casa · arte · música</h5><div id="hOutras"></div></div>
@@ -798,7 +799,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div id="refBox" hidden style="margin-bottom:26px">
    <div class="vgrid"><div class="card" style="padding:14px 18px" id="pTab"></div><div class="fcard card" id="pPar"></div></div>
   </div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Preços e condições<button class="ico" style="width:28px;height:28px" title="Nova entrada" onclick="addPreco()">＋</button></h2>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Serviços, produtos, preços e condições<button class="ico" style="width:28px;height:28px" title="Nova entrada" onclick="addPreco()">＋</button></h2>
   <div class="card" style="padding:10px 0;margin-bottom:26px" id="precoLista"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">Serviços
    <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -1728,7 +1729,7 @@ function rLight(){
  });
  if(ms.length){
   html+=`<div class="hgrouph" style="margin-top:14px">objectivos</div>`;
-  ms.forEach(m=>{html+=`<div class="lightrow"><span class="metadot" style="background:${catMeta(m).cor}"></span><span>${esc(m.titulo)}</span></div>`;});
+  ms.forEach(m=>{html+=`<div class="lightrow"><span class="legtraco" style="color:${catMeta(m).cor}">—</span><span>${esc(m.titulo)}</span></div>`;});
  }
  box.innerHTML=html;
  box.querySelectorAll("[data-lchk]").forEach(b=>b.addEventListener("click",async()=>{
@@ -1984,40 +1985,10 @@ function rHome(){
  const cli=act.filter(p=>p.cliente);
  const linha=p=>{
   const dl=p.prazo?Math.ceil((new Date(p.prazo)-n)/864e5):null;
-  return `<div class="hitem" data-op="${p.id}" style="cursor:pointer"><i class="pdot" style="background:${p.cor}"></i><span>${esc(p.nome)}</span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?dl+"d":""}</span></div>`;
+  return `<div class="hitem" data-op="${p.id}" style="cursor:pointer"><span style="color:${p.cor};font-weight:600">${esc(p.nome)}</span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?dl+"d":""}</span></div>`;
  };
  $("hProj").innerHTML=cli.map(linha).join("")||`<div class="hsub">nenhum ativo</div>`;
  $("hProj").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
- // comercial
- const hAl=$("hAlertas");
- if(hAl){
-  const h0=new Date();h0.setHours(0,0,0,0);
-  const op=oportunidadeAgora();
-  const lac=typeof lacunasComerciais==="function"?lacunasComerciais():[];
-  const linhas=[];
-  if(op){
-   const dias=diffDias(h0,op.tipo==="ativo"?(op.fim||op.evento):op.inicio);
-   linhas.push(op.tipo==="ativo"
-    ?`<div class="hitem"><span class="hm" style="margin:0;color:var(--acc)">agora</span><span>${esc(op.nome)}${dias>0?` · fecha em ${dias}d`:""}</span></div>`
-    :`<div class="hitem"><span class="hm" style="margin:0">${dias}d</span><span>${esc(op.nome)} — abre a janela</span></div>`);
-  }
-  // tarefas comerciais por fazer, com prazo mais próximo
-  const tc=(D.tarefas||[]).filter(t=>t.projecto==="Comercial"&&t.estado==="ativa")
-   .sort((a,b)=>(a.prazo||a.data||"9999").localeCompare(b.prazo||b.data||"9999"));
-  tc.slice(0,3).forEach(t=>{
-   const ref=t.prazo||t.data;
-   const dl=ref?Math.ceil((new Date(ref)-n)/864e5):null;
-   linhas.push(`<div class="hitem"><span class="hm ${dl!==null&&dl<=7?"urg":""}" style="margin:0">${dl!==null?(dl<0?"atraso":dl+"d"):"—"}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo)}</span></div>`);
-  });
-  if(tc.length>3)linhas.push(`<div class="hsub">+${tc.length-3} tarefas comerciais</div>`);
-  if(!tc.length)linhas.push(`<div class="hsub">sem tarefas comerciais ativas</div>`);
-  if(lac.length)linhas.push(`<div class="hsub" style="color:var(--acc);margin-top:6px">⚠ ${lac.length} oportunidade${lac.length===1?"":"s"} sem tarefa a apontar para lá</div>`);
-  // propostas por fechar
-  const porFechar=(D.conta||[]).filter(r=>(r[8]||"")==="AGUARDA"&&!contaRej(r));
-  const valPorFechar=porFechar.reduce((s,r)=>s+(+r[6]||0),0);
-  if(porFechar.length)linhas.push(`<div class="hsub" style="margin-top:6px">${porFechar.length} proposta${porFechar.length===1?"":"s"} por fechar · €${valPorFechar.toLocaleString("pt-PT")}</div>`);
-  hAl.innerHTML=`<div class="card hcard"><h5>comercial</h5>${linhas.join("")}</div>`;
- }
  // super urgentes
  const hd=$("hDanger");
  if(hd){
@@ -2067,7 +2038,7 @@ function rHome(){
   const doMes=(D.metasAnuais||[]).filter(x=>x.mes===mesN);
   const lin=x=>{
    const c=(typeof catMeta==="function"&&catMeta(x))||{cor:"var(--soft)"};
-   return `<div class="metarow"><i class="metadot" style="background:${c.cor}"></i><span>${esc(x.titulo)}</span></div>`;
+   return `<div class="metarow"><i class="legtraco" style="color:${c.cor}">—</i><span>${esc(x.titulo)}</span></div>`;
   };
   hm.innerHTML=(doAno.length||doMes.length)
    ?`<div class="card hcard"><h5>objectivos</h5>`+
@@ -3918,7 +3889,7 @@ function abrirMeta(ctx){
 function rMetaCats(){
  const box=$("metaCats");if(!box||!metaCtx)return;
  box.innerHTML=Object.entries(CATS_ANUAL).map(([k,c])=>
-  `<button class="btn catpick${metaCtx.cat===k?" on":""}" data-mcat="${k}"><i class="metadot" style="background:${c.cor}"></i>${c.nome}</button>`).join("");
+  `<button class="btn catpick${metaCtx.cat===k?" on":""}" data-mcat="${k}"><i class="legtraco" style="color:${c.cor}">—</i>${c.nome}</button>`).join("");
  box.querySelectorAll("[data-mcat]").forEach(b=>b.addEventListener("click",()=>{metaCtx.cat=b.dataset.mcat;rMetaCats();}));
 }
 document.addEventListener("keydown",e=>{
@@ -3937,7 +3908,7 @@ const CATS_ANUAL={
 function catMeta(x){return CATS_ANUAL[x.cat==="publicacao"?"divulgacao":x.cat]||CATS_ANUAL.planeamento;}
 function metaLinha(x,comDel){
  const c=catMeta(x);
- return `<div class="anualMeta"><button class="metadot" style="background:${c.cor}" data-ancat="${x.id}" title="${c.nome} · clica para mudar"></button><span contenteditable data-antit="${x.id}">${esc(x.titulo)}</span>${comDel?`<button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button>`:""}</div>`;
+ return `<div class="anualMeta"><button class="metatraco" style="color:${c.cor}" data-ancat="${x.id}" title="${c.nome} · clica para mudar">—</button><span contenteditable data-antit="${x.id}">${esc(x.titulo)}</span>${comDel?`<button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button>`:""}</div>`;
 }
 function novaMeta(mes){abrirMeta({mes,cat:"planeamento"});}
 function editarMeta(id){
@@ -3958,8 +3929,8 @@ function rAnual(){
  const cats=Object.keys(CATS_ANUAL);
  const colCat=(k,arr)=>{
   const c=CATS_ANUAL[k];
-  if(!arr.length)return `<div class="fococol"><div class="focoh"><i class="metadot" style="background:${c.cor}"></i>${c.nome}</div><div class="hsub">—</div></div>`;
-  return `<div class="fococol"><div class="focoh"><i class="metadot" style="background:${c.cor}"></i>${c.nome}</div>${arr.map(x=>metaLinha(x,true)).join("")}</div>`;
+  if(!arr.length)return `<div class="fococol"><div class="focoh"><i class="legtraco" style="color:${c.cor}">—</i>${c.nome}</div><div class="hsub">—</div></div>`;
+  return `<div class="fococol"><div class="focoh"><i class="legtraco" style="color:${c.cor}">—</i>${c.nome}</div>${arr.map(x=>metaLinha(x,true)).join("")}</div>`;
  };
  const daCat=(lst,k)=>lst.filter(x=>(x.cat==="publicacao"?"divulgacao":x.cat)===k);
  if(topo)topo.innerHTML=`
@@ -4005,7 +3976,7 @@ function rAnual(){
  }).join("");
  // legenda das categorias
  const leg=$("anualLeg");
- if(leg)leg.innerHTML=Object.values(CATS_ANUAL).map(c=>`<span class="catleg"><i style="background:${c.cor}"></i>${c.nome}</span>`).join("");
+ if(leg)leg.innerHTML=Object.values(CATS_ANUAL).map(c=>`<span class="catleg"><i class="legtraco" style="color:${c.cor}">—</i>${c.nome}</span>`).join("");
  document.querySelectorAll("[data-anadd]").forEach(b=>b.addEventListener("click",()=>novaMeta(+b.dataset.anadd)));
  document.querySelectorAll("[data-andel]").forEach(b=>b.addEventListener("click",()=>{
   const m=D.metasAnuais.find(x=>x.id===b.dataset.andel);
@@ -4023,7 +3994,7 @@ function rAnual(){
 }
 function rSemana(){
  const g=$("wGrid");g.innerHTML="";
- const start=new Date();start.setDate(start.getDate()-3);start.setHours(0,0,0,0);
+ const start=new Date();start.setDate(start.getDate()-1);start.setHours(0,0,0,0);
  const nm=["seg","ter","qua","qui","sex","sáb","dom"];
  const ev=(agenda&&agenda.eventos)?agenda.eventos:[];
  const anv=(agenda&&agenda.aniversarios)?agenda.aniversarios:[];
