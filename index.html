@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='42' fill='%23F1EFE9' stroke='%23C74A3C' stroke-width='6'/%3E%3C/svg%3E"/>
+<title>Station</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
@@ -758,7 +759,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div id="hDanger" data-box="danger"></div>
       <div class="card hcard mini" data-box="aniv"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>aniversários</h5><div id="hAniv"></div></div>
       <div class="card hcard" data-box="agenda"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>agenda</h5><div id="hAg"></div></div>
-      <div class="card hcard" data-box="urgente"><h5 style="display:flex;justify-content:space-between;align-items:center"><span><span class="boxgrip" title="arrastar para reorganizar">⠿</span>urgente</span><button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
+      <div class="card hcard" data-box="urgente"><h5 style="display:flex;justify-content:space-between;align-items:center"><span><span class="boxgrip" title="arrastar para reorganizar">⠿</span>urgente</span><span style="display:flex;gap:6px"><button class="ico" id="urgMais" style="width:22px;height:22px;font-size:11px" title="Ver todas" onclick="toggleUrgTodas()"></button><button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></span></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
       <div class="card hcard" data-box="espera"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>em espera</h5><div id="hEspera"></div></div>
       <div class="card hcard" data-box="emails"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>emails</h5><div id="hMail"></div></div>
     </div>
@@ -1880,6 +1881,8 @@ function bindHomeDrag(){
   };
  });
 }
+let urgTodas_expandido=false;
+function toggleUrgTodas(){urgTodas_expandido=!urgTodas_expandido;rHome();}
 function rHome(){
  const n=new Date();
  // agenda do dia
@@ -1939,7 +1942,15 @@ function rHome(){
   if(ib!==-1)return 1;
   return scoreT(b)-scoreT(a);             // resto por pontuação automática
  });
- const urg=urgTodas.filter(t=>(t.responsavel||"Ricardo")!=="Marta").slice(0,10);
+ const urgR=urgTodas.filter(t=>(t.responsavel||"Ricardo")!=="Marta");
+ const urg=urgTodas_expandido?urgR:urgR.slice(0,10);
+ const btnU=$("urgMais");
+ if(btnU){
+  const esconde=urgR.length-urg.length;
+  btnU.textContent=urgTodas_expandido?"▴":(esconde>0?"+"+esconde:"▾");
+  btnU.title=urgTodas_expandido?"Mostrar menos":(esconde>0?`Ver todas (${urgR.length})`:"Ver todas");
+  btnU.style.display=(urgR.length>10||urgTodas_expandido)?"":"none";
+ }
  const urgM=urgTodas.filter(t=>(t.responsavel||"Ricardo")==="Marta").slice(0,6);
  const linhaUrg=t=>{
   const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
