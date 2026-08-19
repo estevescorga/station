@@ -156,6 +156,9 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .catpick.on{box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);color:var(--txt);}
 #metaCats .metadot{width:8px;height:8px;}
 .metadot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.dialivre{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:44px 20px;text-align:center;}
+.dlsol{font-size:30px;color:var(--acc2);opacity:.65;line-height:1;}
+.dltxt{font-family:'IBM Plex Mono',monospace;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--soft);}
 .tedit{outline:none;cursor:text;}
 .tedit:hover{box-shadow:inset 0 -1px 0 var(--line);}
 .tedit:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:5px;padding:1px 4px;}
@@ -1751,10 +1754,16 @@ function rHoje(){
  const its=rot?rot.itens:null;
  let lista,base=false;
  if(its)lista=its;
- else{
+ else if(isFolga()){
+  // fim de semana, feriado ou folga: sem rotina nenhuma
+  const dt=new Date(),iso=isoLocal(dt);
+  const motivo=((D&&D.folgas)||[]).includes(iso)?"folga":(FERIADOS.has(iso)?"feriado":"fim de semana");
+  el.innerHTML=`<div class="dialivre"><div class="dlsol">☾</div><div class="dltxt">dia livre</div><div class="hsub">${motivo}</div></div>`;
+  return;
+ }else{
   base=true;
   D.rotinaBase=deepFix(D.rotinaBase);
-  lista=isFolga()?D.rotinaBase.filter(x=>!/Bloco|Comercial|Fecho do dia|Abertura|Reunião|Estúdio|escola/i.test(x.t)):D.rotinaBase;
+  lista=D.rotinaBase;
  }
  const nm=new Date().getHours()*60+new Date().getMinutes();
  const s=[...lista].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
@@ -1991,8 +2000,10 @@ function rHome(){
   btnI.title=inbox_expandido?"Mostrar menos":`Ver todas (${genTodas.length})`;
   btnI.style.display=(genTodas.length>10||inbox_expandido)?"":"none";
  }
- $("hInbox").innerHTML=gen.map(t=>`<div class="hitem"><button class="hchk" data-hc2="${t.id}" aria-label="concluir"></button>${pmark(t)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo)}</span></div>`).join("")||`<div class="hsub">inbox limpa</div>`;
- $("hInbox").querySelectorAll("[data-hc2]").forEach(b=>b.addEventListener("click",async()=>{
+ $("hInbox").innerHTML=gen.map(t=>`<div class="hitem" data-op="inbox" style="cursor:pointer"><button class="hchk" data-hc2="${t.id}" aria-label="concluir"></button>${pmark(t)}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.titulo)}</span></div>`).join("")||`<div class="hsub">inbox limpa</div>`;
+ $("hInbox").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
+ $("hInbox").querySelectorAll("[data-hc2]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();
   const t=D.tarefas.find(x=>x.id===b.dataset.hc2);if(!t)return;t.estado="concluída";await save();rHome();rAll();
  }));
  // por adjudicar (da contabilidade + projectos marcados)
