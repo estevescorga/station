@@ -159,6 +159,12 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .dialivre{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:44px 20px;text-align:center;}
 .dlsol{font-size:30px;color:var(--acc2);opacity:.65;line-height:1;}
 .dltxt{font-family:'IBM Plex Mono',monospace;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--soft);}
+.soltarow{display:grid;grid-template-columns:24px minmax(0,1fr) auto 26px;gap:10px;align-items:start;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13px;}
+.soltarow:last-child{border-bottom:none;}
+.soltarow.feita{opacity:.45;}
+.soltarow.feita .soltatxt{text-decoration:line-through;}
+.soltatxt{outline:none;line-height:1.5;min-width:0;overflow-wrap:anywhere;}
+.soltatxt:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:6px;padding:2px 5px;}
 .buildtag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);opacity:.6;font-weight:400;margin-left:8px;letter-spacing:.04em;}
 .savemark{display:block;height:15px;line-height:15px;font-size:10px;overflow:hidden;}
 .tedit{outline:none;cursor:text;}
@@ -932,7 +938,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v20/08 17:04</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v20/08 19:52</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -982,6 +988,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
    <div class="card" style="padding:8px 0" id="npLista"></div>
    <div class="card" style="padding:18px 20px" id="npDetalhe"></div>
   </div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">Ideias soltas<span style="display:flex;gap:6px;align-items:center"><span class="hsub" style="margin:0;font-size:9.5px">ditadas ao telemóvel, recolhidas no SYNC</span><button class="ico" style="width:28px;height:28px" title="Nova ideia solta" onclick="addIdeiaSolta()">＋</button></span></h2>
+  <div class="card" style="padding:10px 0" id="soltasLista"></div>
 </div>
 
 <div class="view" id="v-PESSOAL">
@@ -1491,6 +1499,7 @@ async function load(){
  if(!D.extrasCat)D.extrasCat={};
  if(!D.metasAnuais)D.metasAnuais=[];
  if(!D.precosCondicoes)D.precosCondicoes=[];
+ if(!D.ideiasSoltas)D.ideiasSoltas=[];
  // objectivos criados antes de existirem categorias caem em planeamento, para nunca ficarem invisíveis
  D.metasAnuais.forEach(m=>{if(!m.cat)m.cat="planeamento";});
  if(!D.notasRicardo)D.notasRicardo=[
@@ -4319,7 +4328,7 @@ function goNotasRima(){
  cat=null;document.body.dataset.theme="HOJE";
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
  $("v-NOTASRIMA").classList.add("on");
- rCaderno("notasRima");rCaderno("notasRicardo");
+ rCaderno("notasRima");rCaderno("notasRicardo");rIdeiasSoltas();
 }
 const goNotasRicardo=goNotasRima;
 function rCaderno(chave){
@@ -4361,6 +4370,45 @@ async function addNota(chave){
  nrSel[chave]=D[chave][0].id;save().then(()=>rCaderno(chave));
 }
 function addNotaRima(){addNota("notasRima");}
+function rIdeiasSoltas(){
+ const box=$("soltasLista");if(!box)return;
+ const L=D.ideiasSoltas||[];
+ const porTratar=L.filter(x=>!x.tratada), tratadas=L.filter(x=>x.tratada);
+ const linha=x=>`<div class="soltarow${x.tratada?" feita":""}">
+   <button class="chk${x.tratada?" c":""}" data-istrat="${x.id}" aria-label="marcar como tratada"></button>
+   <span class="soltatxt" contenteditable data-istxt="${x.id}">${esc(x.texto)}</span>
+   <span class="hm">${x.origem||""}${x.data?" · "+fmtDataCurta(x.data):""}</span>
+   <button class="ico fdel" data-isdel="${x.id}" title="Apagar" style="position:static">✕</button>
+  </div>`;
+ box.innerHTML=(porTratar.map(linha).join("")||`<div class="empty">sem ideias por tratar</div>`)
+  +(tratadas.length?`<div class="cgroup"><div class="cgrouph acc" id="soltasAcc"><span class="accarr">${soltasOpen?"▾":"▸"}</span>tratadas · ${tratadas.length}</div><div class="cgbody" style="display:${soltasOpen?"block":"none"}">${tratadas.map(linha).join("")}</div></div>`:"");
+ box.querySelectorAll("[data-istrat]").forEach(b=>b.addEventListener("click",async()=>{
+  const x=D.ideiasSoltas.find(y=>y.id===b.dataset.istrat);
+  if(x){x.tratada=!x.tratada;await save();rIdeiasSoltas();}
+ }));
+ box.querySelectorAll("[data-istxt]").forEach(el=>el.addEventListener("blur",async()=>{
+  const x=D.ideiasSoltas.find(y=>y.id===el.dataset.istxt);
+  const t=el.innerText.trim();
+  if(x&&t&&t!==x.texto){x.texto=t;await save();}
+ }));
+ box.querySelectorAll("[data-isdel]").forEach(b=>b.addEventListener("click",()=>{
+  const x=D.ideiasSoltas.find(y=>y.id===b.dataset.isdel);
+  confirmar("Apagar ideia?",x?x.texto.slice(0,60):"",async()=>{
+   D.ideiasSoltas=D.ideiasSoltas.filter(y=>y.id!==b.dataset.isdel);
+   await save();rIdeiasSoltas();
+  });
+ }));
+ const acc=$("soltasAcc");
+ if(acc)acc.addEventListener("click",()=>{soltasOpen=!soltasOpen;rIdeiasSoltas();});
+}
+let soltasOpen=false;
+async function addIdeiaSolta(){
+ const r=await pedir({titulo:"Nova ideia solta",campos:[{tipo:"texto",nome:"t",label:"ideia"}]});
+ if(!r||!r.t||!r.t.trim())return;
+ D.ideiasSoltas=D.ideiasSoltas||[];
+ D.ideiasSoltas.unshift({id:"is"+Date.now(),texto:r.t.trim(),origem:"manual",data:hoje(),tratada:false});
+ await save();rIdeiasSoltas();
+}
 function addNotaRicardo(){addNota("notasRicardo");}
 const EXTRAS_SUGESTOES=[
  ["Organizar estúdio","estrutura"],
