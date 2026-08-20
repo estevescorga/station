@@ -1389,9 +1389,16 @@ async function load(){
  try{
   const cloud=await cloudGet();
   if(cloud&&cloud.D){
-   if(!local||!local.ts||(cloud.ts||0)>=(local.ts||0)){applySnapshot(cloud);}
-   tsConhecido=Math.max(cloud.ts||0,(local&&local.ts)||0);
-   setSt("sincronizado");
+   // A nuvem é a fonte de verdade. A cópia local só ganha se for MESMO mais recente
+   // e por uma margem real (trabalho feito offline). Uma diferença pequena costuma ser
+   // ruído de relógio ou uma gravação antiga do próprio separador, e nesse caso
+   // a cópia local ficava presa a dados velhos para sempre.
+   const dif=(local&&local.ts||0)-(cloud.ts||0);
+   const localGanha=local&&local.ts&&dif>120000; // 2 minutos
+   if(!localGanha){applySnapshot(cloud);}
+   else setSt("alterações locais por enviar");
+   tsConhecido=cloud.ts||0;
+   if(!localGanha)setSt("sincronizado");
   }else if(local&&local.D){
    // nuvem vazia: semear com o que temos localmente
    await cloudPut(snapshot());setSt("nuvem iniciada");
