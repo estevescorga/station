@@ -167,6 +167,8 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .cadlista{display:flex;flex-direction:column;gap:6px;}
 .cadbtn{border:none;cursor:pointer;background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:11.5px;text-align:left;padding:9px 11px;border-radius:11px;box-shadow:3px 3px 7px var(--sh-d),-3px -3px 7px var(--sh-l);line-height:1.35;transition:all .18s;overflow-wrap:anywhere;}
 .cadbtn:hover{color:var(--acc2);}
+.docprojrow{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.docprojrow .chip{font-size:9px;}
 .cadbtn:active{box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 #notaTit{outline:none;flex:1;min-width:0;}
 #notaTit:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:6px;padding:2px 6px;}
@@ -175,7 +177,6 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .fmtb:hover{color:var(--txt);}
 .fmtb:active{box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
 .fmtb.fmt-h1{font-size:14px;font-weight:700;}
-.fmtb.fmt-h2{font-size:12px;font-weight:600;}
 .fmtb.fmt-p{font-size:10px;font-weight:400;}
 .fmtb.fmt-menor{font-size:9px;}
 .fmtb.fmt-maior{font-size:14px;font-weight:600;}
@@ -186,10 +187,12 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .notaedit font[size="4"]{font-size:17px;}
 .notaedit font[size="5"]{font-size:20px;}
 .fmtsep{width:1px;height:16px;background:var(--line);margin:0 3px;}
-.notaedit{font-family:'Lora',Georgia,serif;font-size:14.5px;line-height:1.85;letter-spacing:.005em;}
-.notaedit h2{font-family:'Inter',sans-serif;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;margin:22px 0 10px;line-height:1.4;color:var(--txt);}
+/* tudo no mesmo tipo de letra: título grande em caps, texto pequeno e cinzento */
+.notaedit,.notaedit *{font-family:'Inter',sans-serif !important;}
+.notaedit{font-size:12.5px;line-height:1.85;letter-spacing:.005em;color:var(--soft);}
+.notaedit h2{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin:24px 0 12px;line-height:1.3;color:var(--txt);}
 .notaedit h2:first-child{margin-top:2px;}
-.notaedit h3{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.11em;margin:16px 0 6px;color:var(--soft);}
+.notaedit h3{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin:24px 0 12px;color:var(--txt);}
 .notaedit p{margin:0 0 11px;}
 .notaedit ul,.notaedit ol{margin:10px 0 12px 22px;}
 .notaedit li{margin-bottom:6px;padding-left:3px;}
@@ -444,7 +447,8 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 /* modal de projecto */
 .ovl{display:none;position:fixed;inset:0;background:rgba(40,42,50,.45);z-index:50;padding:30px 14px;overflow:auto;}
 /* modais que podem abrir por cima da ficha de projecto */
-#inpOvl,#confOvl,#metaOvl{z-index:95;}
+#notaOvl{z-index:90;}
+#inpOvl,#confOvl,#metaOvl{z-index:105;}
 .ovl.on{display:flex;align-items:flex-start;justify-content:center;}
 .modal{width:100%;max-width:1120px;padding:26px 34px 30px;box-shadow:0 24px 60px rgba(20,18,14,.38),0 6px 18px rgba(20,18,14,.22) !important;}
 @media(max-width:700px){.modal{padding:18px 14px 20px;border-radius:14px;} .ovl{padding:14px 6px;} .mhead h3{font-size:16px;}}
@@ -991,7 +995,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v21/08 14:50</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v21/08 20:35</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1060,6 +1064,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
      <div class="cadlista" id="nvLista"></div>
     </div>
   </div>
+  <h2 class="sec" style="margin-top:26px">Documentos dos projectos</h2>
+  <div id="docsProj"></div>
 </div>
 
 <div class="view" id="v-PESSOAL">
@@ -4285,7 +4291,6 @@ function barraEditor(alvoId){
  const b=(cmd,arg,titulo,txt,cls)=>`<button class="fmtb ${cls||""}" data-fmt="${cmd}" data-fmtarg="${arg||""}" data-fmtalvo="${alvoId}" title="${titulo}">${txt}</button>`;
  return `<div class="fmtbar">
    ${b("formatBlock","h2","Título","T","fmt-h1")}
-   ${b("formatBlock","h3","Subtítulo","T","fmt-h2")}
    ${b("formatBlock","p","Texto normal","T","fmt-p")}
    <span class="fmtsep"></span>
    ${b("bold","","Negrito","<b>B</b>")}
@@ -4444,7 +4449,7 @@ function goNotasRima(){
  cat=null;document.body.dataset.theme="HOJE";
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
  $("v-NOTASRIMA").classList.add("on");
- Object.keys(CADERNOS).forEach(rCaderno);rIdeiasSoltas();
+ Object.keys(CADERNOS).forEach(rCaderno);rIdeiasSoltas();rDocsProjectos();
 }
 const goNotasRicardo=goNotasRima;
 function rCaderno(chave){
@@ -4462,7 +4467,10 @@ let notaCtx=null;
 function fecharNota(){
  gravarNota();
  $("notaOvl").classList.remove("on");
- if(notaCtx){ if(notaCtx.tipo==="doc")rDocs(); else rCaderno(notaCtx.chave); }
+ if(notaCtx){
+  if(notaCtx.tipo==="doc"){ if($("dBox"))rDocs(); if($("docsProj"))rDocsProjectos(); }
+  else rCaderno(notaCtx.chave);
+ }
  notaCtx=null;
 }
 async function gravarNota(){
@@ -4512,6 +4520,35 @@ async function addNota(chave){
  await save();rCaderno(chave);abrirNota(chave,novoId);
 }
 function addNotaRima(){addNota("notasRima");}
+let docsProjOpen={};
+function rDocsProjectos(){
+ const box=$("docsProj");if(!box)return;
+ const vis=(docs||[]).filter(x=>!x.arquivado&&x.projecto);
+ if(!vis.length){box.innerHTML=`<div class="card" style="padding:16px"><div class="hsub">sem documentos em projectos</div></div>`;return;}
+ const ordem=["RIMA","COMERCIAL","ARTE","MUSICA","CASA"];
+ const porCat={};
+ vis.forEach(x=>{
+  const pj=(D.projectos||[]).find(p=>p.nome===x.projecto);
+  const c=(pj&&pj.categoria)||x.categoria||"outros";
+  (porCat[c]=porCat[c]||[]).push({...x,_cor:(pj&&pj.cor)||"var(--soft)"});
+ });
+ const cats=Object.keys(porCat).sort((a,b)=>{
+  const ia=ordem.indexOf(a),ib=ordem.indexOf(b);
+  return (ia<0?99:ia)-(ib<0?99:ib);
+ });
+ box.innerHTML=cats.map(c=>{
+  const arr=porCat[c].sort((a,b)=>(a.projecto||"").localeCompare(b.projecto||""));
+  const ab=docsProjOpen[c];
+  return `<div class="cgroup"><div class="cgrouph acc" data-dpcat="${c}"><span class="accarr">${ab?"▾":"▸"}</span>${esc(c)} · ${arr.length}</div>
+   <div class="cgbody" style="display:${ab?"block":"none"};padding:8px 12px">
+    ${arr.map(x=>`<div class="docprojrow"><button class="cadbtn" data-doc2="${x.id}" style="flex:1">${esc(x.titulo)}</button><span class="chip" style="color:${x._cor};flex-shrink:0">${esc(x.projecto)}</span></div>`).join("")}
+   </div></div>`;
+ }).join("");
+ box.querySelectorAll("[data-dpcat]").forEach(g=>g.addEventListener("click",()=>{
+  const k=g.dataset.dpcat;docsProjOpen[k]=!docsProjOpen[k];rDocsProjectos();
+ }));
+ box.querySelectorAll("[data-doc2]").forEach(b=>b.addEventListener("click",()=>abrirDoc(b.dataset.doc2)));
+}
 function rIdeiasSoltas(){
  const box=$("soltasLista");if(!box)return;
  const L=D.ideiasSoltas||[];
