@@ -159,6 +159,17 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .dialivre{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:44px 20px;text-align:center;}
 .dlsol{font-size:30px;color:var(--acc2);opacity:.65;line-height:1;}
 .dltxt{font-family:'IBM Plex Mono',monospace;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--soft);}
+.cadgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;}
+@media(max-width:1250px){.cadgrid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:700px){.cadgrid{grid-template-columns:repeat(2,1fr);}}
+.cadcol{display:flex;flex-direction:column;gap:8px;min-width:0;}
+.cadh{display:flex;justify-content:space-between;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);padding-bottom:6px;border-bottom:1px solid var(--line);}
+.cadlista{display:flex;flex-direction:column;gap:6px;}
+.cadbtn{border:none;cursor:pointer;background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:11.5px;text-align:left;padding:9px 11px;border-radius:11px;box-shadow:3px 3px 7px var(--sh-d),-3px -3px 7px var(--sh-l);line-height:1.35;transition:all .18s;overflow-wrap:anywhere;}
+.cadbtn:hover{color:var(--acc2);}
+.cadbtn:active{box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
+#notaTit{outline:none;flex:1;min-width:0;}
+#notaTit:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:6px;padding:2px 6px;}
 .fmtbar{display:flex;gap:4px;align-items:center;flex-wrap:wrap;padding:7px 9px;margin-bottom:8px;border-radius:12px;box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .fmtb{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'Inter',sans-serif;font-size:11.5px;min-width:26px;height:26px;padding:0 6px;border-radius:7px;box-shadow:2px 2px 4px var(--sh-d),-2px -2px 4px var(--sh-l);transition:all .15s;}
 .fmtb:hover{color:var(--txt);}
@@ -906,6 +917,21 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
  </div>
 </div>
 
+<div class="ovl" id="notaOvl">
+ <div class="modal card" style="max-width:760px">
+  <div class="mhead">
+   <h3 id="notaTit" contenteditable></h3>
+   <span style="display:flex;gap:6px">
+    <button class="ico" style="width:30px;height:30px;font-size:11px" id="notaDel" title="Apagar">✕</button>
+    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="fecharNota()" title="Fechar">✓</button>
+   </span>
+  </div>
+  <div id="notaBarra"></div>
+  <div class="dbody notaedit" id="notaBody" contenteditable style="min-height:320px;max-height:60vh;overflow:auto"></div>
+  <div class="hsub savemark" id="notaSave" style="margin-top:6px"></div>
+ </div>
+</div>
+
 <div class="ovl" id="rotOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead"><h3>Rotina de hoje</h3><button class="ico" style="width:30px;height:30px;font-size:13px" onclick="fecharRotina()" title="Fechar">✕</button></div>
@@ -954,7 +980,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v21/08 08:40</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v21/08 09:42</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -996,35 +1022,32 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="view" id="v-NOTASRIMA">
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Ideias soltas<span style="display:flex;gap:6px;align-items:center"><span class="hsub" style="margin:0;font-size:9.5px">ditadas ao telemóvel, recolhidas no SYNC</span><button class="ico" style="width:28px;height:28px" title="Nova ideia solta" onclick="addIdeiaSolta()">＋</button></span></h2>
   <div class="card" style="padding:10px 0;margin-bottom:26px" id="soltasLista"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">Notas práticas RIMA<button class="ico" style="width:28px;height:28px" title="Nova nota" onclick="addNota('notasRima')">＋</button></h2>
-  <div class="vgrid" style="grid-template-columns:260px 1fr;align-items:start">
-   <div class="card" style="padding:8px 0" id="nrLista"></div>
-   <div class="card" style="padding:18px 20px" id="nrDetalhe"></div>
-  </div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">Notas práticas Ricardo<button class="ico" style="width:28px;height:28px" title="Nova nota" onclick="addNota('notasRicardo')">＋</button></h2>
-  <div class="vgrid" style="grid-template-columns:260px 1fr;align-items:start">
-   <div class="card" style="padding:8px 0" id="npLista"></div>
-   <div class="card" style="padding:18px 20px" id="npDetalhe"></div>
-  </div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">Notas práticas ilustração<button class="ico" style="width:28px;height:28px" title="Nova nota" onclick="addNota('notasIlustracao')">＋</button></h2>
-  <div class="vgrid" style="grid-template-columns:260px 1fr;align-items:start">
-   <div class="card" style="padding:8px 0" id="niLista"></div>
-   <div class="card" style="padding:18px 20px" id="niDetalhe"></div>
-  </div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">Notas práticas animação<button class="ico" style="width:28px;height:28px" title="Nova nota" onclick="addNota('notasAnimacao')">＋</button></h2>
-  <div class="vgrid" style="grid-template-columns:260px 1fr;align-items:start">
-   <div class="card" style="padding:8px 0" id="naLista"></div>
-   <div class="card" style="padding:18px 20px" id="naDetalhe"></div>
-  </div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">Notas práticas música<button class="ico" style="width:28px;height:28px" title="Nova nota" onclick="addNota('notasMusica')">＋</button></h2>
-  <div class="vgrid" style="grid-template-columns:260px 1fr;align-items:start">
-   <div class="card" style="padding:8px 0" id="nmLista"></div>
-   <div class="card" style="padding:18px 20px" id="nmDetalhe"></div>
-  </div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">Notas práticas variados<button class="ico" style="width:28px;height:28px" title="Nova nota" onclick="addNota('notasVariados')">＋</button></h2>
-  <div class="vgrid" style="grid-template-columns:260px 1fr;align-items:start">
-   <div class="card" style="padding:8px 0" id="nvLista"></div>
-   <div class="card" style="padding:18px 20px" id="nvDetalhe"></div>
+  <h2 class="sec">Notas práticas</h2>
+  <div class="cadgrid">
+   <div class="cadcol">
+     <div class="cadh">RIMA<button class="ico" style="width:22px;height:22px;font-size:12px" title="Nova nota" onclick="addNota('notasRima')">+</button></div>
+     <div class="cadlista" id="nrLista"></div>
+    </div>
+   <div class="cadcol">
+     <div class="cadh">Ricardo<button class="ico" style="width:22px;height:22px;font-size:12px" title="Nova nota" onclick="addNota('notasRicardo')">+</button></div>
+     <div class="cadlista" id="npLista"></div>
+    </div>
+   <div class="cadcol">
+     <div class="cadh">Ilustração<button class="ico" style="width:22px;height:22px;font-size:12px" title="Nova nota" onclick="addNota('notasIlustracao')">+</button></div>
+     <div class="cadlista" id="niLista"></div>
+    </div>
+   <div class="cadcol">
+     <div class="cadh">Animação<button class="ico" style="width:22px;height:22px;font-size:12px" title="Nova nota" onclick="addNota('notasAnimacao')">+</button></div>
+     <div class="cadlista" id="naLista"></div>
+    </div>
+   <div class="cadcol">
+     <div class="cadh">Música<button class="ico" style="width:22px;height:22px;font-size:12px" title="Nova nota" onclick="addNota('notasMusica')">+</button></div>
+     <div class="cadlista" id="nmLista"></div>
+    </div>
+   <div class="cadcol">
+     <div class="cadh">Variados<button class="ico" style="width:22px;height:22px;font-size:12px" title="Nova nota" onclick="addNota('notasVariados')">+</button></div>
+     <div class="cadlista" id="nvLista"></div>
+    </div>
   </div>
 </div>
 
@@ -4328,7 +4351,7 @@ function rDocs(){
  cads.forEach(cd=>{
   l.insertAdjacentHTML("beforeend",`<div class="cad">📓 ${esc(cd)}</div>`);
   vis.filter(x=>(x.caderno||"geral")===cd).forEach(x=>
-   l.insertAdjacentHTML("beforeend",`<div class="ditem" data-id="${x.id}" tabindex="0">${esc(x.titulo)}</div>`));
+   l.insertAdjacentHTML("beforeend",`<button class="cadbtn" data-id="${x.id}" style="width:100%;margin-bottom:6px">${esc(x.titulo)}</button>`));
  });
  l.querySelectorAll(".ditem").forEach(e=>e.addEventListener("click",()=>{sel=e.dataset.id;rDocs();}));
 }
@@ -4400,14 +4423,13 @@ function goPrecario(){
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
  $("v-SERVICOS").classList.add("on");rPrec();rServicos();rPrecos();
 }
-let nrSel={};
 const CADERNOS={
- notasRima:{vista:"v-NOTASRIMA",lista:"nrLista",det:"nrDetalhe",save:"nrSave"},
- notasRicardo:{vista:"v-NOTASRIMA",lista:"npLista",det:"npDetalhe",save:"npSave"},
- notasIlustracao:{vista:"v-NOTASRIMA",lista:"niLista",det:"niDetalhe",save:"niSave"},
- notasAnimacao:{vista:"v-NOTASRIMA",lista:"naLista",det:"naDetalhe",save:"naSave"},
- notasMusica:{vista:"v-NOTASRIMA",lista:"nmLista",det:"nmDetalhe",save:"nmSave"},
- notasVariados:{vista:"v-NOTASRIMA",lista:"nvLista",det:"nvDetalhe",save:"nvSave"}
+ notasRima:{vista:"v-NOTASRIMA",lista:"nrLista"},
+ notasRicardo:{vista:"v-NOTASRIMA",lista:"npLista"},
+ notasIlustracao:{vista:"v-NOTASRIMA",lista:"niLista"},
+ notasAnimacao:{vista:"v-NOTASRIMA",lista:"naLista"},
+ notasMusica:{vista:"v-NOTASRIMA",lista:"nmLista"},
+ notasVariados:{vista:"v-NOTASRIMA",lista:"nvLista"}
 };
 function goNotasRima(){
  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));
@@ -4420,42 +4442,63 @@ const goNotasRicardo=goNotasRima;
 function rCaderno(chave){
  const cfg=CADERNOS[chave];
  const L=D[chave]||(D[chave]=[]);
- const lst=$(cfg.lista),det=$(cfg.det);
- if(!lst||!det)return;
- lst.innerHTML=L.map(n=>`<div class="ditem${nrSel[chave]===n.id?" on":""}" data-nk="${n.id}">${esc(n.titulo)}</div>`).join("")||`<div class="empty">sem notas</div>`;
- lst.querySelectorAll("[data-nk]").forEach(e=>e.addEventListener("click",()=>{nrSel[chave]=e.dataset.nk;rCaderno(chave);}));
- const n=L.find(x=>x.id===nrSel[chave]);
- if(!n){det.innerHTML=`<div class="empty">escolhe uma nota à esquerda</div>`;return;}
- det.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
-   <h3 style="font-size:15px;margin-bottom:10px;flex:1" contenteditable data-nkt>${esc(n.titulo)}</h3>
-   <button class="ico" style="width:26px;height:26px;font-size:11px" data-nkdel title="apagar">✕</button>
-  </div>
-  ${barraEditor("nkc_"+chave)}
-  <div class="dbody notaedit" id="nkc_${chave}" contenteditable data-nkc>${n.html||esc(n.corpo||"")}</div>
-  <div class="hsub savemark" id="${cfg.save}" style="margin-top:6px"></div>`;
- const gravar=async()=>{
-  const t=det.querySelector("[data-nkt]").textContent.trim();
-  const el=det.querySelector("[data-nkc]");
-  if(t)n.titulo=t; n.corpo=el.innerText; n.html=el.innerHTML;
-  await save();
-  const s=$(cfg.save);if(s){s.textContent="gravado";setTimeout(()=>{if($(cfg.save))$(cfg.save).textContent="";},1500);}
- };
- det.querySelectorAll("[data-nkt],[data-nkc]").forEach(el=>el.addEventListener("blur",gravar));
- bindEditor(det,gravar);
- const db=det.querySelector("[data-nkdel]");
- if(db)db.addEventListener("click",async()=>{
-  confirmar("Apagar nota?",n.titulo,async()=>{
-   D[chave]=D[chave].filter(x=>x.id!==n.id);nrSel[chave]=null;await save();rCaderno(chave);
-  });
- });
+ const lst=$(cfg.lista);
+ if(!lst)return;
+ lst.innerHTML=L.map(n=>`<button class="cadbtn" data-nk="${chave}|${n.id}">${esc(n.titulo)}</button>`).join("")||`<div class="hsub" style="padding:4px 2px">sem notas</div>`;
+ lst.querySelectorAll("[data-nk]").forEach(b=>b.addEventListener("click",()=>{
+  const [c,id]=b.dataset.nk.split("|");
+  abrirNota(c,id);
+ }));
 }
+let notaCtx=null;
+function fecharNota(){
+ gravarNota();
+ $("notaOvl").classList.remove("on");
+ if(notaCtx)rCaderno(notaCtx.chave);
+ notaCtx=null;
+}
+async function gravarNota(){
+ if(!notaCtx)return;
+ const n=(D[notaCtx.chave]||[]).find(x=>x.id===notaCtx.id);
+ if(!n)return;
+ const t=$("notaTit").textContent.trim();
+ const b=$("notaBody");
+ if(t)n.titulo=t;
+ n.html=b.innerHTML;n.corpo=b.innerText;
+ await save();
+ const s=$("notaSave");
+ if(s){s.textContent="gravado";setTimeout(()=>{if($("notaSave"))$("notaSave").textContent="";},1500);}
+}
+function abrirNota(chave,id){
+ const n=(D[chave]||[]).find(x=>x.id===id);if(!n)return;
+ notaCtx={chave,id};
+ $("notaTit").textContent=n.titulo;
+ $("notaBarra").innerHTML=barraEditor("notaBody");
+ $("notaBody").innerHTML=n.html||esc(n.corpo||"");
+ $("notaSave").textContent="";
+ $("notaOvl").classList.add("on");
+ const modal=$("notaOvl");
+ bindEditor(modal,gravarNota);
+ $("notaTit").onblur=gravarNota;
+ $("notaBody").onblur=gravarNota;
+ $("notaDel").onclick=()=>{
+  confirmar("Apagar nota?",n.titulo,async()=>{
+   D[chave]=D[chave].filter(x=>x.id!==id);
+   notaCtx=null;await save();
+   $("notaOvl").classList.remove("on");
+   rCaderno(chave);
+  });
+ };
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("notaOvl").classList.contains("on"))fecharNota();});
 async function addNota(chave){
  const r=await pedir({titulo:"Nova nota",campos:[{tipo:"texto",nome:"t",label:"título"}]});
  if(!r)return;const t=r.t;
  if(!t||!t.trim())return;
  D[chave]=D[chave]||[];
- D[chave].unshift({id:"n"+Date.now(),titulo:t.trim(),corpo:""});
- nrSel[chave]=D[chave][0].id;save().then(()=>rCaderno(chave));
+ const novoId="n"+Date.now();
+ D[chave].unshift({id:novoId,titulo:t.trim(),corpo:"",html:""});
+ await save();rCaderno(chave);abrirNota(chave,novoId);
 }
 function addNotaRima(){addNota("notasRima");}
 function rIdeiasSoltas(){
