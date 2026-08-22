@@ -1004,7 +1004,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v22/08 15:56</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v22/08 16:01</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -4553,14 +4553,14 @@ function rCaderno(chave){
  lst.classList.add("dropzona");
  lst.innerHTML=L.map(n=>`<button class="cadbtn notadrag" draggable="true" data-nk="${chave}|${n.id}" data-nid="${n.id}" data-nch="${chave}">${esc(n.titulo)}</button>`).join("")||`<div class="hsub" style="padding:4px 2px">sem notas</div>`;
  lst.querySelectorAll("[data-nk]").forEach(b=>{
-  b.addEventListener("click",()=>{const [c,id]=b.dataset.nk.split("|");abrirNota(c,id);});
-  b.addEventListener("dragstart",e=>{notaDrag={ch:b.dataset.nch,id:b.dataset.nid};b.classList.add("dragging");});
-  b.addEventListener("dragend",()=>{b.classList.remove("dragging");notaDrag=null;
-   document.querySelectorAll(".dropzona.over").forEach(z=>z.classList.remove("over"));});
+  b.onclick=()=>{const [c,id]=b.dataset.nk.split("|");abrirNota(c,id);};
+  b.ondragstart=()=>{notaDrag={ch:b.dataset.nch,id:b.dataset.nid};b.classList.add("dragging");};
+  b.ondragend=()=>{b.classList.remove("dragging");notaDrag=null;
+   document.querySelectorAll(".dropzona.over").forEach(z=>z.classList.remove("over"));};
  });
- lst.addEventListener("dragover",e=>{if(notaDrag&&notaDrag.ch!==chave)e.preventDefault(),lst.classList.add("over");});
- lst.addEventListener("dragleave",()=>lst.classList.remove("over"));
- lst.addEventListener("drop",async e=>{
+ lst.ondragover=e=>{if(notaDrag&&notaDrag.ch!==chave){e.preventDefault();lst.classList.add("over");}};
+ lst.ondragleave=()=>lst.classList.remove("over");
+ lst.ondrop=async e=>{
   lst.classList.remove("over");
   if(!notaDrag||notaDrag.ch===chave)return;
   e.preventDefault();
@@ -4571,7 +4571,7 @@ function rCaderno(chave){
   D[chave]=D[chave]||[];D[chave].unshift(n);
   const de=notaDrag.ch;notaDrag=null;
   await save();rCaderno(de);rCaderno(chave);setSt("nota movida");
- });
+ };
 }
 let notaCtx=null;
 function fecharNota(){
@@ -4668,38 +4668,41 @@ function rDocsProjectos(){
 /* ============ arrastar documentos entre projectos e cadernos ============ */
 let docDragId=null;
 function bindDocDrag(){
+ // onX em vez de addEventListener: substitui sempre, nunca acumula ouvintes
  document.querySelectorAll(".docdrag").forEach(b=>{
-  b.addEventListener("dragstart",e=>{docDragId=b.dataset.doc2;b.classList.add("dragging");e.dataTransfer.effectAllowed="move";});
-  b.addEventListener("dragend",()=>{b.classList.remove("dragging");docDragId=null;
-   document.querySelectorAll(".dropzona.over").forEach(z=>z.classList.remove("over"));});
+  b.ondragstart=e=>{docDragId=b.dataset.doc2;b.classList.add("dragging");e.dataTransfer.effectAllowed="move";};
+  b.ondragend=()=>{b.classList.remove("dragging");docDragId=null;
+   document.querySelectorAll(".dropzona.over").forEach(z=>z.classList.remove("over"));};
  });
  document.querySelectorAll("[data-zproj]").forEach(z=>{
-  z.addEventListener("dragover",e=>{if(!docDragId)return;e.preventDefault();z.classList.add("over");});
-  z.addEventListener("dragleave",()=>z.classList.remove("over"));
-  z.addEventListener("drop",async e=>{
+  z.ondragover=e=>{if(!docDragId)return;e.preventDefault();z.classList.add("over");};
+  z.ondragleave=()=>z.classList.remove("over");
+  z.ondrop=async e=>{
    if(!docDragId)return;
    e.preventDefault();z.classList.remove("over");
-   const doc=docs.find(x=>x.id===docDragId);
+   const id=docDragId;docDragId=null;
+   const doc=docs.find(x=>x.id===id);
    const pj=(D.projectos||[]).find(p=>p.nome===z.dataset.zproj);
    if(doc&&pj){doc.projecto=pj.nome;doc.categoria=pj.categoria;await saveDocs();rDocsProjectos();setSt(`movido para ${pj.nome}`);}
-  });
+  };
  });
  // largar num caderno converte o documento em nota
  document.querySelectorAll("[data-zcad]").forEach(z=>{
-  z.addEventListener("dragover",e=>{if(!docDragId)return;e.preventDefault();z.classList.add("over");});
-  z.addEventListener("dragleave",()=>z.classList.remove("over"));
-  z.addEventListener("drop",async e=>{
+  z.ondragover=e=>{if(!docDragId)return;e.preventDefault();z.classList.add("over");};
+  z.ondragleave=()=>z.classList.remove("over");
+  z.ondrop=async e=>{
    if(!docDragId)return;
    e.preventDefault();z.classList.remove("over");
-   const doc=docs.find(x=>x.id===docDragId);
+   const id=docDragId;docDragId=null;
+   const doc=docs.find(x=>x.id===id);
    const chave=z.dataset.zcad;
-   if(!doc||!D[chave])return;
+   if(!doc||!D[chave]||doc.arquivado)return;
    D[chave].unshift({id:"n"+Date.now(),titulo:doc.titulo,corpo:doc.corpo||"",html:doc.html||""});
    doc.arquivado=true;
    await saveDocs();await save();
    rCaderno(chave);rDocsProjectos();
    setSt("movido para notas práticas");
-  });
+  };
  });
 }
 function rIdeiasSoltas(){
