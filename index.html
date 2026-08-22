@@ -189,11 +189,11 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .fmtsep{width:1px;height:16px;background:var(--line);margin:0 3px;}
 /* tudo no mesmo tipo de letra: título grande em caps, texto pequeno e cinzento */
 .notaedit,.notaedit *{font-family:'Inter',sans-serif !important;}
-.notaedit{font-size:12.5px;line-height:1.85;letter-spacing:.005em;color:var(--soft);}
-.notaedit h2{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin:24px 0 12px;line-height:1.3;color:var(--txt);}
+.notaedit{font-size:12px;line-height:1.85;letter-spacing:.005em;color:var(--soft);}
+.notaedit h2{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:18px 0 8px;line-height:1.3;color:var(--txt);}
 .notaedit h2:first-child{margin-top:2px;}
 .notaedit h3{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin:24px 0 12px;color:var(--txt);}
-.notaedit p{margin:0 0 11px;}
+.notaedit p{margin:0 0 10px;}
 .notaedit ul,.notaedit ol{margin:10px 0 12px 22px;}
 .notaedit li{margin-bottom:6px;padding-left:3px;}
 .notaedit b,.notaedit strong{font-weight:600;}
@@ -995,7 +995,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v21/08 20:35</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v22/08 00:03</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -4299,7 +4299,6 @@ function barraEditor(alvoId){
    <span class="fmtsep"></span>
    ${b("insertUnorderedList","","Lista","•")}
    ${b("insertOrderedList","","Lista numerada","1.")}
-   ${b("checklist","","Lista de tarefas","☑")}
    <span class="fmtsep"></span>
    ${b("tam","-","Diminuir texto","A","fmt-menor")}
    ${b("tam","+","Aumentar texto","A","fmt-maior")}
@@ -4317,8 +4316,8 @@ function bindEditor(scope,onSave){
    if(!alvo)return;
    alvo.focus();
    const cmd=b.dataset.fmt;
-   if(cmd==="checklist"){
-    document.execCommand("insertHTML",false,'<div class="ck"><input type="checkbox"/><span>&nbsp;</span></div>');
+   if(cmd==="formatBlock"){
+    document.execCommand("formatBlock",false,"<"+b.dataset.fmtarg+">");
    }else if(cmd==="cor"){
     document.execCommand("foreColor",false,b.dataset.fmtarg);
    }else if(cmd==="tam"){
