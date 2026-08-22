@@ -997,7 +997,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v22/08 14:35</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v22/08 15:11</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -4332,6 +4332,9 @@ function aplicarBloco(alvo,tag){
  const sel=window.getSelection();
  if(!sel||!sel.rangeCount)return;
  const r=sel.getRangeAt(0);
+ if(r.collapsed){setSt("seleciona o texto primeiro");return;}
+ // guardar a seleção exacta: os nós de texto sobrevivem à troca de bloco
+ const sc=r.startContainer,so=r.startOffset,ec=r.endContainer,eo=r.endOffset;
  let blocos=[...alvo.children].filter(el=>{
   try{return r.intersectsNode(el);}catch(e){return false;}
  });
@@ -4355,12 +4358,18 @@ function aplicarBloco(alvo,tag){
    return novo;
   });
  }
+ // repor exactamente a mesma seleção, sem a alargar ao bloco todo
  try{
   const nr=document.createRange();
-  nr.setStartBefore(blocos[0]);
-  nr.setEndAfter(blocos[blocos.length-1]);
+  nr.setStart(sc,so);nr.setEnd(ec,eo);
   sel.removeAllRanges();sel.addRange(nr);
- }catch(e){}
+ }catch(e){
+  try{
+   const nr=document.createRange();
+   nr.selectNodeContents(blocos[0]);
+   sel.removeAllRanges();sel.addRange(nr);
+  }catch(e2){}
+ }
 }
 function bindEditor(scope,onSave){
  scope.querySelectorAll("[data-fmt]").forEach(b=>{
