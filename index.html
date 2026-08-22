@@ -167,6 +167,12 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .cadlista{display:flex;flex-direction:column;gap:6px;}
 .cadbtn{border:none;cursor:pointer;background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:11.5px;text-align:left;padding:9px 11px;border-radius:11px;box-shadow:3px 3px 7px var(--sh-d),-3px -3px 7px var(--sh-l);line-height:1.35;transition:all .18s;overflow-wrap:anywhere;}
 .cadbtn:hover{color:var(--acc2);}
+.dropzona{border-radius:12px;transition:box-shadow .15s,background .15s;}
+.dropzona.over{box-shadow:inset 0 0 0 2px var(--acc2);background:color-mix(in srgb,var(--acc2) 7%,transparent);}
+.zonah{display:flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);margin:10px 0 6px;}
+.docdrag,.notadrag{cursor:grab;}
+.docdrag.dragging,.notadrag.dragging{opacity:.4;}
+.cadlista.dropzona{min-height:44px;padding:4px;}
 .docprojrow{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
 .docprojrow .chip{font-size:9px;}
 .cadbtn:active{box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
@@ -943,6 +949,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="fecharNota()" title="Fechar">✓</button>
    </span>
   </div>
+  <div id="notaProj" style="margin-bottom:10px"></div>
   <div id="notaBarra"></div>
   <div class="dbody notaedit" id="notaBody" contenteditable style="min-height:320px;max-height:60vh;overflow:auto"></div>
   <div class="hsub savemark" id="notaSave" style="margin-top:6px"></div>
@@ -997,7 +1004,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v22/08 15:11</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v22/08 15:56</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -4422,6 +4429,28 @@ function rDocs(){
  });
  l.querySelectorAll("[data-doc]").forEach(b=>b.addEventListener("click",()=>abrirDoc(b.dataset.doc)));
 }
+function rNotaProj(d){
+ const box=$("notaProj");if(!box)return;
+ const ordem=["RIMA","COMERCIAL","ARTE","MUSICA","CASA"];
+ const projs=(D.projectos||[]).filter(p=>p.estado!=="arquivado")
+  .sort((a,b)=>{
+   const ia=ordem.indexOf(a.categoria),ib=ordem.indexOf(b.categoria);
+   return ((ia<0?99:ia)-(ib<0?99:ib))||a.nome.localeCompare(b.nome);
+  });
+ box.innerHTML=`<label class="trkfl" style="display:block;margin-bottom:5px">projecto</label>
+  <select class="pin" id="notaProjSel" style="width:100%">
+   ${projs.map(p=>`<option value="${esc(p.nome)}" ${d.projecto===p.nome?"selected":""}>${esc(p.categoria)} · ${esc(p.nome)}</option>`).join("")}
+  </select>`;
+ $("notaProjSel").addEventListener("change",async e=>{
+  const pj=(D.projectos||[]).find(p=>p.nome===e.target.value);
+  if(!pj)return;
+  d.projecto=pj.nome;d.categoria=pj.categoria;
+  await saveDocs();
+  if($("dBox"))rDocs();
+  if($("docsProj"))rDocsProjectos();
+  setSt(`movido para ${pj.nome}`);
+ });
+}
 function abrirDoc(id){
  const d=docs.find(x=>x.id===id);if(!d)return;
  notaCtx={tipo:"doc",id};
@@ -4432,6 +4461,7 @@ function abrirDoc(id){
   :(d.html||esc(d.corpo||""));
  $("notaBody").contentEditable=!d.img;
  $("notaSave").textContent="";
+ rNotaProj(d);
  $("notaOvl").classList.add("on");
  bindEditor($("notaOvl"),gravarNota);
  $("notaTit").onblur=gravarNota;
@@ -4519,11 +4549,29 @@ function rCaderno(chave){
  const L=D[chave]||(D[chave]=[]);
  const lst=$(cfg.lista);
  if(!lst)return;
- lst.innerHTML=L.map(n=>`<button class="cadbtn" data-nk="${chave}|${n.id}">${esc(n.titulo)}</button>`).join("")||`<div class="hsub" style="padding:4px 2px">sem notas</div>`;
- lst.querySelectorAll("[data-nk]").forEach(b=>b.addEventListener("click",()=>{
-  const [c,id]=b.dataset.nk.split("|");
-  abrirNota(c,id);
- }));
+ lst.dataset.zcad=chave;
+ lst.classList.add("dropzona");
+ lst.innerHTML=L.map(n=>`<button class="cadbtn notadrag" draggable="true" data-nk="${chave}|${n.id}" data-nid="${n.id}" data-nch="${chave}">${esc(n.titulo)}</button>`).join("")||`<div class="hsub" style="padding:4px 2px">sem notas</div>`;
+ lst.querySelectorAll("[data-nk]").forEach(b=>{
+  b.addEventListener("click",()=>{const [c,id]=b.dataset.nk.split("|");abrirNota(c,id);});
+  b.addEventListener("dragstart",e=>{notaDrag={ch:b.dataset.nch,id:b.dataset.nid};b.classList.add("dragging");});
+  b.addEventListener("dragend",()=>{b.classList.remove("dragging");notaDrag=null;
+   document.querySelectorAll(".dropzona.over").forEach(z=>z.classList.remove("over"));});
+ });
+ lst.addEventListener("dragover",e=>{if(notaDrag&&notaDrag.ch!==chave)e.preventDefault(),lst.classList.add("over");});
+ lst.addEventListener("dragleave",()=>lst.classList.remove("over"));
+ lst.addEventListener("drop",async e=>{
+  lst.classList.remove("over");
+  if(!notaDrag||notaDrag.ch===chave)return;
+  e.preventDefault();
+  const org=D[notaDrag.ch]||[];
+  const i=org.findIndex(x=>x.id===notaDrag.id);
+  if(i<0)return;
+  const [n]=org.splice(i,1);
+  D[chave]=D[chave]||[];D[chave].unshift(n);
+  const de=notaDrag.ch;notaDrag=null;
+  await save();rCaderno(de);rCaderno(chave);setSt("nota movida");
+ });
 }
 let notaCtx=null;
 function fecharNota(){
@@ -4557,6 +4605,7 @@ function abrirNota(chave,id){
  $("notaBarra").innerHTML=barraEditor("notaBody");
  $("notaBody").innerHTML=n.html||esc(n.corpo||"");
  $("notaSave").textContent="";
+ $("notaProj").innerHTML="";
  $("notaOvl").classList.add("on");
  const modal=$("notaOvl");
  bindEditor(modal,gravarNota);
@@ -4583,33 +4632,75 @@ async function addNota(chave){
 }
 function addNotaRima(){addNota("notasRima");}
 let docsProjOpen={};
+let notaDrag=null;
 function rDocsProjectos(){
  const box=$("docsProj");if(!box)return;
- const vis=(docs||[]).filter(x=>!x.arquivado&&x.projecto);
- if(!vis.length){box.innerHTML=`<div class="card" style="padding:16px"><div class="hsub">sem documentos em projectos</div></div>`;return;}
  const ordem=["RIMA","COMERCIAL","ARTE","MUSICA","CASA"];
+ // agrupar por projecto, dentro de cada categoria
+ const projs=(D.projectos||[]).filter(p=>p.estado!=="arquivado");
  const porCat={};
- vis.forEach(x=>{
-  const pj=(D.projectos||[]).find(p=>p.nome===x.projecto);
-  const c=(pj&&pj.categoria)||x.categoria||"outros";
-  (porCat[c]=porCat[c]||[]).push({...x,_cor:(pj&&pj.cor)||"var(--soft)"});
+ projs.forEach(p=>{
+  const arr=(docs||[]).filter(x=>!x.arquivado&&x.projecto===p.nome);
+  (porCat[p.categoria]=porCat[p.categoria]||[]).push({p,arr});
  });
  const cats=Object.keys(porCat).sort((a,b)=>{
   const ia=ordem.indexOf(a),ib=ordem.indexOf(b);
   return (ia<0?99:ia)-(ib<0?99:ib);
  });
  box.innerHTML=cats.map(c=>{
-  const arr=porCat[c].sort((a,b)=>(a.projecto||"").localeCompare(b.projecto||""));
+  const grupos=porCat[c].sort((a,b)=>a.p.nome.localeCompare(b.p.nome));
+  const total=grupos.reduce((s,g)=>s+g.arr.length,0);
   const ab=docsProjOpen[c];
-  return `<div class="cgroup"><div class="cgrouph acc" data-dpcat="${c}"><span class="accarr">${ab?"▾":"▸"}</span>${esc(c)} · ${arr.length}</div>
-   <div class="cgbody" style="display:${ab?"block":"none"};padding:8px 12px">
-    ${arr.map(x=>`<div class="docprojrow"><button class="cadbtn" data-doc2="${x.id}" style="flex:1">${esc(x.titulo)}</button><span class="chip" style="color:${x._cor};flex-shrink:0">${esc(x.projecto)}</span></div>`).join("")}
+  return `<div class="cgroup"><div class="cgrouph acc" data-dpcat="${c}"><span class="accarr">${ab?"▾":"▸"}</span>${esc(c)} · ${total}</div>
+   <div class="cgbody" style="display:${ab?"block":"none"};padding:10px 12px">
+    ${grupos.map(g=>`<div class="dropzona" data-zproj="${esc(g.p.nome)}">
+      <div class="zonah"><i class="pdot" style="background:${g.p.cor||"var(--soft)"}"></i>${esc(g.p.nome)}</div>
+      ${g.arr.map(x=>`<button class="cadbtn docdrag" draggable="true" data-doc2="${x.id}" style="width:100%;margin-bottom:6px">${esc(x.titulo)}</button>`).join("")||`<div class="hsub" style="padding:2px 4px">arrasta documentos para aqui</div>`}
+     </div>`).join("")}
    </div></div>`;
  }).join("");
  box.querySelectorAll("[data-dpcat]").forEach(g=>g.addEventListener("click",()=>{
   const k=g.dataset.dpcat;docsProjOpen[k]=!docsProjOpen[k];rDocsProjectos();
  }));
  box.querySelectorAll("[data-doc2]").forEach(b=>b.addEventListener("click",()=>abrirDoc(b.dataset.doc2)));
+ bindDocDrag();
+}
+/* ============ arrastar documentos entre projectos e cadernos ============ */
+let docDragId=null;
+function bindDocDrag(){
+ document.querySelectorAll(".docdrag").forEach(b=>{
+  b.addEventListener("dragstart",e=>{docDragId=b.dataset.doc2;b.classList.add("dragging");e.dataTransfer.effectAllowed="move";});
+  b.addEventListener("dragend",()=>{b.classList.remove("dragging");docDragId=null;
+   document.querySelectorAll(".dropzona.over").forEach(z=>z.classList.remove("over"));});
+ });
+ document.querySelectorAll("[data-zproj]").forEach(z=>{
+  z.addEventListener("dragover",e=>{if(!docDragId)return;e.preventDefault();z.classList.add("over");});
+  z.addEventListener("dragleave",()=>z.classList.remove("over"));
+  z.addEventListener("drop",async e=>{
+   if(!docDragId)return;
+   e.preventDefault();z.classList.remove("over");
+   const doc=docs.find(x=>x.id===docDragId);
+   const pj=(D.projectos||[]).find(p=>p.nome===z.dataset.zproj);
+   if(doc&&pj){doc.projecto=pj.nome;doc.categoria=pj.categoria;await saveDocs();rDocsProjectos();setSt(`movido para ${pj.nome}`);}
+  });
+ });
+ // largar num caderno converte o documento em nota
+ document.querySelectorAll("[data-zcad]").forEach(z=>{
+  z.addEventListener("dragover",e=>{if(!docDragId)return;e.preventDefault();z.classList.add("over");});
+  z.addEventListener("dragleave",()=>z.classList.remove("over"));
+  z.addEventListener("drop",async e=>{
+   if(!docDragId)return;
+   e.preventDefault();z.classList.remove("over");
+   const doc=docs.find(x=>x.id===docDragId);
+   const chave=z.dataset.zcad;
+   if(!doc||!D[chave])return;
+   D[chave].unshift({id:"n"+Date.now(),titulo:doc.titulo,corpo:doc.corpo||"",html:doc.html||""});
+   doc.arquivado=true;
+   await saveDocs();await save();
+   rCaderno(chave);rDocsProjectos();
+   setSt("movido para notas práticas");
+  });
+ });
 }
 function rIdeiasSoltas(){
  const box=$("soltasLista");if(!box)return;
