@@ -997,7 +997,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v22/08 09:22</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v22/08 14:35</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -4310,6 +4310,58 @@ function barraEditor(alvoId){
    ${b("removeFormat","","Limpar formatação","⌫")}
   </div>`;
 }
+// O execCommand("formatBlock") é inconsistente entre browsers e não desfaz
+// formatação manual. Fazemos a troca de bloco à mão, que é previsível.
+function limparInline(el){
+ el.querySelectorAll("font,span").forEach(f=>{
+  const pai=f.parentNode;if(!pai)return;
+  while(f.firstChild)pai.insertBefore(f.firstChild,f);
+  pai.removeChild(f);
+ });
+ el.querySelectorAll("[style]").forEach(e=>e.removeAttribute("style"));
+ if(el.hasAttribute&&el.hasAttribute("style"))el.removeAttribute("style");
+}
+function blocoDeTopo(no,alvo){
+ while(no&&no!==alvo){
+  if(no.parentNode===alvo&&no.nodeType===1)return no;
+  no=no.parentNode;
+ }
+ return null;
+}
+function aplicarBloco(alvo,tag){
+ const sel=window.getSelection();
+ if(!sel||!sel.rangeCount)return;
+ const r=sel.getRangeAt(0);
+ let blocos=[...alvo.children].filter(el=>{
+  try{return r.intersectsNode(el);}catch(e){return false;}
+ });
+ if(!blocos.length){
+  const b=blocoDeTopo(r.startContainer,alvo);
+  if(b)blocos=[b];
+ }
+ if(!blocos.length){
+  // texto solto, sem bloco: embrulhar tudo
+  const novo=document.createElement(tag);
+  while(alvo.firstChild)novo.appendChild(alvo.firstChild);
+  limparInline(novo);alvo.appendChild(novo);
+  blocos=[novo];
+ }else{
+  blocos=blocos.map(b=>{
+   if(b.tagName.toLowerCase()===tag.toLowerCase()){limparInline(b);return b;}
+   const novo=document.createElement(tag);
+   while(b.firstChild)novo.appendChild(b.firstChild);
+   limparInline(novo);
+   b.parentNode.replaceChild(novo,b);
+   return novo;
+  });
+ }
+ try{
+  const nr=document.createRange();
+  nr.setStartBefore(blocos[0]);
+  nr.setEndAfter(blocos[blocos.length-1]);
+  sel.removeAllRanges();sel.addRange(nr);
+ }catch(e){}
+}
 function bindEditor(scope,onSave){
  scope.querySelectorAll("[data-fmt]").forEach(b=>{
   b.addEventListener("mousedown",e=>e.preventDefault()); // não perder o cursor
@@ -4319,16 +4371,7 @@ function bindEditor(scope,onSave){
    alvo.focus();
    const cmd=b.dataset.fmt;
    if(cmd==="formatBlock"){
-    // limpar tamanhos/cores manuais primeiro, para o estilo do bloco mandar sempre
-    const sel=window.getSelection();
-    if(sel&&sel.isCollapsed){
-     // sem seleção: apanhar o parágrafo inteiro sob o cursor
-     let no=sel.anchorNode;
-     while(no&&no!==alvo&&!(no.nodeType===1&&/^(P|H2|H3|DIV|LI)$/.test(no.tagName)))no=no.parentNode;
-     if(no&&no!==alvo){const r=document.createRange();r.selectNodeContents(no);sel.removeAllRanges();sel.addRange(r);}
-    }
-    document.execCommand("removeFormat",false,null);
-    document.execCommand("formatBlock",false,"<"+b.dataset.fmtarg+">");
+    aplicarBloco(alvo,b.dataset.fmtarg);
    }else if(cmd==="cor"){
     document.execCommand("foreColor",false,b.dataset.fmtarg);
    }else if(cmd==="tam"){
