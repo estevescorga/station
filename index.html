@@ -1004,7 +1004,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v22/08 16:01</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v23/08 11:55</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1426,7 +1426,33 @@ function deepFix(o){
  return o;
 }
 const WORKER="https://station.estevescorga.workers.dev/";
-const SENHA="Rimmmmmma1";
+// A chave já não vive no código: é pedida uma vez por dispositivo e guardada
+// no browser. Sem ela o Worker recusa tudo.
+let SENHA=null;
+try{SENHA=localStorage.getItem("station:key")||null;}catch(e){}
+function guardarChave(k){
+ SENHA=k;
+ try{localStorage.setItem("station:key",k);}catch(e){}
+}
+function mostrarGate(msg){
+ const g=document.getElementById("gate");
+ if(!g)return;
+ g.classList.remove("hidden");
+ const e=document.getElementById("gateErr");
+ if(e)e.textContent=msg||"";
+ const i=document.getElementById("gatePin");
+ if(i){i.value="";setTimeout(()=>i.focus(),150);}
+ _booted=false;
+}
+function esquecerChaveComAviso(){
+ try{localStorage.removeItem("station:key");}catch(e){}
+ SENHA=null;mostrarGate("chave inválida, escreve outra vez");
+}
+function esquecerChave(){
+ SENHA=null;
+ try{localStorage.removeItem("station:key");}catch(e){}
+ location.reload();
+}
 let cloudSha=null,saveTimer=null,cloudOn=true;
 async function cloudGet(){
  const r=await fetch(WORKER,{headers:{"X-Auth":SENHA}});
@@ -1477,6 +1503,7 @@ function applySnapshot(s){
  return true;
 }
 async function load(){
+ if(!SENHA){mostrarGate();throw new Error("sem chave");}
  let local=null;
  try{const r=await window.storage.get("dash:snap",true);local=JSON.parse(r.value);}catch(e){local=null;}
  // arranque rápido com cache local, se existir
@@ -1499,7 +1526,10 @@ async function load(){
    // nuvem vazia: semear com o que temos localmente
    await cloudPut(snapshot());setSt("nuvem iniciada");
   }
- }catch(e){cloudOn=false;setSt("offline — cache local");}
+ }catch(e){
+  if(String(e.message||"").includes("401")){esquecerChaveComAviso();return;}
+  cloudOn=false;setSt("offline — cache local");
+ }
  D=D||null;
  if(!D||(D.versao||0)<5){D=deepFix(JSON.parse(JSON.stringify(SEED)));await save();}
  else if((D.versao||0)<SEED.versao){
@@ -4842,31 +4872,38 @@ $("nav").addEventListener("click",e=>{
  }
 });
 function rAll(){aplicarDark();rTimerBar();rSemaforo();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
-const PIN_OK="Rimmmmmma1";  // senha de entrada
 let _booted=false;
 async function boot(){
  if(_booted)return;_booted=true;
  document.getElementById("gate").classList.add("hidden");
- await load();rAll();setInterval(tick,30000);
+ try{ await load(); }catch(e){ return; }  // sem chave, load() mostra o ecrã próprio
+ rAll();setInterval(tick,30000);
 }
-function gateTry(){
- const v=document.getElementById("gatePin").value;
- if(v===PIN_OK){
+// A entrada passa a validar a chave real contra o Worker, não no browser.
+async function gateTry(){
+ const v=document.getElementById("gatePin").value.trim();
+ const err=document.getElementById("gateErr");
+ if(!v){err.textContent="escreve a chave";return;}
+ err.textContent="a verificar…";
+ try{
+  const r=await fetch(WORKER,{headers:{"X-Auth":v}});
+  if(r.status===401||r.status===403){
+   err.textContent="chave inválida";
+   document.getElementById("gatePin").value="";return;
+  }
+  if(!r.ok){err.textContent="erro de ligação";return;}
+  guardarChave(v);
   try{localStorage.setItem("station_gate","1");}catch(e){}
-  boot();
- }else{
-  document.getElementById("gateErr").textContent="senha errada";
-  document.getElementById("gatePin").value="";
- }
+  err.textContent="";boot();
+ }catch(e){err.textContent="sem ligação ao servidor";}
 }
 document.addEventListener("keydown",e=>{
  if(e.target&&e.target.id==="gatePin"&&e.key==="Enter")gateTry();
 });
 // se já entrou antes neste dispositivo, passa direto
 (function(){
- let ok=false;
- try{ok=localStorage.getItem("station_gate")==="1";}catch(e){}
- if(ok){boot();}
+ // só entra direto se a chave estiver guardada neste dispositivo
+ if(SENHA){boot();}
  else{const g=document.getElementById("gatePin");if(g)setTimeout(()=>g.focus(),200);}
 })();
 </script>
