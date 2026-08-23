@@ -214,6 +214,10 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .soltarow.feita .soltatxt{text-decoration:line-through;}
 .soltatxt{outline:none;line-height:1.5;min-width:0;overflow-wrap:anywhere;}
 .soltatxt:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:6px;padding:2px 5px;}
+.fraseDia{font-family:'Inter',sans-serif;font-size:9px;color:var(--soft);opacity:.6;letter-spacing:.02em;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:420px;}
+.pgrip{cursor:grab;color:var(--soft);opacity:.35;font-size:10px;flex-shrink:0;user-select:none;padding-top:2px;}
+.irow:hover .pgrip{opacity:.75;}
+.pdrag.dragging{opacity:.4;}
 .buildtag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);opacity:.6;font-weight:400;margin-left:8px;letter-spacing:.04em;}
 .savemark{display:block;height:15px;line-height:15px;font-size:10px;overflow:hidden;}
 .tedit{outline:none;cursor:text;}
@@ -774,7 +778,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
  </div>
 </div>
 <div class="head card">
-  <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><div style="display:flex;flex-direction:column"><h1 style="margin:0">STATION</h1><span class="ftm">FOR THE MONEY</span></div><span id="hFraseTop" class="fraseTop"></span></div>
+  <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap"><div style="display:flex;flex-direction:column"><h1 style="margin:0">STATION</h1><span class="ftm">FOR THE MONEY</span></div><span style="display:flex;flex-direction:column;gap:1px;min-width:0"><span id="hFraseTop" class="fraseTop"></span><span id="hFraseDia" class="fraseDia"></span></span></div>
   <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
     <a class="ico glink" href="https://claude.ai/chat/d093794a-2795-4f78-89f1-8d16eabb1cd3" target="_blank" rel="noopener" title="Conversa GOTEN" id="gotenLink" style="color:var(--acc)">✦</a>
     <a class="ico glink" href="https://calendar.google.com" target="_blank" rel="noopener" title="Google Calendar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></a>
@@ -1004,7 +1008,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v23/08 11:55</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v23/08 14:49</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -2074,6 +2078,15 @@ function rHome(){
  }
  // frase do dia
  const fEl=$("hFraseTop");if(fEl)fEl.textContent=fraseDoDia();
+ // lembrete rotativo do "dia a dia · a melhorar em mim"
+ const dEl=$("hFraseDia");
+ if(dEl){
+  const L=(D.pessoal&&D.pessoal.diaadia)||[];
+  if(L.length){
+   const dias=Math.floor(new Date().setHours(0,0,0,0)/864e5);
+   dEl.textContent=L[dias%L.length];
+  }else dEl.textContent="";
+ }
  // urgente: pontuação = proximidade do prazo + prioridade do projecto + cliente
  function scoreT(t){
   const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
@@ -3180,10 +3193,33 @@ async function novoProjectoLocal(){
 }
 
 /* ============ pessoal (secção @) ============ */
+let pDragIdx=null;
 function rPessoal(){
  const P=D.pessoal;if(!P)return;
  const lista=(arr,boxId,key)=>{
-  $(boxId).innerHTML=arr.map((tx,i)=>`<div class="irow"><span class="idot" style="color:var(--acc2)">•</span><div class="icorpo" style="font-size:12.5px;flex:1" contenteditable data-pkey="${key}" data-pi="${i}">${esc(tx)}</div><button class="ico fdel" data-pdel="${key}|${i}" title="Apagar">✕</button></div>`).join("")||`<div class="empty">vazio — usa o ＋</div>`;
+  const box=$(boxId);
+  box.innerHTML=arr.map((tx,i)=>`<div class="irow pdrag" draggable="true" data-pidx="${i}" data-pk="${key}"><span class="pgrip" title="arrastar">⠿</span><div class="icorpo" style="font-size:12.5px;flex:1" contenteditable data-pkey="${key}" data-pi="${i}">${esc(tx)}</div><button class="ico fdel" data-pdel="${key}|${i}" title="Apagar">✕</button></div>`).join("")||`<div class="empty">vazio — usa o ＋</div>`;
+  // reordenar por arrasto
+  box.querySelectorAll(".pdrag").forEach(row=>{
+   row.ondragstart=e=>{pDragIdx={k:key,i:+row.dataset.pidx};row.classList.add("dragging");e.dataTransfer.effectAllowed="move";};
+   row.ondragend=()=>{row.classList.remove("dragging");pDragIdx=null;};
+   row.ondragover=e=>{
+    if(!pDragIdx||pDragIdx.k!==key)return;
+    e.preventDefault();
+    const r=row.getBoundingClientRect();
+    const depois=e.clientY>r.top+r.height/2;
+    const alvo=+row.dataset.pidx;
+    if(alvo===pDragIdx.i)return;
+    row.parentNode.insertBefore(box.querySelector(".dragging"),depois?row.nextSibling:row);
+   };
+   row.ondrop=async e=>{
+    if(!pDragIdx||pDragIdx.k!==key)return;
+    e.preventDefault();
+    const ordem=[...box.querySelectorAll(".pdrag")].map(x=>+x.dataset.pidx);
+    D.pessoal[key]=ordem.map(i=>arr[i]);
+    pDragIdx=null;await save();rPessoal();rHome();
+   };
+  });
  };
  lista(P.diaadia,"pDiaadia","diaadia");
  lista(P.treino,"pTreino","treino");
