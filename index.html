@@ -1006,7 +1006,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v25/08 18:57</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v25/08 23:53</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -2149,7 +2149,7 @@ function rHome(){
  }));
  bindUrgDrag(urg);
  // inbox / genéricas
- const genTodas=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&!["concluída","arquivada"].includes(t.estado));
+ const genTodas=(D.tarefas||[]).filter(t=>(!t.projecto||t.projecto==="Inbox")&&t.estado==="ativa");
  const gen=inbox_expandido?genTodas:genTodas.slice(0,10);
  const btnI=$("inboxMais");
  if(btnI){
