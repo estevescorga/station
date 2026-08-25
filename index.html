@@ -123,10 +123,6 @@ body[data-theme="MUSICA"]::after,body.dark::after{opacity:.09;mix-blend-mode:scr
 .mesnome{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--soft);}
 .mesrow.now .mesnome{color:var(--acc);font-weight:700;}
 .mesconteudo{display:flex;flex-direction:column;gap:7px;min-width:0;}
-.mesgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:start;}
-@media(max-width:1200px){.mesgrid{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:760px){.mesgrid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:560px){.mesgrid{grid-template-columns:1fr;}}
 .mescat{display:flex;flex-direction:column;gap:4px;min-width:0;}
 .mesprep{font-size:11.5px;color:var(--soft);line-height:1.5;font-style:italic;}
 .mesprep .eclbl{font-style:normal;margin-right:4px;}
@@ -222,7 +218,9 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .tedit{outline:none;cursor:text;}
 .tedit:hover{box-shadow:inset 0 -1px 0 var(--line);}
 .tedit:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:5px;padding:1px 4px;}
-.metatraco{border:none;background:none;cursor:pointer;padding:0;font-size:13px;line-height:1;flex-shrink:0;font-weight:700;}
+.metaicons{display:inline-flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;padding:2px 4px;border-radius:6px;}
+.metaicons:hover{box-shadow:inset 0 0 0 1px var(--line);}
+.catpick{display:inline-flex;align-items:center;gap:7px;}
 .legtraco{font-style:normal;font-weight:700;flex-shrink:0;line-height:1;}
 .pmk{flex-shrink:0;margin-right:7px;vertical-align:-1px;}
 .precorow{display:grid;grid-template-columns:minmax(120px,1fr) 110px minmax(0,2fr) 26px;gap:12px;align-items:start;padding:9px 16px;border-bottom:1px solid var(--line);font-size:12.5px;}
@@ -1007,7 +1005,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v23/08 21:28</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v25/08 18:33</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1619,8 +1617,14 @@ async function load(){
  if(!D.precosCondicoes)D.precosCondicoes=[];
  if(!D.ideiasSoltas)D.ideiasSoltas=[];
  ["notasIlustracao","notasAnimacao","notasMusica","notasVariados"].forEach(k=>{if(!D[k])D[k]=[];});
- // objectivos criados antes de existirem categorias caem em planeamento, para nunca ficarem invisíveis
- D.metasAnuais.forEach(m=>{if(!m.cat)m.cat="planeamento";});
+ // categoria única passou a lista de categorias
+ D.metasAnuais.forEach(m=>{
+  if(!Array.isArray(m.cats)){
+   const c=m.cat==="publicacao"?"divulgacao":m.cat;
+   m.cats=c?[c]:[];
+   delete m.cat;
+  }
+ });
  if(!D.notasRicardo)D.notasRicardo=[
   {id:"np1",titulo:"Levar em viagem",corpo:"Carregadores, adaptador, auscultadores.\nCaderno e canetas.\nComprimidos.\n\nAjusta esta lista à tua."},
   {id:"np2",titulo:"Apontamentos de seminários",corpo:"Cola aqui o que trouxeres de seminários e workshops de ilustração."}
@@ -1880,7 +1884,7 @@ function rLight(){
  });
  if(ms.length){
   html+=`<div class="hgrouph" style="margin-top:14px">objectivos</div>`;
-  ms.forEach(m=>{html+=`<div class="lightrow"><span class="legtraco" style="color:${catMeta(m).cor}">—</span><span>${esc(m.titulo)}</span></div>`;});
+  ms.forEach(m=>{html+=`<div class="lightrow"><span class="metaicons">${catsDe(m).map(k=>iconeCat(k,11)).join("")}</span><span>${esc(m.titulo)}</span></div>`;});
  }
  box.innerHTML=html;
  box.querySelectorAll("[data-lchk]").forEach(b=>b.addEventListener("click",async()=>{
@@ -2225,8 +2229,8 @@ function rHome(){
   const doAno=(D.metasAnuais||[]).filter(x=>x.mes===0);
   const doMes=(D.metasAnuais||[]).filter(x=>x.mes===mesN);
   const lin=x=>{
-   const c=(typeof catMeta==="function"&&catMeta(x))||{cor:"var(--soft)"};
-   return `<div class="metarow"><i class="legtraco" style="color:${c.cor}">—</i><span>${esc(x.titulo)}</span></div>`;
+   const cs=typeof catsDe==="function"?catsDe(x):[];
+   return `<div class="metarow"><span style="flex:1;min-width:0">${esc(x.titulo)}</span><span class="metaicons">${cs.map(k=>iconeCat(k,11)).join("")}</span></div>`;
   };
   hm.innerHTML=(doAno.length||doMes.length)
    ?`<div class="card hcard"><h5>objectivos</h5>`+
@@ -4099,18 +4103,24 @@ function abrirMeta(ctx){
   D.metasAnuais=D.metasAnuais||[];
   if(metaCtx.id){
    const m=D.metasAnuais.find(x=>x.id===metaCtx.id);
-   if(m){m.titulo=t;m.cat=metaCtx.cat;m.light=!!metaCtx.light;}
+   if(m){m.titulo=t;m.cats=[...(metaCtx.cats||[])];delete m.cat;m.light=!!metaCtx.light;}
   }else{
-   D.metasAnuais.push({id:"ma"+Date.now(),mes:metaCtx.mes,cat:metaCtx.cat,titulo:t,light:!!metaCtx.light,criado:hoje()});
+   D.metasAnuais.push({id:"ma"+Date.now(),mes:metaCtx.mes,cats:[...(metaCtx.cats||[])],titulo:t,light:!!metaCtx.light,criado:hoje()});
   }
   fecharMeta();await save();rAnual();rHome();
  };
 }
 function rMetaCats(){
  const box=$("metaCats");if(!box||!metaCtx)return;
+ metaCtx.cats=metaCtx.cats||[];
  box.innerHTML=Object.entries(CATS_ANUAL).map(([k,c])=>
-  `<button class="btn catpick${metaCtx.cat===k?" on":""}" data-mcat="${k}"><i class="legtraco" style="color:${c.cor}">—</i>${c.nome}</button>`).join("");
- box.querySelectorAll("[data-mcat]").forEach(b=>b.addEventListener("click",()=>{metaCtx.cat=b.dataset.mcat;rMetaCats();}));
+  `<button class="btn catpick${metaCtx.cats.includes(k)?" on":""}" data-mcat="${k}">${iconeCat(k,13)}${c.nome}</button>`).join("");
+ box.querySelectorAll("[data-mcat]").forEach(b=>b.addEventListener("click",()=>{
+  const k=b.dataset.mcat;
+  const i=metaCtx.cats.indexOf(k);
+  if(i<0)metaCtx.cats.push(k);else metaCtx.cats.splice(i,1);
+  rMetaCats();
+ }));
 }
 document.addEventListener("keydown",e=>{
  if(e.key!=="Escape")return;
@@ -4118,22 +4128,40 @@ document.addEventListener("keydown",e=>{
  if($("confOvl").classList.contains("on"))$("confOvl").classList.remove("on");
 });
 const CATS_ANUAL={
- planeamento:{nome:"planeamento",cor:"var(--acc2)"},
- conteudo:{nome:"criação de conteúdo",cor:"var(--ok)"},
- divulgacao:{nome:"divulgação",cor:"var(--acc)"},
- producao:{nome:"produção",cor:"#C77B3C"},
- reestruturacao:{nome:"reestruturação",cor:"#A87CA8"}
+ planeamento:{nome:"planeamento",cor:"#4A80C7",
+  ic:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'},
+ conteudo:{nome:"criação de conteúdo",cor:"#C77B3C",
+  ic:'<path d="M20.9 3.1a2.1 2.1 0 0 0-3 0l-1.7 1.7 3 3 1.7-1.7a2.1 2.1 0 0 0 0-3ZM14.8 6.2 3 18v3h3L17.8 9.2Z"/>'},
+ divulgacao:{nome:"divulgação",cor:"#5FA36F",
+  ic:'<path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/>'},
+ producao:{nome:"produção",cor:"#8B6BB1",
+  ic:'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>'},
+ reestruturacao:{nome:"reestruturação",cor:"#C77BA8",
+  ic:'<path d="M12 4.5a3 3 0 0 0-5.5 1.7 2.8 2.8 0 0 0-1.6 4.6A2.9 2.9 0 0 0 5.4 15a2.8 2.8 0 0 0 2.3 3.9A2.9 2.9 0 0 0 12 19.6Zm0 0a3 3 0 0 1 5.5 1.7 2.8 2.8 0 0 1 1.6 4.6 2.9 2.9 0 0 1-.5 4.2 2.8 2.8 0 0 1-2.3 3.9A2.9 2.9 0 0 1 12 19.6"/>'}
 };
-// dados antigos usavam "publicacao"
-function catMeta(x){return CATS_ANUAL[x.cat==="publicacao"?"divulgacao":x.cat]||CATS_ANUAL.planeamento;}
-function metaLinha(x,comDel){
- const c=catMeta(x);
- return `<div class="anualMeta"><button class="metatraco" style="color:${c.cor}" data-ancat="${x.id}" title="${c.nome} · clica para mudar">—</button><span contenteditable data-antit="${x.id}">${esc(x.titulo)}</span>${comDel?`<button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button>`:""}</div>`;
+// um objectivo pode ter várias categorias ao mesmo tempo
+function catsDe(x){
+ if(Array.isArray(x.cats))return x.cats.filter(c=>CATS_ANUAL[c]);
+ const c=x.cat==="publicacao"?"divulgacao":x.cat;
+ return CATS_ANUAL[c]?[c]:[];
 }
-function novaMeta(mes){abrirMeta({mes,cat:"planeamento"});}
+function iconeCat(k,tam){
+ const c=CATS_ANUAL[k];if(!c)return "";
+ return `<svg width="${tam||12}" height="${tam||12}" viewBox="0 0 24 24" fill="none" stroke="${c.cor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${c.ic}</svg>`;
+}
+// dados antigos usavam "publicacao"
+function metaLinha(x,comDel){
+ const cs=catsDe(x);
+ return `<div class="anualMeta">
+   <span contenteditable data-antit="${x.id}" style="flex:1;min-width:0">${esc(x.titulo)}</span>
+   <span class="metaicons" data-anedit="${x.id}" title="clica para escolher categorias">${cs.map(k=>iconeCat(k)).join("")||'<span class="hsub" style="font-size:9px">sem categoria</span>'}</span>
+   ${comDel?`<button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button>`:""}
+  </div>`;
+}
+function novaMeta(mes){abrirMeta({mes,cats:[]});}
 function editarMeta(id){
  const m=(D.metasAnuais||[]).find(x=>x.id===id);if(!m)return;
- abrirMeta({id:m.id,mes:m.mes,cat:m.cat==="publicacao"?"divulgacao":m.cat,titulo:m.titulo,light:m.light});
+ abrirMeta({id:m.id,mes:m.mes,cats:catsDe(m),titulo:m.titulo,light:m.light});
 }
 function rAnual(){
  const box=$("anualGrid");if(!box)return;
@@ -4147,19 +4175,14 @@ function rAnual(){
  // bloco único de foco: ano inteiro + mês atual, organizados por categoria
  const topo=$("anualTopo");
  const cats=Object.keys(CATS_ANUAL);
- const colCat=(k,arr)=>{
-  const c=CATS_ANUAL[k];
-  if(!arr.length)return `<div class="fococol"><div class="focoh"><i class="legtraco" style="color:${c.cor}">—</i>${c.nome}</div><div class="hsub">—</div></div>`;
-  return `<div class="fococol"><div class="focoh"><i class="legtraco" style="color:${c.cor}">—</i>${c.nome}</div>${arr.map(x=>metaLinha(x,true)).join("")}</div>`;
- };
- const daCat=(lst,k)=>lst.filter(x=>(x.cat==="publicacao"?"divulgacao":x.cat)===k);
+
  if(topo)topo.innerHTML=`
   <div class="card anobox">
    <div class="focotop">
     <div><div class="ecmn" style="margin:0">todo o ano</div><div class="hsub" style="margin-top:2px">objectivos permanentes, sem mês atribuído</div></div>
     <button class="btn" data-anadd="0" style="font-size:10px;padding:6px 11px">+ objectivo</button>
    </div>
-   <div class="focogrid">${cats.map(k=>colCat(k,daCat(doAno,k))).join("")}</div>
+   <div class="anualMetas">${doAno.map(x=>metaLinha(x,true)).join("")||`<div class="hsub">sem objectivos</div>`}</div>
   </div>
   <div class="card focobox">
    <div class="focotop">
@@ -4170,7 +4193,7 @@ function rAnual(){
     </div>
     <button class="btn" data-anadd="${mesAtual+1}" style="font-size:10px;padding:6px 11px">+ objectivo</button>
    </div>
-   <div class="focogrid">${cats.map(k=>colCat(k,daCat(doMes,k))).join("")}</div>
+   <div class="anualMetas">${doMes.map(x=>metaLinha(x,true)).join("")||`<div class="hsub">sem objectivos</div>`}</div>
   </div>`;
  // linhas por mês: mês à esquerda, preparação e objectivos à direita
  box.innerHTML=MESES.map((m,i)=>{
@@ -4186,17 +4209,14 @@ function rAnual(){
     <div class="mesconteudo">
      ${acon.length?`<div class="mesprep mesacon"><span class="eclbl">acontece</span> ${esc(acon.join(" · "))}</div>`:""}
      ${prep.length?`<div class="mesprep"><span class="eclbl prep">a preparar</span> ${esc(prep.join(" · "))}</div>`:""}
-     ${metas.length?`<div class="mesgrid">${Object.keys(CATS_ANUAL).map(k=>{
-       const ms=metas.filter(x=>(x.cat==="publicacao"?"divulgacao":x.cat)===k);
-       return `<div class="mescat">${ms.map(x=>metaLinha(x,true)).join("")}</div>`;
-      }).join("")}</div>`:""}
+     ${metas.length?`<div class="anualMetas">${metas.map(x=>metaLinha(x,true)).join("")}</div>`:""}
      ${vazio?`<span class="hsub">—</span>`:""}
     </div>
    </div>`;
  }).join("");
  // legenda das categorias
  const leg=$("anualLeg");
- if(leg)leg.innerHTML=Object.values(CATS_ANUAL).map(c=>`<span class="catleg"><i class="legtraco" style="color:${c.cor}">—</i>${c.nome}</span>`).join("");
+ if(leg)leg.innerHTML=Object.keys(CATS_ANUAL).map(k=>`<span class="catleg">${iconeCat(k,12)}${CATS_ANUAL[k].nome}</span>`).join("");
  document.querySelectorAll("[data-anadd]").forEach(b=>b.addEventListener("click",()=>novaMeta(+b.dataset.anadd)));
  document.querySelectorAll("[data-andel]").forEach(b=>b.addEventListener("click",()=>{
   const m=D.metasAnuais.find(x=>x.id===b.dataset.andel);
@@ -4205,7 +4225,7 @@ function rAnual(){
    await save();rAnual();rHome();
   });
  }));
- document.querySelectorAll("[data-ancat]").forEach(b=>b.addEventListener("click",()=>editarMeta(b.dataset.ancat)));
+ document.querySelectorAll("[data-anedit]").forEach(b=>b.addEventListener("click",()=>editarMeta(b.dataset.anedit)));
  document.querySelectorAll("[data-antit]").forEach(el=>el.addEventListener("blur",async()=>{
   const m=D.metasAnuais.find(x=>x.id===el.dataset.antit);
   const t=el.textContent.trim();
