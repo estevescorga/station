@@ -1006,7 +1006,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v25/08 18:54</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v25/08 18:57</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -2235,8 +2235,8 @@ function rHome(){
   };
   hm.innerHTML=(doAno.length||doMes.length)
    ?`<div class="card hcard"><h5>objectivos</h5>`+
-    (doAno.length?`<div class="hgrouph">o ano inteiro</div>`+doAno.map(lin).join(""):"")+
-    (doMes.length?`<div class="hgrouph" style="margin-top:8px">${MESN[mesN-1]}</div>`+doMes.map(lin).join(""):"")+
+    (doMes.length?`<div class="hgrouph">${MESN[mesN-1]}</div>`+doMes.map(lin).join(""):"")+
+    (doAno.length?`<div class="hgrouph" style="margin-top:${doMes.length?8:0}px">o ano inteiro</div>`+doAno.map(lin).join(""):"")+
     `</div>`
    :"";
  }
