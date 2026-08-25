@@ -237,8 +237,9 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .anualMeta{align-items:center;}
 .metarow{display:flex;gap:6px;align-items:baseline;font-size:11px;line-height:1.5;padding:2px 0;}
 .metarow .metadot{margin-top:4px;}
-.anualMetas{display:flex;flex-direction:column;gap:4px;margin-top:2px;}
-.anualMeta{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:11px;line-height:1.35;padding:5px 8px;border-radius:8px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
+.anualMetas{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;align-items:flex-start;}
+.anualMeta{display:inline-flex;align-items:center;gap:7px;font-size:11px;line-height:1.35;padding:5px 9px;border-radius:9px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);max-width:100%;}
+.anualMeta [data-antit]{flex:0 1 auto;min-width:0;overflow-wrap:anywhere;}
 .anualMeta>span{min-width:0;overflow-wrap:anywhere;}
 .anualMeta .ico{flex-shrink:0;}
 .svnome{outline:none;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -1005,7 +1006,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v25/08 18:33</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v25/08 18:54</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -4153,7 +4154,7 @@ function iconeCat(k,tam){
 function metaLinha(x,comDel){
  const cs=catsDe(x);
  return `<div class="anualMeta">
-   <span contenteditable data-antit="${x.id}" style="flex:1;min-width:0">${esc(x.titulo)}</span>
+   <span contenteditable data-antit="${x.id}">${esc(x.titulo)}</span>
    <span class="metaicons" data-anedit="${x.id}" title="clica para escolher categorias">${cs.map(k=>iconeCat(k)).join("")||'<span class="hsub" style="font-size:9px">sem categoria</span>'}</span>
    ${comDel?`<button class="ico" style="width:16px;height:16px;font-size:9px" data-andel="${x.id}" title="apagar">✕</button>`:""}
   </div>`;
