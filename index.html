@@ -173,6 +173,9 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .docprojrow .chip{font-size:9px;}
 .cadbtn:active{box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 #notaTit{outline:none;flex:1;min-width:0;}
+#mNomeEd{outline:none;cursor:text;}
+#mNomeEd:hover{box-shadow:inset 0 -1px 0 var(--line);}
+#mNomeEd:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:6px;padding:1px 6px;}
 #notaTit:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:6px;padding:2px 6px;}
 .fmtbar{display:flex;gap:5px;align-items:center;flex-wrap:wrap;padding:0 0 10px;margin-bottom:12px;border-bottom:1px solid var(--line);}
 .fmtb{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'Inter',sans-serif;font-size:11.5px;min-width:26px;height:26px;padding:0 6px;border-radius:7px;box-shadow:2px 2px 4px var(--sh-d),-2px -2px 4px var(--sh-l);transition:all .15s;}
@@ -1006,7 +1009,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v25/08 23:53</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v27/08 20:57</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -3513,7 +3516,32 @@ $("mNew").addEventListener("keydown",e=>{if(e.key==="Enter")mAdd();});
 function renderP(){
  const p=D.projectos.find(x=>x.id===mP);if(!p)return;
  const nums=(D.conta||[]).filter(r=>contaProjId(r)===p.id).map(r=>r[0]);
- $("mName").innerHTML=esc(p.nome)+(nums.length?` <span class="chip" style="display:inline-block;margin-left:8px;font-size:10px;vertical-align:middle">${nums.map(esc).join(" · ")}</span>`:"");
+ $("mName").innerHTML=`<span contenteditable id="mNomeEd" data-pnome="${p.id}">${esc(p.nome)}</span>`+(nums.length?` <span class="chip" style="display:inline-block;margin-left:8px;font-size:10px;vertical-align:middle">${nums.map(esc).join(" · ")}</span>`:"");
+ const ned=$("mNomeEd");
+ if(ned){
+  ned.onblur=async()=>{
+   const novo=ned.textContent.trim();
+   const pj=D.projectos.find(x=>x.id===ned.dataset.pnome);
+   if(!pj||!novo||novo===pj.nome){if(pj)ned.textContent=pj.nome;return;}
+   if(D.projectos.some(x=>x.id!==pj.id&&x.nome===novo&&x.categoria===pj.categoria)){
+    setSt("já existe um projecto com esse nome");ned.textContent=pj.nome;return;
+   }
+   const antigo=pj.nome;
+   // arrastar atrás de si tudo o que aponta para o nome antigo
+   let nt=0,nd=0,nh=0;
+   D.tarefas.forEach(t=>{if(t.projecto===antigo&&t.categoria===pj.categoria){t.projecto=novo;nt++;}});
+   (docs||[]).forEach(x=>{if(x.projecto===antigo){x.projecto=novo;nd++;}});
+   Object.keys(trk||{}).forEach(dia=>{
+    const hh=trk[dia]&&trk[dia].horas;
+    if(hh&&hh[antigo]!==undefined){hh[novo]=(hh[novo]||0)+hh[antigo];delete hh[antigo];nh++;}
+   });
+   pj.nome=novo;
+   await save();if(nd)await saveDocs();
+   setSt(`renomeado · ${nt} tarefas, ${nd} documentos, ${nh} dias de registo`);
+   rAll();if(cat)rCat();
+  };
+  ned.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();ned.blur();}};
+ }
  const pr={1:"1 · baixa",2:"2 · média",3:"3 · alta"};
  $("mEdit").innerHTML=`
    <label><input type="checkbox" data-pf="cliente" ${p.cliente?"checked":""}/>cliente</label>
