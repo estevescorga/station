@@ -1009,7 +1009,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v27/08 20:57</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v01/09 13:53</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -3772,8 +3772,11 @@ async function toggleTimer(tid){
 // semáforo: verde se em bloco de trabalho com tarefa a contar,
 // laranja se a contar algo que não é tarefa, vermelho se em trabalho sem contar nada
 function estadoSemaforo(){
- const its=rot&&rot.data===hoje()?rot.itens:null;
- if(!its)return {cor:"off",txt:"sem rotina para hoje"};
+ // dia de folga: sem blocos, sem semáforo
+ if(isFolga())return {cor:"off",txt:"dia livre"};
+ // sem rotina gerada hoje, usa a rotina base para saber se é hora de trabalho
+ const its=(rot&&rot.data===hoje()?rot.itens:null)||D.rotinaBase;
+ if(!its||!its.length)return {cor:"off",txt:"sem rotina definida"};
  const nm=new Date().getHours()*60+new Date().getMinutes();
  const s=[...its].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
  let atual=null;
@@ -3782,7 +3785,7 @@ function estadoSemaforo(){
   if(m!==null&&nm>=m&&nm<nx)atual=it;
  });
  const emTrabalho=atual&&/^Bloco de trabalho/i.test(atual.t);
- if(!emTrabalho)return {cor:"off",txt:atual?atual.t:"fora de horas"};
+ if(!emTrabalho)return {cor:"off",txt:atual?atual.t:"fora de horas de trabalho"};
  if(!D.timer)return {cor:"vermelho",txt:"em bloco de trabalho, sem nada a contar. Clica para registar."};
  if(D.timer.tid)return {cor:"verde",txt:"a contar: "+(D.timer.titulo||"")};
  return {cor:"laranja",txt:"a contar (fora de tarefa): "+(D.timer.titulo||"")};
