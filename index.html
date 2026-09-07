@@ -57,7 +57,18 @@ body[data-theme="MUSICA"]::after,body.dark::after{opacity:.09;mix-blend-mode:scr
 .chip.hot{color:var(--acc);font-weight:600;}
 
 /* header */
-.head{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.head{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;margin-bottom:20px;flex-wrap:wrap;gap:10px 16px;}
+.headicos{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex:1 1 auto;min-width:0;}
+.clock{flex-shrink:0;margin-left:auto;}
+/* em ecrãs médios (iPad) os ícones quebram em duas linhas, mas o relógio fica à direita */
+@media(max-width:1150px){
+ .headicos{max-width:420px;}
+}
+@media(max-width:700px){
+ .head{gap:10px;}
+ .headicos{max-width:none;justify-content:flex-start;}
+ .clock{margin-left:0;}
+}
 @media(max-width:700px){
  .head{padding:14px 16px;}
  .head h1{font-size:19px;}
@@ -780,7 +791,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 <div class="head card">
   <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap"><div style="display:flex;flex-direction:column"><h1 style="margin:0">STATION</h1><span class="ftm">AIM FOR PROFIT</span></div><span style="display:flex;flex-direction:column;align-items:flex-start;gap:0;min-width:0"><span id="hFraseTop" class="fraseTop"></span><span id="hFraseDia" class="fraseTop"></span></span></div>
-  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+  <div class="headicos">
     <a class="ico glink" href="https://claude.ai/chat/d093794a-2795-4f78-89f1-8d16eabb1cd3" target="_blank" rel="noopener" title="Conversa GOTEN" id="gotenLink" style="color:var(--acc)">✦</a>
     <a class="ico glink" href="https://calendar.google.com" target="_blank" rel="noopener" title="Google Calendar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></a>
     <a class="ico glink" href="https://keep.google.com" target="_blank" rel="noopener" title="Google Keep"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></a>
@@ -796,8 +807,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <button class="ico" id="btnSom" style="width:30px;height:30px" title="Som ao mudar de bloco" onclick="toggleSom()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
     <button class="ico" id="btnDark" style="width:30px;height:30px" title="Modo escuro" onclick="toggleDark()"></button>
     <button class="ico" style="width:30px;height:30px" title="Melhorias da Station" onclick="openNotas()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
-    <div class="clock"><div class="d" id="cD">—</div><div class="h" id="cH">—</div></div>
   </div>
+  <div class="clock"><div class="d" id="cD">—</div><div class="h" id="cH">—</div></div>
 </div>
 
 <div class="nav" id="nav">
@@ -1009,7 +1020,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v03/09 21:00</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v07/09 08:14</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
