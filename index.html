@@ -174,6 +174,10 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .cadlista{display:flex;flex-direction:column;gap:6px;}
 .cadbtn{border:none;cursor:pointer;background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:11.5px;text-align:left;padding:9px 11px;border-radius:11px;box-shadow:3px 3px 7px var(--sh-d),-3px -3px 7px var(--sh-l);line-height:1.35;transition:all .18s;overflow-wrap:anywhere;}
 .cadbtn:hover{color:var(--acc2);}
+.nqrow{display:flex;align-items:flex-start;gap:12px;padding:9px 10px;border-radius:9px;cursor:pointer;transition:box-shadow .15s;}
+.nqrow:hover{box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
+.nqtit{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nqtrecho{font-size:11px;color:var(--soft);line-height:1.5;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .dropzona{border-radius:12px;transition:box-shadow .15s,background .15s;}
 .dropzona.over{box-shadow:inset 0 0 0 2px var(--acc2);background:color-mix(in srgb,var(--acc2) 7%,transparent);}
 .zonah{display:flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);margin:10px 0 6px;}
@@ -1020,7 +1024,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v07/09 08:14</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v07/09 10:04</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1060,6 +1064,11 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ TAREFAS (global, filtros) ============ -->
 <div class="view" id="v-NOTASRIMA">
+  <div class="card" style="padding:14px 18px;margin-bottom:20px">
+   <input class="pin" id="nqBusca" placeholder="procurar em notas, ideias e documentos…" style="width:100%"/>
+   <div id="nqRes" style="margin-top:10px"></div>
+  </div>
+  <div id="nqNormal">
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Ideias soltas<span style="display:flex;gap:6px;align-items:center"><span class="hsub" style="margin:0;font-size:9.5px">ditadas ao telemóvel, recolhidas no SYNC</span><button class="ico" style="width:28px;height:28px" title="Nova ideia solta" onclick="addIdeiaSolta()">＋</button></span></h2>
   <div class="card" style="padding:10px 0;margin-bottom:26px" id="soltasLista"></div>
   <h2 class="sec">Notas práticas</h2>
@@ -1091,6 +1100,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   </div>
   <h2 class="sec" style="margin-top:26px">Documentos dos projectos</h2>
   <div id="docsProj"></div>
+  </div>
 </div>
 
 <div class="view" id="v-PESSOAL">
@@ -4673,6 +4683,8 @@ function goNotasRima(){
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
  $("v-NOTASRIMA").classList.add("on");
  Object.keys(CADERNOS).forEach(rCaderno);rIdeiasSoltas();rDocsProjectos();
+ const nb=$("nqBusca");
+ if(nb&&!nb.dataset.lig){nb.dataset.lig="1";nb.addEventListener("input",rBuscaNotas);}
 }
 const goNotasRicardo=goNotasRima;
 function rCaderno(chave){
@@ -4835,6 +4847,54 @@ function bindDocDrag(){
    setSt("movido para notas práticas");
   };
  });
+}
+function rBuscaNotas(){
+ const q=($("nqBusca").value||"").trim().toLowerCase();
+ const res=$("nqRes"),normal=$("nqNormal");
+ if(q.length<2){res.innerHTML="";normal.style.display="";return;}
+ normal.style.display="none";
+ const achados=[];
+ // cadernos
+ Object.keys(CADERNOS).forEach(ch=>{
+  (D[ch]||[]).forEach(n=>{
+   const txt=(n.titulo+" "+(n.corpo||"")).toLowerCase();
+   if(txt.includes(q))achados.push({tipo:"nota",chave:ch,id:n.id,titulo:n.titulo,
+    onde:ch.replace("notas",""),corpo:n.corpo||""});
+  });
+ });
+ // ideias soltas
+ (D.ideiasSoltas||[]).forEach(x=>{
+  if((x.texto||"").toLowerCase().includes(q))
+   achados.push({tipo:"ideia",id:x.id,titulo:x.texto.slice(0,70),onde:"ideia solta",corpo:x.texto});
+ });
+ // documentos
+ (docs||[]).forEach(x=>{
+  if(x.arquivado)return;
+  const txt=(x.titulo+" "+(x.corpo||"")).toLowerCase();
+  if(txt.includes(q))achados.push({tipo:"doc",id:x.id,titulo:x.titulo,
+   onde:x.projecto||x.categoria||"documento",corpo:x.corpo||""});
+ });
+ if(!achados.length){res.innerHTML=`<div class="hsub" style="padding:6px 2px">nada encontrado para "${esc(q)}"</div>`;return;}
+ const trecho=(txt)=>{
+  const i=txt.toLowerCase().indexOf(q);
+  if(i<0)return "";
+  const ini=Math.max(0,i-40),fim=Math.min(txt.length,i+q.length+60);
+  return (ini>0?"…":"")+esc(txt.slice(ini,fim).replace(/\s+/g," "))+(fim<txt.length?"…":"");
+ };
+ res.innerHTML=`<div class="hsub" style="margin-bottom:8px">${achados.length} resultado${achados.length>1?"s":""}</div>`+
+  achados.map(a=>`<div class="nqrow" data-nq="${a.tipo}|${a.chave||""}|${a.id}">
+    <div style="flex:1;min-width:0">
+     <div class="nqtit">${esc(a.titulo)}</div>
+     <div class="nqtrecho">${trecho(a.corpo)}</div>
+    </div>
+    <span class="chip" style="flex-shrink:0">${esc(a.onde)}</span>
+   </div>`).join("");
+ res.querySelectorAll("[data-nq]").forEach(r=>r.addEventListener("click",()=>{
+  const [tipo,chave,id]=r.dataset.nq.split("|");
+  if(tipo==="nota")abrirNota(chave,id);
+  else if(tipo==="doc")abrirDoc(id);
+  else{$("nqBusca").value="";rBuscaNotas();setSt("ideia solta — vê na lista abaixo");}
+ }));
 }
 function rIdeiasSoltas(){
  const box=$("soltasLista");if(!box)return;
