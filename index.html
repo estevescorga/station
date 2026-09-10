@@ -1024,7 +1024,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v10/09 12:42</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v10/09 13:45</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -3839,7 +3839,10 @@ function estadoSemaforo(){
   const nx=i<s.length-1?min(s[i+1].q):1440,m=min(it.q);
   if(m!==null&&nm>=m&&nm<nx)atual=it;
  });
- const emTrabalho=atual&&/^Bloco de trabalho/i.test(atual.t);
+ // conta como trabalho: blocos de trabalho, bloco comercial, e o regresso
+ // depois do almoço (que parte o bloco original em dois)
+ const eTrabalho=t=>/^(Bloco de trabalho|Bloco comercial|Voltar ao estúdio)/i.test(t||"");
+ const emTrabalho=atual&&eTrabalho(atual.t);
  if(!emTrabalho)return {cor:"off",txt:atual?atual.t:"fora de horas de trabalho"};
  if(!D.timer)return {cor:"vermelho",txt:"em bloco de trabalho, sem nada a contar. Clica para registar."};
  if(D.timer.tid)return {cor:"verde",txt:"a contar: "+(D.timer.titulo||"")};
