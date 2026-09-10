@@ -1024,7 +1024,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v07/09 10:04</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v10/09 12:42</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1809,6 +1809,37 @@ function beep(){
   o2.start(audioCtx.currentTime+0.16);o2.stop(audioCtx.currentTime+0.62);
  }catch(e){}
 }
+// Aviso do semáforo vermelho: dois toques graves e curtos, bem mais discretos
+// que o beep de mudança de bloco, para não se confundirem.
+function beepAviso(){
+ try{
+  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended")audioCtx.resume();
+  const t=audioCtx.currentTime;
+  [[0,196],[0.14,165]].forEach(([atraso,freq])=>{
+   const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+   o.type="triangle";o.frequency.value=freq;
+   g.gain.setValueAtTime(0.0001,t+atraso);
+   g.gain.exponentialRampToValueAtTime(0.045,t+atraso+0.015);
+   g.gain.exponentialRampToValueAtTime(0.0001,t+atraso+0.18);
+   o.connect(g);g.connect(audioCtx.destination);
+   o.start(t+atraso);o.stop(t+atraso+0.2);
+  });
+ }catch(e){}
+}
+// enquanto o semáforo estiver vermelho, avisa de 2 em 2 minutos
+let ultimoAvisoVermelho=0;
+function verificarAvisoSemaforo(){
+ if(!D||D.som===false)return;
+ const st=estadoSemaforo();
+ if(st.cor!=="vermelho"){ultimoAvisoVermelho=0;return;}
+ const agora=Date.now();
+ if(agora-ultimoAvisoVermelho>=120000){
+  ultimoAvisoVermelho=agora;
+  beepAviso();
+ }
+}
+setInterval(verificarAvisoSemaforo,20000);
 document.addEventListener("click",()=>{if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}},{once:true});
 function tituloTarefa(ref){
  const t=(D.tarefas||[]).find(x=>x.id===ref);
@@ -4978,7 +5009,11 @@ async function registarExtra(){
  await save();setSt(`registado ${fmtH(horas)} em ${titulo}`);rAll();
 }
 async function iniciarAlmoco(){
- if(!rot||rot.data!==hoje()){setSt("gera primeiro a rotina de hoje");return;}
+ // sem rotina gerada hoje, arranca uma a partir da rotina base
+ if(!rot||rot.data!==hoje()){
+  if(isFolga()){setSt("hoje é dia livre");return;}
+  rot={data:hoje(),itens:deepFix(D.rotinaBase).map(x=>({...x,feito:false}))};
+ }
  const n=new Date();
  const hm=x=>String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");
  const mais=m=>{const d=new Date(n.getTime()+m*60000);return hm(d);};
