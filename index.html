@@ -1024,7 +1024,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v10/09 13:45</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v11/09 09:36</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1827,19 +1827,19 @@ function beepAviso(){
   });
  }catch(e){}
 }
-// enquanto o semáforo estiver vermelho, avisa de 2 em 2 minutos
+// enquanto o semáforo estiver vermelho, avisa de 30 em 30 segundos
 let ultimoAvisoVermelho=0;
 function verificarAvisoSemaforo(){
  if(!D||D.som===false)return;
  const st=estadoSemaforo();
  if(st.cor!=="vermelho"){ultimoAvisoVermelho=0;return;}
  const agora=Date.now();
- if(agora-ultimoAvisoVermelho>=120000){
+ if(agora-ultimoAvisoVermelho>=30000){
   ultimoAvisoVermelho=agora;
   beepAviso();
  }
 }
-setInterval(verificarAvisoSemaforo,20000);
+setInterval(verificarAvisoSemaforo,5000);
 document.addEventListener("click",()=>{if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}},{once:true});
 function tituloTarefa(ref){
  const t=(D.tarefas||[]).find(x=>x.id===ref);
