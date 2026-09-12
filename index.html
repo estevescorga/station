@@ -354,7 +354,8 @@ h2.sec{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:upperc
 h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 
 /* ================= HOJE ================= */
-.hometop{display:flex;gap:14px;align-items:center;margin-bottom:16px;}
+.hometop{display:flex;gap:14px;align-items:center;margin-bottom:20px;}
+@media(max-width:700px){.hometop{gap:10px;}}
 .hometop .now{flex:1;margin-bottom:0;}
 .now{display:flex;align-items:center;gap:12px;}
 .now #nowTxt{flex:1;min-width:0;}
@@ -830,8 +831,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <button data-v="CASA">Casa</button>
 </div>
 
-<!-- ============ HOME ============ -->
-<div class="view on" id="v-HOJE">
   <div class="hometop">
     <div class="now card"><div class="pip"></div><div id="nowTxt">—</div><span id="nowTimer" class="nowtimer" hidden></span><button class="ico" id="btnRotina" title="Ver rotina completa" onclick="abrirRotina()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button></div>
     <div class="card semcard">
@@ -839,6 +838,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
      <button class="ico" id="btnAlmoco" onclick="iniciarAlmoco()" title="Iniciar pausa de almoço"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h1a2 2 0 0 0 2-2V2"/><path d="M6 11v11"/><path d="M17 2v20"/><path d="M17 8c1.7 0 3-1.3 3-3s-1.3-3-3-3"/></svg></button>
     </div>
   </div>
+
+<!-- ============ HOME ============ -->
+<div class="view on" id="v-HOJE">
   <div class="home">
     <div class="hcol" data-col="0">
       <div id="hDanger" data-box="danger"></div>
@@ -1024,7 +1026,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v11/09 09:36</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v12/09 13:13</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -4515,32 +4517,36 @@ function aplicarBloco(alvo,tag){
  if(!sel||!sel.rangeCount)return;
  const r=sel.getRangeAt(0);
  if(r.collapsed){setSt("seleciona o texto primeiro");return;}
- // guardar a seleção exacta: os nós de texto sobrevivem à troca de bloco
+ if(!alvo.contains(r.commonAncestorContainer)&&r.commonAncestorContainer!==alvo)return;
  const sc=r.startContainer,so=r.startOffset,ec=r.endContainer,eo=r.endOffset;
- let blocos=[...alvo.children].filter(el=>{
-  try{return r.intersectsNode(el);}catch(e){return false;}
+ const filhos=[...alvo.children];
+ // sem blocos nenhuns: embrulhar o conteúdo todo
+ if(!filhos.length){
+  const n=document.createElement(tag);
+  while(alvo.firstChild)n.appendChild(alvo.firstChild);
+  limparInline(n);alvo.appendChild(n);
+  reporSel(sel,sc,so,ec,eo,n);return;
+ }
+ let i1=filhos.indexOf(blocoDeTopo(sc,alvo));
+ let i2=filhos.indexOf(blocoDeTopo(ec,alvo));
+ if(i1<0)i1=0;
+ if(i2<0)i2=filhos.length-1;
+ if(i2<i1){const t=i1;i1=i2;i2=t;}
+ // o fim da selecção pode tocar no bloco seguinte sem lá ter texto nenhum
+ // seleccionado: nesse caso esse bloco não deve ser formatado
+ if(i2>i1&&eo===0)i2--;
+ const alvos=filhos.slice(i1,i2+1);
+ const novos=alvos.map(b=>{
+  if(b.tagName.toLowerCase()===tag.toLowerCase()){limparInline(b);return b;}
+  const n=document.createElement(tag);
+  while(b.firstChild)n.appendChild(b.firstChild);
+  limparInline(n);
+  b.parentNode.replaceChild(n,b);
+  return n;
  });
- if(!blocos.length){
-  const b=blocoDeTopo(r.startContainer,alvo);
-  if(b)blocos=[b];
- }
- if(!blocos.length){
-  // texto solto, sem bloco: embrulhar tudo
-  const novo=document.createElement(tag);
-  while(alvo.firstChild)novo.appendChild(alvo.firstChild);
-  limparInline(novo);alvo.appendChild(novo);
-  blocos=[novo];
- }else{
-  blocos=blocos.map(b=>{
-   if(b.tagName.toLowerCase()===tag.toLowerCase()){limparInline(b);return b;}
-   const novo=document.createElement(tag);
-   while(b.firstChild)novo.appendChild(b.firstChild);
-   limparInline(novo);
-   b.parentNode.replaceChild(novo,b);
-   return novo;
-  });
- }
- // repor exactamente a mesma seleção, sem a alargar ao bloco todo
+ reporSel(sel,sc,so,ec,eo,novos[0]);
+}
+function reporSel(sel,sc,so,ec,eo,fallback){
  try{
   const nr=document.createRange();
   nr.setStart(sc,so);nr.setEnd(ec,eo);
@@ -4548,7 +4554,7 @@ function aplicarBloco(alvo,tag){
  }catch(e){
   try{
    const nr=document.createRange();
-   nr.selectNodeContents(blocos[0]);
+   nr.selectNodeContents(fallback);
    sel.removeAllRanges();sel.addRange(nr);
   }catch(e2){}
  }
@@ -4564,6 +4570,8 @@ function bindEditor(scope,onSave){
    if(cmd==="formatBlock"){
     aplicarBloco(alvo,b.dataset.fmtarg);
    }else if(cmd==="cor"){
+    const s=window.getSelection();
+    if(!s||!s.rangeCount||s.getRangeAt(0).collapsed){setSt("seleciona o texto primeiro");return;}
     document.execCommand("foreColor",false,b.dataset.fmtarg);
    }else if(cmd==="tam"){
     // três tamanhos só: pequeno, normal, grande
