@@ -366,8 +366,11 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .semaforo.sem-verde{background:var(--ok);box-shadow:0 0 10px color-mix(in srgb,var(--ok) 55%,transparent);}
 .semaforo.sem-vermelho{background:var(--acc);box-shadow:0 0 10px color-mix(in srgb,var(--acc) 55%,transparent);animation:tbpulse 1.8s ease-in-out infinite;}
 .semaforo.sem-laranja{background:#C77B3C;box-shadow:0 0 10px rgba(199,123,60,.5);}
+.semaforo.sem-amarelo{background:#D9B441;box-shadow:0 0 10px rgba(217,180,65,.55);animation:tbpulse 2.2s ease-in-out infinite;}
 .semaforo.sem-off{background:var(--bg);box-shadow:inset 3px 3px 6px var(--sh-d),inset -3px -3px 6px var(--sh-l);}
 #btnAlmoco{width:30px;height:30px;flex-shrink:0;}
+.casabtn{width:24px !important;height:24px !important;color:var(--soft);opacity:.4;}
+.casabtn.on{color:#6B92E5;opacity:1;}
 .dangbtn{width:24px !important;height:24px !important;color:var(--soft);opacity:.4;}
 .dangbtn.on{color:var(--acc);opacity:1;}
 .dangbox{box-shadow:inset 0 0 0 2px var(--acc),3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);}
@@ -807,6 +810,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <span class="hsep"></span>
     <button class="ico" style="width:30px;height:30px;font-size:13px" title="Pessoal" onclick="goPessoal()">@</button>
     <button class="ico" style="width:30px;height:30px" title="Notas práticas" onclick="goNotasRima()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></button>
+    <button class="ico" style="width:30px;height:30px" title="Tarefas de casa" onclick="abrirCasa()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Light tasks" onclick="abrirLight()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5c0 7-6 12-13 12H4c0-7 5-12 12-12 2 0 4 0 4 0Z"/><path d="M4 21c2-5 6-8 11-9"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Tracker" onclick="goTracker()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></button>
     <button class="ico" id="btnSom" style="width:30px;height:30px" title="Som ao mudar de bloco" onclick="toggleSom()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
@@ -954,6 +958,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <div id="timerBar"></div>
 
+<div class="ovl" id="casaOvl">
+ <div class="modal card" style="max-width:640px">
+  <div class="mhead"><h3>Tarefas de casa</h3><button class="ico" style="width:30px;height:30px;font-size:13px" onclick="fecharCasa()" title="Fechar">✕</button></div>
+  <div class="hsub" style="margin-bottom:12px">Coisas para fazer fora do estúdio, em casa.</div>
+  <div id="casaList" style="max-height:65vh;overflow:auto"></div>
+ </div>
+</div>
+
 <div class="ovl" id="lightOvl">
  <div class="modal card" style="max-width:640px">
   <div class="mhead"><h3>Light tasks</h3><button class="ico" style="width:30px;height:30px;font-size:13px" onclick="fecharLight()" title="Fechar">✕</button></div>
@@ -1026,7 +1038,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v12/09 13:13</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v15/09 22:55</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1829,14 +1841,14 @@ function beepAviso(){
   });
  }catch(e){}
 }
-// enquanto o semáforo estiver vermelho, avisa de 30 em 30 segundos
+// enquanto houver alerta (vermelho ou pausa), avisa de 20 em 20 segundos
 let ultimoAvisoVermelho=0;
 function verificarAvisoSemaforo(){
  if(!D||D.som===false)return;
  const st=estadoSemaforo();
- if(st.cor!=="vermelho"){ultimoAvisoVermelho=0;return;}
+ if(!st.avisa){ultimoAvisoVermelho=0;return;}
  const agora=Date.now();
- if(agora-ultimoAvisoVermelho>=30000){
+ if(agora-ultimoAvisoVermelho>=20000){
   ultimoAvisoVermelho=agora;
   beepAviso();
  }
@@ -1917,6 +1929,34 @@ function tkLabel(ref){
  const concluida=t.estado==="concluída";
  return `<span class="tk${foraDeHoje?" tkfora":""}${concluida?" tkdone":""}" title="${foraDeHoje?"já não é de hoje ("+t.data+")":concluida?"concluída":""}">${esc(t.titulo)}${foraDeHoje?" ⤳":""}${concluida?" ✓":""}</span>`;
 }
+function abrirCasa(){$("casaOvl").classList.add("on");rCasa();}
+function fecharCasa(){$("casaOvl").classList.remove("on");}
+function rCasa(){
+ const box=$("casaList");if(!box)return;
+ const ts=(D.tarefas||[]).filter(t=>t.emcasa&&t.estado!=="concluída"&&t.estado!=="arquivada");
+ if(!ts.length){box.innerHTML=`<div class="empty">Sem tarefas de casa. Marca-as com a fechadura na lista de tarefas.</div>`;return;}
+ const porCat={};
+ ts.forEach(t=>{
+  const c=t.categoria||"RIMA",p=t.projecto||"sem projecto";
+  porCat[c]=porCat[c]||{};porCat[c][p]=porCat[c][p]||[];porCat[c][p].push(t);
+ });
+ let html="";
+ Object.keys(porCat).sort().forEach(c=>{
+  html+=`<div class="hgrouph" style="margin-top:10px">${esc(c)}</div>`;
+  Object.keys(porCat[c]).sort().forEach(p=>{
+   html+=`<div class="lightproj">${esc(p)}</div>`;
+   porCat[c][p].forEach(t=>{
+    html+=`<div class="lightrow"><button class="chk" data-cchk="${t.id}" aria-label="concluir"></button><span>${esc(t.titulo)}</span></div>`;
+   });
+  });
+ });
+ box.innerHTML=html;
+ box.querySelectorAll("[data-cchk]").forEach(b=>b.addEventListener("click",async()=>{
+  const t=D.tarefas.find(x=>x.id===b.dataset.cchk);
+  if(t){t.estado="concluída";await save();rCasa();rAll();}
+ }));
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("casaOvl").classList.contains("on"))fecharCasa();});
 function abrirLight(){$("lightOvl").classList.add("on");rLight();}
 function fecharLight(){$("lightOvl").classList.remove("on");}
 function rLight(){
@@ -3846,7 +3886,8 @@ function estadoSemaforo(){
  const eTrabalho=t=>/^(Bloco de trabalho|Bloco comercial|Voltar ao estúdio)/i.test(t||"");
  const emTrabalho=atual&&eTrabalho(atual.t);
  if(!emTrabalho)return {cor:"off",txt:atual?atual.t:"fora de horas de trabalho"};
- if(!D.timer)return {cor:"vermelho",txt:"em bloco de trabalho, sem nada a contar. Clica para registar."};
+ if(!D.timer)return {cor:"vermelho",txt:"em bloco de trabalho, sem nada a contar. Clica para registar.",avisa:true};
+ if(D.timer.pausadoEm)return {cor:"amarelo",txt:"em pausa: "+(D.timer.titulo||"")+". Retoma ou pára.",avisa:true};
  if(D.timer.tid)return {cor:"verde",txt:"a contar: "+(D.timer.titulo||"")};
  return {cor:"laranja",txt:"a contar (fora de tarefa): "+(D.timer.titulo||"")};
 }
@@ -3899,6 +3940,7 @@ function rTaskList(el,list,editavel){
       ${(D.projectos||[]).filter(p=>p.estado!=="arquivado"&&p.nome!==t.projecto).map(p=>`<button data-mvset="${t.id}" data-mvto="${esc(p.nome)}" data-mvcat="${p.categoria}">${esc(p.nome)}</button>`).join("")}
      </div>
     </span>
+    <button class="ico casabtn${t.emcasa?" on":""}" data-tcasa="${t.id}" title="${t.emcasa?"é tarefa de casa":"marcar como tarefa de casa"}"><svg width="11" height="11" viewBox="0 0 24 24" fill="${t.emcasa?"currentColor":"none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
     <button class="ico dangbtn${t.danger?" on":""}" data-tdang="${t.id}" title="${t.danger?"é super urgente":"marcar como super urgente"}"><svg width="11" height="11" viewBox="0 0 24 24" fill="${t.danger?"currentColor":"none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4" stroke="${t.danger?"var(--bg)":"currentColor"}"/><path d="M12 17h.01" stroke="${t.danger?"var(--bg)":"currentColor"}"/></svg></button>
     <button class="ico lightbtn${t.light?" on":""}" data-tlight="${t.id}" title="${t.light?"é light task":"marcar como light task"}"><svg width="11" height="11" viewBox="0 0 24 24" fill="${t.light?"currentColor":"none"}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5c0 7-6 12-13 12H4c0-7 5-12 12-12 2 0 4 0 4 0Z"/></svg></button>
     ${t.estado==="concluída"||t.estado==="arquivada"?"":`<button class="ico tmrbtn${D.timer&&D.timer.tid===t.id?" run":""}" style="width:24px;height:24px" data-tmr="${t.id}" title="${D.timer&&D.timer.tid===t.id?"parar cronómetro":"iniciar cronómetro"}">${D.timer&&D.timer.tid===t.id?`<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>`:`<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>`}</button>`}
@@ -3922,6 +3964,11 @@ function rTaskList(el,list,editavel){
   });
   t2.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();t2.blur();}});
  });
+ el.querySelectorAll("[data-tcasa]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();
+  const t=D.tarefas.find(x=>x.id===b.dataset.tcasa);
+  if(t){t.emcasa=!t.emcasa;await save();rAll();}
+ }));
  el.querySelectorAll("[data-tdang]").forEach(b=>b.addEventListener("click",async e=>{
   e.stopPropagation();
   const t=D.tarefas.find(x=>x.id===b.dataset.tdang);
@@ -5020,6 +5067,8 @@ async function registarExtra(){
  await save();setSt(`registado ${fmtH(horas)} em ${titulo}`);rAll();
 }
 async function iniciarAlmoco(){
+ // qualquer tarefa a contar pára aqui, como se carregasses em stop
+ if(D.timer)await pararTimer();
  // sem rotina gerada hoje, arranca uma a partir da rotina base
  if(!rot||rot.data!==hoje()){
   if(isFolga()){setSt("hoje é dia livre");return;}
