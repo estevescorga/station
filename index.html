@@ -1038,7 +1038,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v15/09 22:55</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v23/09 08:57</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -2146,7 +2146,11 @@ function toggleUrgTodas(){urgTodas_expandido=!urgTodas_expandido;rHome();}
 function rHome(){
  const n=new Date();
  // agenda do dia
- const agOk=agenda&&agenda.atualizado===hoje();
+ // os dados da agenda cobrem várias semanas: não faz sentido escondê-los
+ // só porque a última recolha não foi hoje. Avisa se estiverem velhos.
+ const agOk=!!(agenda&&(agenda.eventos||agenda.aniversarios));
+ const diasAg=agenda&&agenda.atualizado
+  ? Math.floor((new Date(hoje())-new Date(agenda.atualizado))/864e5) : 999;
  const evHoje=agOk?(agenda.eventos||[]).filter(e=>e.data===hoje()):[];
  const anivHoje=agOk?(agenda.aniversarios||[]).filter(a=>a.data===hoje()):[];
  const linhaEv=e=>`<div class="hitem"><span class="hm" style="margin:0 0 0 0">${esc(e.h||"")}</span>${evmark()}<span>${esc(e.t)}${e.quem?` <span class="chip" style="display:inline;color:var(--acc2)">${esc(e.quem)}</span>`:""}</span></div>`;
@@ -2165,6 +2169,7 @@ function rHome(){
      anv.map(a=>`<div class="hitem"><span class="hm" style="margin:0"></span><span>🎂 ${esc(a.nome)}</span></div>`).join("")+
      evs.map(linhaEv).join("");
   }
+  if(diasAg>=4)html+=`<div class="hsub" style="margin-top:10px;opacity:.6">recolhida há ${diasAg} dias</div>`;
   $("hAg").innerHTML=html;
  }
  $("hAniv").innerHTML=anivHoje.length?anivHoje.map(a=>`<div class="hitem"><span>🎂 ${esc(a.nome)}</span></div>`).join(""):`<div class="hsub">nenhum hoje</div>`;
