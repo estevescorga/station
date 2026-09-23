@@ -231,6 +231,7 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .pgrip{cursor:grab;color:var(--soft);opacity:.35;font-size:10px;flex-shrink:0;user-select:none;padding-top:2px;}
 .irow:hover .pgrip{opacity:.75;}
 .pdrag.dragging{opacity:.4;}
+#btnSave.pend{color:var(--acc);animation:tbpulse 1.8s ease-in-out infinite;}
 .buildtag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);opacity:.6;font-weight:400;margin-left:8px;letter-spacing:.04em;}
 .savemark{display:block;height:15px;line-height:15px;font-size:10px;overflow:hidden;}
 .tedit{outline:none;cursor:text;}
@@ -814,6 +815,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <button class="ico" style="width:30px;height:30px" title="Light tasks" onclick="abrirLight()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5c0 7-6 12-13 12H4c0-7 5-12 12-12 2 0 4 0 4 0Z"/><path d="M4 21c2-5 6-8 11-9"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Tracker" onclick="goTracker()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></button>
     <button class="ico" id="btnSom" style="width:30px;height:30px" title="Som ao mudar de bloco" onclick="toggleSom()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
+    <button class="ico" id="btnSave" style="width:30px;height:30px" title="tudo gravado" onclick="gravarJa()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg></button>
     <button class="ico" id="btnDark" style="width:30px;height:30px" title="Modo escuro" onclick="toggleDark()"></button>
     <button class="ico" style="width:30px;height:30px" title="Melhorias da Station" onclick="openNotas()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
   </div>
@@ -1038,7 +1040,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v23/09 08:57</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v23/09 22:16</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1544,6 +1546,9 @@ function applySnapshot(s){
 }
 async function load(){
  if(!SENHA){mostrarGate();throw new Error("sem chave");}
+ // sobrou alguma coisa por gravar de uma sessão anterior?
+ let pendente=null;
+ try{const s=localStorage.getItem("station:pendente");if(s)pendente=JSON.parse(s);}catch(e){}
  let local=null;
  try{const r=await window.storage.get("dash:snap",true);local=JSON.parse(r.value);}catch(e){local=null;}
  // arranque rápido com cache local, se existir
@@ -1556,6 +1561,15 @@ async function load(){
    // e por uma margem real (trabalho feito offline). Uma diferença pequena costuma ser
    // ruído de relógio ou uma gravação antiga do próprio separador, e nesse caso
    // a cópia local ficava presa a dados velhos para sempre.
+   // alterações locais por enviar ganham à nuvem se forem mais recentes
+   if(pendente&&pendente.D&&(pendente.ts||0)>(cloud.ts||0)){
+    applySnapshot(pendente);
+    setSt("recuperadas alterações por gravar — a enviar…");
+    setTimeout(()=>{marcarPorGravar(true);gravarJa();},500);
+    tsConhecido=cloud.ts||0;
+    rAll();return;
+   }
+   if(pendente)limparLocal();
    const dif=(local&&local.ts||0)-(cloud.ts||0);
    const localGanha=local&&local.ts&&dif>120000; // 2 minutos
    if(!localGanha){applySnapshot(cloud);}
@@ -1747,17 +1761,59 @@ async function rolarTarefasAtrasadas(){
  });
  if(n){await save();setSt(`${n} tarefa${n===1?"":"s"} transitou para hoje`);}
 }
+let porGravar=false, tentativas=0;
+function marcarPorGravar(v){
+ porGravar=v;
+ const b=$("btnSave");
+ if(b){b.classList.toggle("pend",v);b.title=v?"há alterações por gravar — clica para gravar já":"tudo gravado";}
+}
+// rede de segurança: cópia local imediata, que sobrevive a fechar o separador
+function guardarLocal(){
+ try{localStorage.setItem("station:pendente",JSON.stringify(snapshot()));}catch(e){}
+}
+function limparLocal(){
+ try{localStorage.removeItem("station:pendente");}catch(e){}
+}
+async function gravarJa(){
+ clearTimeout(saveTimer);
+ if(!cloudOn){setSt("sem ligação — alterações guardadas no dispositivo");return false;}
+ try{
+  await cloudPut(snapshot());
+  tentativas=0;marcarPorGravar(false);limparLocal();
+  setSt("guardado ✓");return true;
+ }catch(e){
+  tentativas++;
+  guardarLocal();
+  setSt(`falha ao gravar (tentativa ${tentativas}) — a repetir…`);
+  if(tentativas<5)setTimeout(gravarJa,2000*tentativas);
+  else setSt("NÃO GRAVADO — verifica a ligação e clica em guardar");
+  return false;
+ }
+}
 async function persist(tag){
- const snap=snapshot();
- try{await window.storage.set("dash:snap",JSON.stringify(snap),true);}catch(e){}
+ guardarLocal();
+ marcarPorGravar(true);
  if(cloudOn){
   clearTimeout(saveTimer);
-  saveTimer=setTimeout(async()=>{
-   try{await cloudPut(snapshot());setSt("guardado ✓");}
-   catch(e){setSt("guardado local (nuvem falhou)");}
-  },1200);
- }else{setSt("guardado local");}
+  saveTimer=setTimeout(gravarJa,600);
+ }else{setSt("guardado no dispositivo");}
 }
+// ao mudar de separador ou fechar, força a gravação do que estiver pendente
+document.addEventListener("visibilitychange",()=>{
+ if(document.hidden&&porGravar){clearTimeout(saveTimer);gravarJa();}
+});
+window.addEventListener("pagehide",()=>{
+ if(porGravar){
+  guardarLocal();
+  try{
+   const b=new Blob([JSON.stringify(snapshot())],{type:"application/json"});
+   navigator.sendBeacon(WORKER+"?k="+encodeURIComponent(SENHA),b);
+  }catch(e){}
+ }
+});
+window.addEventListener("beforeunload",e=>{
+ if(porGravar){e.preventDefault();e.returnValue="";return "";}
+});
 async function save(){await persist("D");}
 async function saveRot(){await persist("rot");}
 async function saveDocs(){await persist("docs");}
