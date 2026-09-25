@@ -231,6 +231,12 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .pgrip{cursor:grab;color:var(--soft);opacity:.35;font-size:10px;flex-shrink:0;user-select:none;padding-top:2px;}
 .irow:hover .pgrip{opacity:.75;}
 .pdrag.dragging{opacity:.4;}
+.estwrap{position:relative;display:inline-block;}
+.estmenu{position:absolute;top:calc(100% + 5px);left:0;z-index:60;display:flex;flex-direction:column;gap:3px;padding:6px;border-radius:10px;background:var(--bg);box-shadow:4px 4px 12px var(--sh-d),-4px -4px 12px var(--sh-l);min-width:104px;}
+.estmenu[hidden]{display:none;}
+.estop{border:none;cursor:pointer;background:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;padding:6px 9px;border-radius:7px;text-align:left;}
+.estop:hover{box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
+.estop.on{box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);font-weight:600;}
 #btnSave.pend{color:var(--acc);animation:tbpulse 1.8s ease-in-out infinite;}
 .buildtag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);opacity:.6;font-weight:400;margin-left:8px;letter-spacing:.04em;}
 .savemark{display:block;height:15px;line-height:15px;font-size:10px;overflow:hidden;}
@@ -1040,7 +1046,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v23/09 23:45</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v25/09 14:16</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -2799,7 +2805,12 @@ function crow(r){
    <span class="cid">${r[0]}</span>
    <span class="cnome${pid?" clk":""}" ${pid?`data-copen="${pid}"`:""}><span class="cli">${esc(r[3]||"—")}</span><span class="cdesc">${esc(r[5]||"")}${r[1]?" · "+r[1]:""}</span></span>
    <span class="cval" title="€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})} com IVA · €${val.toLocaleString("pt-PT",{minimumFractionDigits:2})} sem IVA">€${cIVA.toLocaleString("pt-PT",{minimumFractionDigits:2})}<span class="cvalsi">€${val.toLocaleString("pt-PT",{minimumFractionDigits:2})}</span></span>
-   <button class="estbtn est-${(r[8]||"vazio").toLowerCase()}" data-estciclo="${idx}" title="clica para mudar de estado">${(r[8]||"—").toLowerCase()}</button>
+   <span class="estwrap">
+    <button class="estbtn est-${(r[8]||"vazio").toLowerCase()}" data-estabre="${idx}" title="mudar de estado">${(r[8]||"—").toLowerCase()}</button>
+    <span class="estmenu" data-estmenu="${idx}" hidden>
+     ${["ATIVO","AGUARDA","FEITO","REJEITADO",""].map(e=>`<button class="estop est-${(e||"vazio").toLowerCase()}${(r[8]||"")===e?" on":""}" data-estset="${idx}|${e}">${(e||"—").toLowerCase()}</button>`).join("")}
+    </span>
+   </span>
    ${pags}
    <span class="qwrap">
     <button class="ico linkBtn${pid?"":" off"}" data-linkbtn="${idx}" title="${proj?esc(proj.nome):"sem projecto — clique para atribuir"}">▸</button>
@@ -2811,14 +2822,24 @@ function crow(r){
   </div>`;
 }
 function bindConta(el){
- el.querySelectorAll("[data-estciclo]").forEach(b=>b.addEventListener("click",async()=>{
-  const r=D.conta[+b.dataset.estciclo];
-  const ciclo=["ATIVO","AGUARDA","FEITO","REJEITADO",""];
-  const i=ciclo.indexOf(r[8]||"");
-  r[8]=ciclo[(i+1)%ciclo.length];
-  if(r[8]==="REJEITADO"){r[10]=r[11]=r[12]=r[13]=null;}
+ el.querySelectorAll("[data-estabre]").forEach(b=>b.addEventListener("click",e=>{
+  e.stopPropagation();
+  const m=el.querySelector(`[data-estmenu="${b.dataset.estabre}"]`);
+  const aberto=m&&!m.hidden;
+  el.querySelectorAll("[data-estmenu]").forEach(x=>x.hidden=true);
+  if(m)m.hidden=aberto;
+ }));
+ el.querySelectorAll("[data-estset]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();
+  const [ix,est]=b.dataset.estset.split("|");
+  const r=D.conta[+ix];
+  r[8]=est;
+  if(est==="REJEITADO"){r[10]=r[11]=r[12]=r[13]=null;}
   await save();rConta();
  }));
+ document.addEventListener("click",()=>{
+  el.querySelectorAll("[data-estmenu]").forEach(x=>x.hidden=true);
+ });
  el.querySelectorAll("[data-cf]").forEach(s=>s.addEventListener("change",async()=>{
   const r=D.conta[+s.dataset.ix],f=+s.dataset.cf;
   if(f===8){r[8]=s.value;if(s.value==="REJEITADO"){r[10]=r[11]=r[12]=r[13]=null;}}
@@ -3038,6 +3059,7 @@ function rProjComerciais(){
   return `<div class="pcard card" draggable="true" data-cpc="${p.id}">
    <div class="pname">${esc(p.nome)}</div>
    <div class="tags"><span class="chip">${esc(st)}</span>${p.marca?`<span class="chip">${p.marca}</span>`:""}</div>
+   <div class="accbar" style="background:${p.cor||"var(--acc)"}"></div>
    <div class="pmeta"><span>${ts.length?`${done}/${ts.length} tarefas`:"sem tarefas"}</span><span></span></div>
   </div>`;
  };
