@@ -231,6 +231,22 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .pgrip{cursor:grab;color:var(--soft);opacity:.35;font-size:10px;flex-shrink:0;user-select:none;padding-top:2px;}
 .irow:hover .pgrip{opacity:.75;}
 .pdrag.dragging{opacity:.4;}
+.prgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+.prsec{border-radius:12px;padding:2px;transition:box-shadow .15s;}
+.prsec.over{box-shadow:inset 0 0 0 2px var(--acc2);}
+.prcard{padding:13px 15px;cursor:grab;}
+.prcard.dragging{opacity:.4;}
+.prtop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
+.prtit{font-size:12.5px;font-weight:600;outline:none;flex:1;min-width:0;line-height:1.35;}
+.prtit:focus,.prdesc:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:6px;padding:2px 5px;}
+.prdata{border:none;background:none;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);width:88px;padding:0;}
+.prdesc{font-size:11px;color:var(--soft);line-height:1.6;outline:none;min-height:26px;margin-bottom:10px;}
+.prchecks{display:flex;flex-wrap:wrap;gap:4px;}
+.prchk{border:none;cursor:pointer;background:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);padding:4px 7px;border-radius:6px;box-shadow:2px 2px 4px var(--sh-d),-2px -2px 4px var(--sh-l);}
+.prchk.on{color:var(--ok);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
+.natalbtn{border:none;cursor:pointer;background:none;padding:2px;color:var(--soft);opacity:.35;display:inline-flex;align-items:center;border-radius:6px;}
+.natalbtn:hover{opacity:.7;}
+.natalbtn.on{color:#5FA36F;opacity:1;}
 .estwrap{position:relative;display:inline-block;}
 .estmenu{position:absolute;top:calc(100% + 5px);left:0;z-index:60;display:flex;flex-direction:column;gap:3px;padding:6px;border-radius:10px;background:var(--bg);box-shadow:4px 4px 12px var(--sh-d),-4px -4px 12px var(--sh-l);min-width:104px;}
 .estmenu[hidden]{display:none;}
@@ -866,6 +882,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div id="hMetas" data-box="objectivos"></div>
       <div class="card hcard" data-box="adjudicar"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>por adjudicar</h5><div id="hAdj"></div></div>
       <div class="card hcard" data-box="pessoais"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>casa · arte · música</h5><div id="hOutras"></div></div>
+      <div id="hSoltas" data-box="soltas"></div>
     </div>
     <div class="hcol" data-col="2">
       <div class="card hcard" data-box="inbox"><h5 style="display:flex;justify-content:space-between;align-items:center"><span><span class="boxgrip" title="arrastar para reorganizar">⠿</span>inbox · genéricas</span><button class="ico" id="inboxMais" style="width:22px;height:22px;font-size:11px" title="Ver todas" onclick="toggleInboxTodas()"></button></h5><input class="pin" id="hInboxNew" placeholder="nova tarefa genérica… (Enter)" style="width:100%;margin-bottom:8px"/><div id="hInbox"></div></div>
@@ -1046,7 +1063,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v25/09 14:16</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/09 15:04</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1153,6 +1170,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <!-- ============ REDES ============ -->
 <div class="view" id="v-REDES">
   <div id="rdContexto" style="margin-bottom:18px"></div>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Ideias prontas<button class="ico" style="width:28px;height:28px" title="Nova ideia pronta" onclick="addPronta()">＋</button></h2>
+  <div id="prontasWrap" style="margin-bottom:26px"></div>
   <h2 class="sec">Contas</h2>
   <div class="pgrid" id="rdContas"></div>
   <h2 class="sec">Calendário editorial</h2>
@@ -1675,6 +1694,7 @@ async function load(){
  if(!D.metasAnuais)D.metasAnuais=[];
  if(!D.precosCondicoes)D.precosCondicoes=[];
  if(!D.ideiasSoltas)D.ideiasSoltas=[];
+ if(!D.prontas)D.prontas=[];
  ["notasIlustracao","notasAnimacao","notasMusica","notasVariados"].forEach(k=>{if(!D[k])D[k]=[];});
  // categoria única passou a lista de categorias
  D.metasAnuais.forEach(m=>{
@@ -2363,6 +2383,25 @@ function rHome(){
    if(t){t.estado="concluída";await save();rAll();}
   }));
   hd.querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
+ }
+ // ideias soltas vindas da Drive
+ const hs=$("hSoltas");
+ if(hs){
+  const ids=(D.ideiasSoltas||[]).filter(x=>!x.tratada);
+  hs.innerHTML=ids.length?`<div class="card hcard"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>ideias soltas · ${ids.length}</h5>`+
+   ids.map(x=>`<div class="hitem"><button class="hchk" data-istrat2="${x.id}" title="marcar como tratada"></button><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.texto)}</span><button class="ico" style="width:18px;height:18px;font-size:9px;flex-shrink:0" data-isdel2="${x.id}" title="apagar">✕</button></div>`).join("")+
+   `</div>`:"";
+  hs.querySelectorAll("[data-istrat2]").forEach(b=>b.addEventListener("click",async()=>{
+   const x=D.ideiasSoltas.find(y=>y.id===b.dataset.istrat2);
+   if(x){x.tratada=true;await save();rAll();}
+  }));
+  hs.querySelectorAll("[data-isdel2]").forEach(b=>b.addEventListener("click",()=>{
+   const x=D.ideiasSoltas.find(y=>y.id===b.dataset.isdel2);
+   confirmar("Apagar ideia?",x?x.texto.slice(0,60):"",async()=>{
+    D.ideiasSoltas=D.ideiasSoltas.filter(y=>y.id!==b.dataset.isdel2);
+    await save();rAll();
+   });
+  }));
  }
  // urgentes fora da RIMA: casa, arte, música
  aplicarLayoutHome();bindHomeDrag();
@@ -3058,7 +3097,9 @@ function rProjComerciais(){
   const st=estadoP(p);
   return `<div class="pcard card" draggable="true" data-cpc="${p.id}">
    <div class="pname">${esc(p.nome)}</div>
-   <div class="tags"><span class="chip">${esc(st)}</span>${p.marca?`<span class="chip">${p.marca}</span>`:""}</div>
+   <div class="tags"><span class="chip">${esc(st)}</span>${p.marca?`<span class="chip">${p.marca}</span>`:""}
+    <button class="natalbtn${p.natal?" on":""}" data-natal="${p.id}" title="${p.natal?"comercializável no Natal":"marcar como comercializável no Natal"}"><svg width="13" height="13" viewBox="0 0 24 24" fill="${p.natal?"currentColor":"none"}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 8 8h2.5L7 13h3L6.5 18h11L14 13h3l-3.5-5H16Z"/><path d="M10.5 18v3h3v-3"/></svg></button>
+   </div>
    <div class="accbar" style="background:${p.cor||"var(--acc)"}"></div>
    <div class="pmeta"><span>${ts.length?`${done}/${ts.length} tarefas`:"sem tarefas"}</span><span></span></div>
   </div>`;
@@ -3078,6 +3119,11 @@ function rProjComerciais(){
    if(p){p.prioridade=+z.dataset.cpri;await save();rEstrategia();}
   });
  });
+ document.querySelectorAll("[data-natal]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();
+  const p=D.projectos.find(x=>x.id===b.dataset.natal);
+  if(p){p.natal=!p.natal;await save();rEstrategia();}
+ }));
  document.querySelectorAll("[data-cpc]").forEach(c=>{
   c.addEventListener("click",()=>openP(c.dataset.cpc));
   c.addEventListener("dragstart",()=>{cmDragId=c.dataset.cpc;c.classList.add("dragging");});
@@ -3496,6 +3542,118 @@ function rRedes(){
  }));
  $("rdPrin").innerHTML=R.principios.map((p,i)=>`<div class="irow"><span class="idot" style="color:var(--acc)">${i+1}</span><div class="icorpo" style="font-size:12.5px" contenteditable data-rp="${i}">${esc(p)}</div></div>`).join("");
  $("rdPrin").querySelectorAll("[data-rp]").forEach(el=>el.addEventListener("blur",async()=>{R.principios[+el.dataset.rp]=el.innerText.trim();await save();}));
+}
+/* ============ ideias prontas para publicar ============ */
+const CONTAS_PRONTAS=["RIMA LAB","RIMA STUDIO","RICARDO ESTEVES CORGA"];
+const CHECKS_PRONTAS=[
+ {k:"pronto",n:"conteúdo pronto"},
+ {k:"aprovado",n:"aprovado"},
+ {k:"ig",n:"instagram"},
+ {k:"yt",n:"youtube"},
+ {k:"li",n:"linkedin"},
+];
+let prontasArqAberto=false, prDrag=null;
+function rProntas(){
+ const box=$("prontasWrap");if(!box)return;
+ D.prontas=D.prontas||[];
+ const arq=D.prontas.filter(x=>x.arquivada);
+ const cartao=x=>`<div class="prcard card" draggable="true" data-pr="${x.id}">
+   <div class="prtop">
+    <span class="prtit" contenteditable data-prtit="${x.id}">${esc(x.titulo)}</span>
+    <span style="display:flex;gap:4px;flex-shrink:0;align-items:center">
+     <input type="date" class="prdata" data-prdata="${x.id}" value="${x.data||""}"/>
+     <button class="ico" style="width:22px;height:22px;font-size:11px" data-prarq="${x.id}" title="${x.arquivada?"desarquivar":"arquivar"}">${x.arquivada?"↥":"⬇"}</button>
+     <button class="ico" style="width:22px;height:22px;font-size:10px" data-prdel="${x.id}" title="apagar">✕</button>
+    </span>
+   </div>
+   <div class="prdesc" contenteditable data-prdesc="${x.id}">${esc(x.desc||"")}</div>
+   <div class="prchecks">
+    ${CHECKS_PRONTAS.map(c=>`<button class="prchk${x[c.k]?" on":""}" data-prchk="${x.id}|${c.k}">${c.n}</button>`).join("")}
+   </div>
+  </div>`;
+ let html="";
+ CONTAS_PRONTAS.forEach(c=>{
+  const arr=D.prontas.filter(x=>x.conta===c&&!x.arquivada).sort((a,b)=>(a.ordem??999)-(b.ordem??999));
+  html+=`<div class="prsec" data-prsec="${c}">
+    <div class="cadh" style="margin:14px 0 8px">${c} · ${arr.length}</div>
+    <div class="prgrid">${arr.map(cartao).join("")||`<div class="hsub" style="padding:4px 2px">arrasta ideias para aqui</div>`}</div>
+   </div>`;
+ });
+ if(arq.length){
+  html+=`<div class="cgroup" style="margin-top:16px"><div class="cgrouph acc" id="prArqAcc"><span class="accarr">${prontasArqAberto?"▾":"▸"}</span>arquivadas · ${arq.length}</div>
+   <div class="cgbody prgrid" style="display:${prontasArqAberto?"grid":"none"};padding:10px 0">${prontasArqAberto?arq.map(cartao).join(""):""}</div></div>`;
+ }
+ box.innerHTML=html;
+ const grava=async()=>{await save();};
+ box.querySelectorAll("[data-prtit]").forEach(el=>el.addEventListener("blur",async()=>{
+  const x=D.prontas.find(y=>y.id===el.dataset.prtit);
+  const t=el.innerText.trim();
+  if(x&&t&&t!==x.titulo){x.titulo=t;await grava();}
+ }));
+ box.querySelectorAll("[data-prdesc]").forEach(el=>el.addEventListener("blur",async()=>{
+  const x=D.prontas.find(y=>y.id===el.dataset.prdesc);
+  if(x){x.desc=el.innerText.trim();await grava();}
+ }));
+ box.querySelectorAll("[data-prdata]").forEach(el=>el.addEventListener("change",async()=>{
+  const x=D.prontas.find(y=>y.id===el.dataset.prdata);
+  if(x){x.data=el.value||null;await grava();}
+ }));
+ box.querySelectorAll("[data-prchk]").forEach(b=>b.addEventListener("click",async()=>{
+  const [id,k]=b.dataset.prchk.split("|");
+  const x=D.prontas.find(y=>y.id===id);
+  if(x){x[k]=!x[k];await save();rProntas();}
+ }));
+ box.querySelectorAll("[data-prarq]").forEach(b=>b.addEventListener("click",async()=>{
+  const x=D.prontas.find(y=>y.id===b.dataset.prarq);
+  if(x){x.arquivada=!x.arquivada;await save();rProntas();}
+ }));
+ box.querySelectorAll("[data-prdel]").forEach(b=>b.addEventListener("click",()=>{
+  const x=D.prontas.find(y=>y.id===b.dataset.prdel);
+  confirmar("Apagar ideia?",x?x.titulo:"",async()=>{
+   D.prontas=D.prontas.filter(y=>y.id!==b.dataset.prdel);
+   await save();rProntas();
+  });
+ }));
+ const acc=$("prArqAcc");
+ if(acc)acc.addEventListener("click",()=>{prontasArqAberto=!prontasArqAberto;rProntas();});
+ // arrastar: reordenar e mudar de conta
+ box.querySelectorAll("[data-pr]").forEach(c=>{
+  c.ondragstart=e=>{prDrag=c.dataset.pr;c.classList.add("dragging");e.dataTransfer.effectAllowed="move";};
+  c.ondragend=()=>{c.classList.remove("dragging");prDrag=null;
+   box.querySelectorAll(".prsec.over").forEach(s=>s.classList.remove("over"));};
+  c.ondragover=e=>{
+   if(!prDrag||prDrag===c.dataset.pr)return;
+   e.preventDefault();
+   const r=c.getBoundingClientRect();
+   const depois=e.clientX>r.left+r.width/2;
+   const el=box.querySelector(".dragging");
+   if(el)c.parentNode.insertBefore(el,depois?c.nextSibling:c);
+  };
+ });
+ box.querySelectorAll("[data-prsec]").forEach(s=>{
+  s.ondragover=e=>{if(prDrag){e.preventDefault();s.classList.add("over");}};
+  s.ondragleave=()=>s.classList.remove("over");
+  s.ondrop=async e=>{
+   if(!prDrag)return;
+   e.preventDefault();s.classList.remove("over");
+   const x=D.prontas.find(y=>y.id===prDrag);
+   if(x)x.conta=s.dataset.prsec;
+   // gravar a ordem visível
+   const ids=[...s.querySelectorAll("[data-pr]")].map(n=>n.dataset.pr);
+   ids.forEach((id,i)=>{const y=D.prontas.find(z=>z.id===id);if(y)y.ordem=i;});
+   prDrag=null;await save();rProntas();
+  };
+ });
+}
+async function addPronta(){
+ const r=await pedir({titulo:"Nova ideia pronta",campos:[
+  {tipo:"texto",nome:"t",label:"título"},
+  {tipo:"escolha",nome:"c",label:"conta",valor:CONTAS_PRONTAS[0],opcoes:CONTAS_PRONTAS.map(c=>({v:c,txt:c}))}
+ ]});
+ if(!r||!r.t||!r.t.trim())return;
+ D.prontas=D.prontas||[];
+ D.prontas.unshift({id:"pr"+Date.now(),titulo:r.t.trim(),desc:"",conta:r.c,data:null,ordem:0,arquivada:false});
+ await save();rProntas();
 }
 function addIdeiaRD(){
  D.redes.ideias.unshift({id:"ri"+Date.now(),conta:"RIMA lab",titulo:"Nova ideia",nota:""});
@@ -5203,7 +5361,7 @@ $("nav").addEventListener("click",e=>{
   if(v==="REGISTOS")rConta();
   if(v==="SERVICOS"){rPrec();rServicos();rPrecos();}
   if(v==="COMERCIAL")rEstrategia();
-  if(v==="REDES")rRedes();
+  if(v==="REDES"){rRedes();rProntas();}
   if(v==="TRACKER")rTracker();
  }
 });
