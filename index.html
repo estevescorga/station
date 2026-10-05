@@ -174,6 +174,7 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .cadlista{display:flex;flex-direction:column;gap:6px;}
 .cadbtn{border:none;cursor:pointer;background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:11.5px;text-align:left;padding:9px 11px;border-radius:11px;box-shadow:3px 3px 7px var(--sh-d),-3px -3px 7px var(--sh-l);line-height:1.35;transition:all .18s;overflow-wrap:anywhere;}
 .cadbtn:hover{color:var(--acc2);}
+.wt.wpr{cursor:pointer;}
 .nqrow{display:flex;align-items:flex-start;gap:12px;padding:9px 10px;border-radius:9px;cursor:pointer;transition:box-shadow .15s;}
 .nqrow:hover{box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
 .nqtit{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -202,10 +203,10 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .fmtb.fmt-maior{font-size:14px;font-weight:600;}
 .fmtcor{min-width:22px;padding:0;display:inline-flex;align-items:center;justify-content:center;}
 .fmtcor i{width:11px;height:11px;border-radius:50%;display:block;}
-.notaedit p font[size="2"]{font-size:10px;}
-.notaedit p font[size="3"]{font-size:11px;}
-.notaedit p font[size="4"]{font-size:12.5px;}
-.notaedit p font[size="5"]{font-size:14px;}
+.notaedit .tam-pq{font-size:9.5px;}
+.notaedit .tam-n{font-size:11px;}
+.notaedit .tam-gr{font-size:13px;}
+.notaedit li{font-size:11px;}
 .fmtsep{width:1px;height:16px;background:var(--line);margin:0 3px;}
 /* tudo no mesmo tipo de letra: título grande em caps, texto pequeno e cinzento */
 .notaedit,.notaedit *{font-family:'Inter',sans-serif !important;}
@@ -231,15 +232,14 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .pgrip{cursor:grab;color:var(--soft);opacity:.35;font-size:10px;flex-shrink:0;user-select:none;padding-top:2px;}
 .irow:hover .pgrip{opacity:.75;}
 .pdrag.dragging{opacity:.4;}
-.prgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;}
+.prgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
 .prsec{border-radius:12px;padding:2px;transition:box-shadow .15s;}
 .prsec.over{box-shadow:inset 0 0 0 2px var(--acc2);}
-.prcard{padding:13px 15px;cursor:grab;}
+.prcard{padding:15px 18px;cursor:grab;position:relative;}
 .prcard.dragging{opacity:.4;}
-.prtop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
-.prtit{font-size:12.5px;font-weight:600;outline:none;flex:1;min-width:0;line-height:1.35;}
+.prtop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;}
+.prtit{font-size:13.5px;font-weight:600;outline:none;line-height:1.4;margin-bottom:6px;min-height:20px;overflow-wrap:anywhere;}
 .prtit:focus,.prdesc:focus{box-shadow:inset 0 0 0 1.5px var(--acc2);border-radius:6px;padding:2px 5px;}
-.prdata{border:none;background:none;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);width:88px;padding:0;}
 .prdesc{font-size:11px;color:var(--soft);line-height:1.6;outline:none;min-height:26px;margin-bottom:10px;}
 .prchecks{display:flex;flex-wrap:wrap;gap:4px;}
 .prchk{border:none;cursor:pointer;background:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);padding:4px 7px;border-radius:6px;box-shadow:2px 2px 4px var(--sh-d),-2px -2px 4px var(--sh-l);}
@@ -253,6 +253,10 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .estop{border:none;cursor:pointer;background:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;padding:6px 9px;border-radius:7px;text-align:left;}
 .estop:hover{box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
 .estop.on{box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);font-weight:600;}
+.savewrap{position:relative;display:inline-flex;}
+.savest{position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.04em;color:var(--ok);white-space:nowrap;opacity:0;transition:opacity .25s;pointer-events:none;}
+.savest.on{opacity:1;}
+#btnSave.pend~.savest{color:var(--acc);}
 #btnSave.pend{color:var(--acc);animation:tbpulse 1.8s ease-in-out infinite;}
 .buildtag{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);opacity:.6;font-weight:400;margin-left:8px;letter-spacing:.04em;}
 .savemark{display:block;height:15px;line-height:15px;font-size:10px;overflow:hidden;}
@@ -837,7 +841,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <button class="ico" style="width:30px;height:30px" title="Light tasks" onclick="abrirLight()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 5c0 7-6 12-13 12H4c0-7 5-12 12-12 2 0 4 0 4 0Z"/><path d="M4 21c2-5 6-8 11-9"/></svg></button>
     <button class="ico" style="width:30px;height:30px" title="Tracker" onclick="goTracker()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></button>
     <button class="ico" id="btnSom" style="width:30px;height:30px" title="Som ao mudar de bloco" onclick="toggleSom()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></button>
-    <button class="ico" id="btnSave" style="width:30px;height:30px" title="tudo gravado" onclick="gravarJa()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg></button>
+    <span class="savewrap"><button class="ico" id="btnSave" style="width:30px;height:30px" title="tudo gravado" onclick="gravarJa()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg></button><span id="saveSt" class="savest"></span></span>
     <button class="ico" id="btnDark" style="width:30px;height:30px" title="Modo escuro" onclick="toggleDark()"></button>
     <button class="ico" style="width:30px;height:30px" title="Melhorias da Station" onclick="openNotas()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
   </div>
@@ -1063,7 +1067,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/09 15:04</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v05/10 23:00</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1787,7 +1791,13 @@ async function rolarTarefasAtrasadas(){
  });
  if(n){await save();setSt(`${n} tarefa${n===1?"":"s"} transitou para hoje`);}
 }
-let porGravar=false, tentativas=0;
+let porGravar=false, tentativas=0, saveStT=null;
+function setSave(m,fica){
+ const el=$("saveSt");if(!el)return;
+ el.textContent=m;el.classList.add("on");
+ clearTimeout(saveStT);
+ if(!fica)saveStT=setTimeout(()=>{el.classList.remove("on");},2200);
+}
 function marcarPorGravar(v){
  porGravar=v;
  const b=$("btnSave");
@@ -1802,17 +1812,17 @@ function limparLocal(){
 }
 async function gravarJa(){
  clearTimeout(saveTimer);
- if(!cloudOn){setSt("sem ligação — alterações guardadas no dispositivo");return false;}
+ if(!cloudOn){setSave("só no dispositivo",true);return false;}
  try{
   await cloudPut(snapshot());
   tentativas=0;marcarPorGravar(false);limparLocal();
-  setSt("guardado ✓");return true;
+  setSave("guardado ✓");return true;
  }catch(e){
   tentativas++;
   guardarLocal();
-  setSt(`falha ao gravar (tentativa ${tentativas}) — a repetir…`);
+  setSave(`a repetir (${tentativas})…`,true);
   if(tentativas<5)setTimeout(gravarJa,2000*tentativas);
-  else setSt("NÃO GRAVADO — verifica a ligação e clica em guardar");
+  else{setSave("NÃO GRAVADO",true);setSt("NÃO GRAVADO — verifica a ligação e clica em guardar");}
   return false;
  }
 }
@@ -1822,7 +1832,7 @@ async function persist(tag){
  if(cloudOn){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(gravarJa,600);
- }else{setSt("guardado no dispositivo");}
+ }else{setSave("no dispositivo");}
 }
 // ao mudar de separador ou fechar, força a gravação do que estiver pendente
 document.addEventListener("visibilitychange",()=>{
@@ -2251,6 +2261,8 @@ function rHome(){
      anv.map(a=>`<div class="hitem"><span class="hm" style="margin:0"></span><span>🎂 ${esc(a.nome)}</span></div>`).join("")+
      evs.map(linhaEv).join("");
   }
+  const prHoje=(D.prontas||[]).filter(x=>x.data===hoje()&&!x.arquivada);
+  if(prHoje.length)html=prHoje.map(x=>`<div class="hitem">${prmark()}<span>${esc(x.titulo)}</span><span class="hm">${esc(x.conta.replace("RICARDO ESTEVES CORGA","REC"))}</span></div>`).join("")+html;
   if(diasAg>=4)html+=`<div class="hsub" style="margin-top:10px;opacity:.6">recolhida há ${diasAg} dias</div>`;
   $("hAg").innerHTML=html;
  }
@@ -3559,13 +3571,13 @@ function rProntas(){
  const arq=D.prontas.filter(x=>x.arquivada);
  const cartao=x=>`<div class="prcard card" draggable="true" data-pr="${x.id}">
    <div class="prtop">
-    <span class="prtit" contenteditable data-prtit="${x.id}">${esc(x.titulo)}</span>
+    ${dateChip("pr:"+x.id,x.data?fmtDataCurta(x.data):"data",x.data,"")}
     <span style="display:flex;gap:4px;flex-shrink:0;align-items:center">
-     <input type="date" class="prdata" data-prdata="${x.id}" value="${x.data||""}"/>
      <button class="ico" style="width:22px;height:22px;font-size:11px" data-prarq="${x.id}" title="${x.arquivada?"desarquivar":"arquivar"}">${x.arquivada?"↥":"⬇"}</button>
      <button class="ico" style="width:22px;height:22px;font-size:10px" data-prdel="${x.id}" title="apagar">✕</button>
     </span>
    </div>
+   <div class="prtit" contenteditable data-prtit="${x.id}">${esc(x.titulo)}</div>
    <div class="prdesc" contenteditable data-prdesc="${x.id}">${esc(x.desc||"")}</div>
    <div class="prchecks">
     ${CHECKS_PRONTAS.map(c=>`<button class="prchk${x[c.k]?" on":""}" data-prchk="${x.id}|${c.k}">${c.n}</button>`).join("")}
@@ -3594,10 +3606,7 @@ function rProntas(){
   const x=D.prontas.find(y=>y.id===el.dataset.prdesc);
   if(x){x.desc=el.innerText.trim();await grava();}
  }));
- box.querySelectorAll("[data-prdata]").forEach(el=>el.addEventListener("change",async()=>{
-  const x=D.prontas.find(y=>y.id===el.dataset.prdata);
-  if(x){x.data=el.value||null;await grava();}
- }));
+ bindDatePickers(box);
  box.querySelectorAll("[data-prchk]").forEach(b=>b.addEventListener("click",async()=>{
   const [id,k]=b.dataset.prchk.split("|");
   const x=D.prontas.find(y=>y.id===id);
@@ -4344,6 +4353,10 @@ function resolveDP(key){
   const idx=+a,f=+b;
   return D.conta[idx]?{set:v=>{D.conta[idx][f]=v;}}:null;
  }
+ if(kind==="pr"){
+  const x=(D.prontas||[]).find(y=>y.id===a);
+  return x?{set:v=>{x.data=v;}}:null;
+ }
  return null;
 }
 function bindPopoverContent(menu){
@@ -4626,12 +4639,14 @@ function rSemana(){
    const prazos=D.tarefas.filter(t=>t.prazo===iso&&t.data!==iso&&!["arquivada","concluída"].includes(t.estado));
    const evs=ev.filter(e=>e.data===iso);
    const anivs=anv.filter(a=>a.data===iso);
+   const prs=(D.prontas||[]).filter(x=>x.data===iso&&!x.arquivada);
    const cell=document.createElement("div");
    cell.className="wcell"+(iso===hoje()?" today":"")+(folga?" folga":"");
    cell.dataset.day=iso;
    cell.innerHTML=`<div class="wch"><span class="wcn">${nmDia} ${d.getDate()}</span>${d.getDate()===1||i===0&&w===0?`<span class="wcm">${d.toLocaleDateString("pt-PT",{month:"short"})}</span>`:""}</div>`+
     anivs.map(a=>`<div class="wev">🎂 ${esc(a.nome)}</div>`).join("")+
     evs.map(e=>`<div class="wev">${evmark()} ${e.h?`<b>${esc(e.h)}</b> `:""}${esc(e.t||"")}${e.quem?` <span class="wm">${esc(e.quem)}</span>`:""}</div>`).join("")+
+    prs.map(x=>`<div class="wt wpr" data-prag="${x.id}" title="${esc(x.conta)}">${prmark()}<span>${esc(x.titulo)}</span></div>`).join("")+
     ts.map(t=>taskChip(t,iso)).join("")+
     prazos.map(t=>taskChip(t,iso,true)).join("");
    row.appendChild(cell);
@@ -4639,6 +4654,14 @@ function rSemana(){
   g.appendChild(row);
  }
  bindAgendaDnD();
+ g.querySelectorAll("[data-prag]").forEach(el=>el.addEventListener("click",e=>{
+  e.stopPropagation();
+  const b=document.querySelector('.nav [data-v="REDES"]');if(b)b.click();
+ }));
+}
+// ideias prontas: avião de divulgação, a violeta
+function prmark(){
+ return `<svg class="pmk" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8B6BB1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>`;
 }
 function taskChip(t,iso,isPrazo){
  const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
@@ -4754,135 +4777,325 @@ $("nTit").addEventListener("keydown",e=>{if(e.key==="Enter")addTask();});
 
 /* ============ docs ============ */
 /* ============ editor de texto com formatação ============ */
+/* Reescrito sem execCommand: todas as operações são feitas à mão sobre o DOM,
+   sempre e só sobre o texto seleccionado. */
 const CORES_TXT=[
  {n:"preto",v:"#2A2C33"},{n:"cinzento",v:"#8B8D96"},
  {n:"verde",v:"#6E9E7A"},{n:"laranja",v:"#C77B3C"},{n:"vermelho",v:"#C0503F"}
 ];
 function barraEditor(alvoId){
- const b=(cmd,arg,titulo,txt,cls)=>`<button class="fmtb ${cls||""}" data-fmt="${cmd}" data-fmtarg="${arg||""}" data-fmtalvo="${alvoId}" title="${titulo}">${txt}</button>`;
+ const b=(cmd,arg,titulo,txt,cls)=>`<button type="button" class="fmtb ${cls||""}" data-fmt="${cmd}" data-fmtarg="${arg||""}" data-fmtalvo="${alvoId}" title="${titulo}">${txt}</button>`;
  return `<div class="fmtbar">
-   ${b("formatBlock","h2","Título","T","fmt-h1")}
-   ${b("formatBlock","p","Texto normal","T","fmt-p")}
+   ${b("bloco","h2","Título","T","fmt-h1")}
+   ${b("bloco","p","Texto normal","T","fmt-p")}
    <span class="fmtsep"></span>
-   ${b("bold","","Negrito","<b>B</b>")}
-   ${b("italic","","Itálico","<i>I</i>")}
-   ${b("underline","","Sublinhado","<u>U</u>")}
+   ${b("inline","b","Negrito","<b>B</b>")}
+   ${b("inline","i","Itálico","<i>I</i>")}
+   ${b("inline","u","Sublinhado","<u>U</u>")}
    <span class="fmtsep"></span>
-   ${b("insertUnorderedList","","Lista","•")}
-   ${b("insertOrderedList","","Lista numerada","1.")}
+   ${b("lista","ul","Lista","•")}
+   ${b("lista","ol","Lista numerada","1.")}
    <span class="fmtsep"></span>
-   ${b("tam","-","Diminuir texto","A","fmt-menor")}
-   ${b("tam","+","Aumentar texto","A","fmt-maior")}
+   ${b("tam","-1","Diminuir texto","A","fmt-menor")}
+   ${b("tam","1","Aumentar texto","A","fmt-maior")}
    <span class="fmtsep"></span>
-   ${CORES_TXT.map(c=>`<button class="fmtb fmtcor" data-fmt="cor" data-fmtarg="${c.v}" data-fmtalvo="${alvoId}" title="${c.n}"><i style="background:${c.v}"></i></button>`).join("")}
+   ${CORES_TXT.map(c=>`<button type="button" class="fmtb fmtcor" data-fmt="cor" data-fmtarg="${c.v}" data-fmtalvo="${alvoId}" title="${c.n}"><i style="background:${c.v}"></i></button>`).join("")}
    <span class="fmtsep"></span>
-   ${b("removeFormat","","Limpar formatação","⌫")}
+   ${b("limpar","","Limpar formatação","⌫")}
   </div>`;
 }
-// O execCommand("formatBlock") é inconsistente entre browsers e não desfaz
-// formatação manual. Fazemos a troca de bloco à mão, que é previsível.
-function limparInline(el){
- el.querySelectorAll("font,span").forEach(f=>{
-  const pai=f.parentNode;if(!pai)return;
-  while(f.firstChild)pai.insertBefore(f.firstChild,f);
-  pai.removeChild(f);
+
+/* ---- seleção: guardar a última dentro de um editor (o iPad perde-a ao tocar num botão) ---- */
+let edUltimaSel=null;
+document.addEventListener("selectionchange",()=>{
+ const s=window.getSelection();if(!s||!s.rangeCount)return;
+ const r=s.getRangeAt(0);
+ let n=r.commonAncestorContainer;if(n&&n.nodeType!==1)n=n.parentNode;
+ if(n&&n.closest&&n.closest(".notaedit"))edUltimaSel=r.cloneRange();
+});
+function selDoEditor(alvo){
+ const s=window.getSelection();
+ if(s&&s.rangeCount){
+  const r=s.getRangeAt(0);
+  if(alvo.contains(r.startContainer)&&alvo.contains(r.endContainer)&&!r.collapsed)return r;
+ }
+ if(edUltimaSel&&alvo.contains(edUltimaSel.startContainer)&&alvo.contains(edUltimaSel.endContainer)&&!edUltimaSel.collapsed){
+  s.removeAllRanges();s.addRange(edUltimaSel.cloneRange());
+  return s.getRangeAt(0);
+ }
+ return null;
+}
+function selecionar(n1,o1,n2,o2){
+ try{
+  const r=document.createRange();r.setStart(n1,o1);r.setEnd(n2,o2);
+  const s=window.getSelection();s.removeAllRanges();s.addRange(r);
+  edUltimaSel=r.cloneRange();
+ }catch(e){}
+}
+function selecionarNo(n){
+ const r=document.createRange();r.selectNodeContents(n);
+ const s=window.getSelection();s.removeAllRanges();s.addRange(r);
+ edUltimaSel=r.cloneRange();
+}
+
+/* ---- pontos de seleção sempre em nós de texto (sobrevivem a mudanças de estrutura) ---- */
+function primeiroTexto(n){
+ if(!n)return null;if(n.nodeType===3)return n;
+ const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);return w.nextNode();
+}
+function ultimoTexto(n){
+ if(!n)return null;if(n.nodeType===3)return n;
+ const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let t=null,x;while((x=w.nextNode()))t=x;return t;
+}
+function pontoTexto(c,o,inicio){
+ if(c.nodeType===3)return {n:c,o};
+ const filho=c.childNodes[o];
+ if(filho){const t=inicio?primeiroTexto(filho):(ultimoTexto(c.childNodes[o-1])||primeiroTexto(filho));
+  if(t)return t===primeiroTexto(filho)&&inicio?{n:t,o:0}:{n:t,o:inicio?0:t.length};}
+ const ant=c.childNodes[o-1];
+ const t=ultimoTexto(ant)||ultimoTexto(c);
+ return t?{n:t,o:t.length}:null;
+}
+
+/* ---- estrutura: tudo o que está solto passa a parágrafo ---- */
+const BLOCO_RE=/^(P|H2|H3|UL|OL|BLOCKQUOTE)$/;
+function normalizarEditor(alvo){
+ let run=null;
+ [...alvo.childNodes].forEach(n=>{
+  if(n.nodeType===1&&n.tagName==="DIV"){
+   const p=document.createElement("p");
+   while(n.firstChild)p.appendChild(n.firstChild);
+   alvo.replaceChild(p,n);run=null;
+   normalizarDentro(p);return;
+  }
+  if(n.nodeType===1&&BLOCO_RE.test(n.tagName)){run=null;return;}
+  if(n.nodeType===1&&n.tagName==="BR"){run=null;n.remove();return;}
+  if(n.nodeType===3&&!n.textContent.trim()&&!run){n.remove();return;}
+  if(!run){run=document.createElement("p");alvo.insertBefore(run,n);}
+  run.appendChild(n);
  });
- el.querySelectorAll("[style]").forEach(e=>e.removeAttribute("style"));
- if(el.hasAttribute&&el.hasAttribute("style"))el.removeAttribute("style");
+ // garantir que existe pelo menos um parágrafo
+ if(!alvo.firstChild){const p=document.createElement("p");p.appendChild(document.createElement("br"));alvo.appendChild(p);}
+}
+function normalizarDentro(p){
+ // divs aninhados dentro de um parágrafo (colagens) ficam planos
+ p.querySelectorAll("div").forEach(d=>{
+  const pai=d.parentNode;while(d.firstChild)pai.insertBefore(d.firstChild,d);pai.removeChild(d);
+ });
 }
 function blocoDeTopo(no,alvo){
  while(no&&no!==alvo){
-  if(no.parentNode===alvo&&no.nodeType===1)return no;
+  if(no.parentNode===alvo)return no.nodeType===1?no:null;
   no=no.parentNode;
  }
  return null;
 }
+function textoEntre(n1,o1,n2,o2){
+ try{const r=document.createRange();r.setStart(n1,o1);r.setEnd(n2,o2);return r.toString();}catch(e){return "";}
+}
+function unwrap(el){
+ const pai=el.parentNode;if(!pai)return;
+ while(el.firstChild)pai.insertBefore(el.firstChild,el);pai.removeChild(el);
+}
+function limparInline(el){
+ el.querySelectorAll("font,span").forEach(unwrap);
+ el.querySelectorAll("[style]").forEach(e=>e.removeAttribute("style"));
+ if(el.removeAttribute)el.removeAttribute("style");
+}
+
+/* ---- título / texto normal: só o texto seleccionado; o resto do parágrafo fica como estava ---- */
 function aplicarBloco(alvo,tag){
- const sel=window.getSelection();
- if(!sel||!sel.rangeCount)return;
- const r=sel.getRangeAt(0);
- if(r.collapsed){setSt("seleciona o texto primeiro");return;}
- if(!alvo.contains(r.commonAncestorContainer)&&r.commonAncestorContainer!==alvo)return;
- const sc=r.startContainer,so=r.startOffset,ec=r.endContainer,eo=r.endOffset;
- const filhos=[...alvo.children];
- // sem blocos nenhuns: embrulhar o conteúdo todo
- if(!filhos.length){
-  const n=document.createElement(tag);
-  while(alvo.firstChild)n.appendChild(alvo.firstChild);
-  limparInline(n);alvo.appendChild(n);
-  reporSel(sel,sc,so,ec,eo,n);return;
+ const r=selDoEditor(alvo);
+ if(!r){setSt("seleciona o texto primeiro");return false;}
+ let s=pontoTexto(r.startContainer,r.startOffset,true);
+ let e=pontoTexto(r.endContainer,r.endOffset,false);
+ if(!s||!e)return false;
+ normalizarEditor(alvo);
+ let b1=blocoDeTopo(s.n,alvo),b2=blocoDeTopo(e.n,alvo);
+ if(!b1||!b2)return false;
+ // fim encostado ao início de um bloco sem texto seleccionado lá: recua
+ if(b2!==b1&&!textoEntre(b2,0,e.n,e.o)){
+  b2=b2.previousElementSibling;const t=ultimoTexto(b2);if(!t)return false;e={n:t,o:t.length};
  }
- let i1=filhos.indexOf(blocoDeTopo(sc,alvo));
- let i2=filhos.indexOf(blocoDeTopo(ec,alvo));
- if(i1<0)i1=0;
- if(i2<0)i2=filhos.length-1;
- if(i2<i1){const t=i1;i1=i2;i2=t;}
- // o fim da selecção pode tocar no bloco seguinte sem lá ter texto nenhum
- // seleccionado: nesse caso esse bloco não deve ser formatado
- if(i2>i1&&eo===0)i2--;
- const alvos=filhos.slice(i1,i2+1);
- const novos=alvos.map(b=>{
-  if(b.tagName.toLowerCase()===tag.toLowerCase()){limparInline(b);return b;}
-  const n=document.createElement(tag);
-  while(b.firstChild)n.appendChild(b.firstChild);
-  limparInline(n);
-  b.parentNode.replaceChild(n,b);
-  return n;
+ // início encostado ao fim de um bloco: avança
+ if(b1!==b2&&!textoEntre(s.n,s.o,b1,b1.childNodes.length)){
+  b1=b1.nextElementSibling;const t=primeiroTexto(b1);if(!t)return false;s={n:t,o:0};
+ }
+ const tagB1=b1.tagName,tagB2=b2.tagName;
+ // partir o último bloco no fim da seleção (primeiro, para não estragar os offsets do início)
+ const rD=document.createRange();rD.setStart(e.n,e.o);rD.setEnd(b2,b2.childNodes.length);
+ const fragD=rD.extractContents();
+ const rA=document.createRange();rA.setStart(b1,0);rA.setEnd(s.n,s.o);
+ const fragA=rA.extractContents();
+ if(fragA.textContent.trim()){const p=document.createElement(tagB1);p.appendChild(fragA);b1.parentNode.insertBefore(p,b1);}
+ if(fragD.textContent.trim()){const p=document.createElement(tagB2);p.appendChild(fragD);b2.parentNode.insertBefore(p,b2.nextSibling);}
+ // converter os blocos seleccionados
+ const blocos=[];let n=b1;
+ while(n){blocos.push(n);if(n===b2)break;n=n.nextElementSibling;}
+ const novos=blocos.map(b=>{
+  if(b.tagName==="UL"||b.tagName==="OL")return b; // listas mantêm-se
+  limparInline(b);
+  if(b.tagName.toLowerCase()===tag)return b;
+  const nb=document.createElement(tag);
+  while(b.firstChild)nb.appendChild(b.firstChild);
+  b.parentNode.replaceChild(nb,b);return nb;
  });
- reporSel(sel,sc,so,ec,eo,novos[0]);
+ const t1=primeiroTexto(novos[0]),t2=ultimoTexto(novos[novos.length-1]);
+ if(t1&&t2)selecionar(t1,0,t2,t2.length);
+ return true;
 }
-function reporSel(sel,sc,so,ec,eo,fallback){
- try{
-  const nr=document.createRange();
-  nr.setStart(sc,so);nr.setEnd(ec,eo);
-  sel.removeAllRanges();sel.addRange(nr);
- }catch(e){
-  try{
-   const nr=document.createRange();
-   nr.selectNodeContents(fallback);
-   sel.removeAllRanges();sel.addRange(nr);
-  }catch(e2){}
+
+/* ---- envolver só o texto seleccionado num elemento (negrito, cor, tamanho) ---- */
+function envolver(alvo,criar,limparSel){
+ const r=selDoEditor(alvo);
+ if(!r){setSt("seleciona o texto primeiro");return false;}
+ const frag=r.extractContents();
+ if(limparSel)frag.querySelectorAll(limparSel).forEach(unwrap);
+ const el=criar();
+ el.appendChild(frag);
+ r.insertNode(el);
+ // remover elementos vazios que a extração possa ter deixado
+ alvo.querySelectorAll("b,i,u,span,strong,em").forEach(x=>{if(!x.textContent&&!x.querySelector("br"))x.remove();});
+ selecionarNo(el);
+ return el;
+}
+function ancestralCom(no,alvo,teste){
+ while(no&&no!==alvo){if(no.nodeType===1&&teste(no))return no;no=no.parentNode;}
+ return null;
+}
+function aplicarInline(alvo,tag){
+ const r=selDoEditor(alvo);if(!r){setSt("seleciona o texto primeiro");return false;}
+ // se tudo o que está seleccionado já tem o estilo, retira-o; senão aplica
+ const MAP={b:"B,STRONG",i:"I,EM",u:"U"};
+ const tags=MAP[tag].split(",");
+ const temEstilo=n=>!!ancestralCom(n,alvo,x=>tags.includes(x.tagName));
+ const textos=[];const w=document.createTreeWalker(r.commonAncestorContainer.nodeType===3?r.commonAncestorContainer.parentNode:r.commonAncestorContainer,NodeFilter.SHOW_TEXT);
+ let x;while((x=w.nextNode()))if(r.intersectsNode(x)&&x.textContent.trim())textos.push(x);
+ const jaTem=textos.length&&textos.every(temEstilo);
+ if(jaTem){
+  const frag=r.extractContents();
+  frag.querySelectorAll(tags.join(",").toLowerCase()).forEach(unwrap);
+  // tirar o texto de dentro do ancestral com o estilo, partindo-o
+  const span=document.createElement("span");span.appendChild(frag);
+  r.insertNode(span);
+  const anc=ancestralCom(span.parentNode,alvo,x=>tags.includes(x.tagName));
+  if(anc){
+   const antes=document.createRange();antes.setStart(anc,0);antes.setEndBefore(span);
+   const depois=document.createRange();depois.setStartAfter(span);depois.setEnd(anc,anc.childNodes.length);
+   const fA=antes.extractContents(),fD=depois.extractContents();
+   const pai=anc.parentNode;
+   if(fA.textContent){const a=anc.cloneNode(false);a.appendChild(fA);pai.insertBefore(a,anc);}
+   pai.insertBefore(span,anc);
+   if(fD.textContent){const d=anc.cloneNode(false);d.appendChild(fD);pai.insertBefore(d,anc.nextSibling);}
+   anc.remove();
+  }
+  const t1=primeiroTexto(span),t2=ultimoTexto(span);
+  unwrap(span);
+  if(t1&&t2)selecionar(t1,0,t2,t2.length);
+  return true;
  }
+ return !!envolver(alvo,()=>document.createElement(tag),tags.join(",").toLowerCase());
 }
+
+/* ---- tamanho: três níveis fixos (pequeno, normal, grande), nunca acumulam ---- */
+const TAMS=["tam-pq","tam-n","tam-gr"];
+function nivelTam(no,alvo){
+ const a=ancestralCom(no,alvo,x=>x.tagName==="SPAN"&&TAMS.some(c=>x.classList.contains(c)));
+ if(!a)return 0;
+ return a.classList.contains("tam-pq")?-1:a.classList.contains("tam-gr")?1:0;
+}
+function aplicarTamanho(alvo,delta){
+ const r=selDoEditor(alvo);if(!r){setSt("seleciona o texto primeiro");return false;}
+ const novo=Math.max(-1,Math.min(1,nivelTam(r.startContainer,alvo)+delta));
+ // se a seleção é exactamente um bloco de tamanho já existente, muda-o em vez de embrulhar outra vez
+ const ja=ancestralCom(r.startContainer,alvo,x=>x.tagName==="SPAN"&&TAMS.some(c=>x.classList.contains(c)));
+ if(ja&&r.toString()===ja.textContent){
+  TAMS.forEach(c=>ja.classList.remove(c));
+  const fora=ancestralCom(ja.parentNode,alvo,x=>x.tagName==="SPAN"&&TAMS.some(c=>x.classList.contains(c)));
+  if(novo===0&&!fora){const t1=primeiroTexto(ja),t2=ultimoTexto(ja);unwrap(ja);if(t1&&t2)selecionar(t1,0,t2,t2.length);}
+  else{ja.classList.add(TAMS[novo+1]);selecionarNo(ja);}
+  return true;
+ }
+ const el=envolver(alvo,()=>{const s=document.createElement("span");s.className=TAMS[novo+1];return s;},"span.tam-pq,span.tam-n,span.tam-gr");
+ // "normal" sem nenhum tamanho por fora é redundante: tirar
+ if(el&&el.classList.contains("tam-n")&&!ancestralCom(el.parentNode,alvo,x=>x.tagName==="SPAN"&&TAMS.some(c=>x.classList.contains(c)))){
+  const t1=primeiroTexto(el),t2=ultimoTexto(el);unwrap(el);if(t1&&t2)selecionar(t1,0,t2,t2.length);
+ }
+ return true;
+}
+function aplicarCor(alvo,cor){
+ return !!envolver(alvo,()=>{const s=document.createElement("span");s.className="cortxt";s.style.color=cor;return s;},"span.cortxt");
+}
+function limparSelecao(alvo){
+ const r=selDoEditor(alvo);if(!r){setSt("seleciona o texto primeiro");return false;}
+ const frag=r.extractContents();
+ frag.querySelectorAll("b,i,u,strong,em,font,span").forEach(unwrap);
+ const marca=document.createElement("span");marca.appendChild(frag);
+ r.insertNode(marca);
+ // sair de negritos/itálicos/cores por fora, partindo-os
+ let anc;
+ while((anc=ancestralCom(marca.parentNode,alvo,x=>/^(B|I|U|STRONG|EM|FONT|SPAN)$/.test(x.tagName)))){
+  const antes=document.createRange();antes.setStart(anc,0);antes.setEndBefore(marca);
+  const depois=document.createRange();depois.setStartAfter(marca);depois.setEnd(anc,anc.childNodes.length);
+  const fA=antes.extractContents(),fD=depois.extractContents(),pai=anc.parentNode;
+  if(fA.textContent){const a=anc.cloneNode(false);a.appendChild(fA);pai.insertBefore(a,anc);}
+  pai.insertBefore(marca,anc);
+  if(fD.textContent){const d=anc.cloneNode(false);d.appendChild(fD);pai.insertBefore(d,anc.nextSibling);}
+  anc.remove();
+ }
+ const t1=primeiroTexto(marca),t2=ultimoTexto(marca);unwrap(marca);
+ if(t1&&t2)selecionar(t1,0,t2,t2.length);
+ return true;
+}
+function aplicarLista(alvo,tipo){
+ const r=selDoEditor(alvo);if(!r){setSt("seleciona o texto primeiro");return false;}
+ let s=pontoTexto(r.startContainer,r.startOffset,true),e=pontoTexto(r.endContainer,r.endOffset,false);
+ if(!s||!e)return false;
+ normalizarEditor(alvo);
+ let b1=blocoDeTopo(s.n,alvo),b2=blocoDeTopo(e.n,alvo);
+ if(!b1||!b2)return false;
+ if(b2!==b1&&!textoEntre(b2,0,e.n,e.o))b2=b2.previousElementSibling;
+ const blocos=[];let n=b1;while(n){blocos.push(n);if(n===b2)break;n=n.nextElementSibling;}
+ const T=tipo.toUpperCase();
+ // se já são todos desta lista, desfaz em parágrafos
+ if(blocos.every(b=>b.tagName===T)){
+  blocos.forEach(l=>{
+   [...l.children].forEach(li=>{const p=document.createElement("p");while(li.firstChild)p.appendChild(li.firstChild);l.parentNode.insertBefore(p,l);});
+   l.remove();
+  });
+ }else{
+  const lista=document.createElement(tipo);
+  b1.parentNode.insertBefore(lista,b1);
+  blocos.forEach(b=>{
+   if(b.tagName==="UL"||b.tagName==="OL"){while(b.firstChild)lista.appendChild(b.firstChild);b.remove();return;}
+   const li=document.createElement("li");while(b.firstChild)li.appendChild(b.firstChild);lista.appendChild(li);b.remove();
+  });
+ }
+ const t1=primeiroTexto(s.n.isConnected?s.n:alvo),t2=e.n.isConnected?e.n:ultimoTexto(alvo);
+ if(s.n.isConnected&&e.n.isConnected)selecionar(s.n,s.o,e.n,Math.min(e.o,e.n.length));
+ return true;
+}
+
 function bindEditor(scope,onSave){
  scope.querySelectorAll("[data-fmt]").forEach(b=>{
-  b.addEventListener("mousedown",e=>e.preventDefault()); // não perder o cursor
-  b.addEventListener("click",()=>{
-   const alvo=$(b.dataset.fmtalvo);
-   if(!alvo)return;
-   alvo.focus();
-   const cmd=b.dataset.fmt;
-   if(cmd==="formatBlock"){
-    aplicarBloco(alvo,b.dataset.fmtarg);
-   }else if(cmd==="cor"){
-    const s=window.getSelection();
-    if(!s||!s.rangeCount||s.getRangeAt(0).collapsed){setSt("seleciona o texto primeiro");return;}
-    document.execCommand("foreColor",false,b.dataset.fmtarg);
-   }else if(cmd==="tam"){
-    // três tamanhos só: pequeno, normal, grande
-    const sel=window.getSelection();
-    if(sel&&!sel.isCollapsed){
-     const atual=document.queryCommandValue("fontSize")||"3";
-     let n=parseInt(atual,10)||3;
-     n=b.dataset.fmtarg==="+"?Math.min(5,n+1):Math.max(2,n-1);
-     document.execCommand("fontSize",false,String(n));
-    }else setSt("seleciona o texto primeiro");
-   }else{
-    document.execCommand(cmd,false,b.dataset.fmtarg||null);
-   }
-   if(onSave)onSave();
-  });
- });
- // manter o estado dos checkboxes ao gravar
- scope.querySelectorAll(".notaedit").forEach(ed=>{
-  ed.addEventListener("click",e=>{
-   if(e.target.type==="checkbox"){
-    e.target.toggleAttribute("checked",e.target.checked);
-    if(onSave)onSave();
-   }
-  });
+  // impedir que o botão roube o foco (e a seleção) ao editor
+  b.onmousedown=e=>e.preventDefault();
+  b.onclick=()=>{
+   const alvo=$(b.dataset.fmtalvo);if(!alvo)return;
+   alvo.focus({preventScroll:true});
+   const cmd=b.dataset.fmt,arg=b.dataset.fmtarg;
+   let ok=false;
+   if(cmd==="bloco")ok=aplicarBloco(alvo,arg);
+   else if(cmd==="inline")ok=aplicarInline(alvo,arg);
+   else if(cmd==="lista")ok=aplicarLista(alvo,arg);
+   else if(cmd==="tam")ok=aplicarTamanho(alvo,+arg);
+   else if(cmd==="cor")ok=aplicarCor(alvo,arg);
+   else if(cmd==="limpar")ok=limparSelecao(alvo);
+   if(ok&&onSave)onSave();
+  };
  });
 }
+
 function rDocs(){
  const l=$("dBox");if(!l)return;
  l.innerHTML="";
@@ -5365,7 +5578,7 @@ $("nav").addEventListener("click",e=>{
   if(v==="TRACKER")rTracker();
  }
 });
-function rAll(){aplicarDark();rTimerBar();rSemaforo();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
+function rAll(){if($("v-REDES")&&$("v-REDES").classList.contains("on")&&typeof rProntas==="function")rProntas();aplicarDark();rTimerBar();rSemaforo();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
 let _booted=false;
 async function boot(){
  if(_booted)return;_booted=true;
