@@ -332,6 +332,10 @@ input.tempot{width:56px;color:var(--acc2);text-align:center;}
  .nowMeta{font-size:10px !important;}
 }
 .btn.on{color:var(--acc);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
+.regrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);}
+.regrow:last-child{border-bottom:none;}
+.regl{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);}
+.regin{width:86px;text-align:right;}
 .tknav{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
 .tktitulo{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--txt);min-width:118px;text-align:center;text-transform:none;letter-spacing:.02em;}
 .tkmodo{font-size:10px;padding:6px 12px;text-transform:lowercase;letter-spacing:.04em;}
@@ -932,6 +936,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div class="card hcard" data-box="adjudicar"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>por adjudicar</h5><div id="hAdj"></div></div>
       <div class="card hcard" data-box="pessoais"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>casa · arte · música</h5><div id="hOutras"></div></div>
       <div id="hSoltas" data-box="soltas"></div>
+      <div class="card hcard" data-box="registo"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>registo de hoje</h5><div id="hReg"></div></div>
     </div>
     <div class="hcol" data-col="2">
       <div class="card hcard" data-box="inbox"><h5 style="display:flex;justify-content:space-between;align-items:center"><span><span class="boxgrip" title="arrastar para reorganizar">⠿</span>inbox · genéricas</span><button class="ico" id="inboxMais" style="width:22px;height:22px;font-size:11px" title="Ver todas" onclick="toggleInboxTodas()"></button></h5><input class="pin" id="hInboxNew" placeholder="nova tarefa genérica… (Enter)" style="width:100%;margin-bottom:8px"/><div id="hInbox"></div></div>
@@ -1126,7 +1131,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v06/10 15:57</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v06/10 16:04</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -2288,6 +2293,33 @@ function bindHomeDrag(){
   };
  });
 }
+function rRegHoje(){
+ const box=$("hReg");if(!box)return;
+ const d=hoje(),r=trk[d]||{};
+ box.innerHTML=`
+  <div class="regrow"><span class="regl">sono</span><input class="tcell regin" data-rk="sono" value="${r.sono?fmtH(r.sono):""}" placeholder="ex: 7h30"/></div>
+  <div class="regrow"><span class="regl">energia</span><span class="trkdots">${[1,2,3,4,5].map(n=>`<button class="trkdot${(r.energia||0)>=n?" on":""}" data-rk="energia" data-rv="${n}" title="${n}/5"></button>`).join("")}</span></div>
+  <div class="regrow"><span class="regl">sesta</span><button class="tsesta" data-rk="sesta">${r.sesta===true?"✓":r.sesta===false?"✗":"—"}</button></div>
+  <div class="regrow"><span class="regl">exercício</span><input class="tcell regin" data-rk="exercicio" value="${r.exercicio||""}" placeholder="minutos"/></div>
+  <div class="regrow"><span class="regl">esticar</span><span style="display:flex;gap:6px;align-items:center">
+   <button class="trkdot${r.esticar1?" on":""}" data-rk="esticar1" title="pausa da manhã"></button><span class="hsub" style="margin:0">manhã</span>
+   <button class="trkdot${r.esticar2?" on":""}" data-rk="esticar2" title="pausa da tarde" style="margin-left:6px"></button><span class="hsub" style="margin:0">tarde</span>
+  </span></div>`;
+ box.querySelectorAll("input[data-rk]").forEach(inp=>inp.onchange=async()=>{
+  trk[d]=trk[d]||{};
+  if(inp.dataset.rk==="sono"){const v=parseH(inp.value);trk[d].sono=(v===null||isNaN(v))?null:v;}
+  else{const v=inp.value===""?null:parseInt(inp.value,10);trk[d].exercicio=(v===null||isNaN(v))?null:v;}
+  await save();rRegHoje();
+ });
+ box.querySelectorAll("button[data-rk]").forEach(b=>b.onclick=async()=>{
+  trk[d]=trk[d]||{};
+  const k=b.dataset.rk;
+  if(k==="energia"){const v=+b.dataset.rv;trk[d].energia=trk[d].energia===v?null:v;}
+  else if(k==="sesta")trk[d].sesta=trk[d].sesta===true?false:trk[d].sesta===false?null:true;
+  else trk[d][k]=!trk[d][k];
+  await save();rRegHoje();
+ });
+}
 let urgTodas_expandido=false;
 let inbox_expandido=false;
 function toggleInboxTodas(){inbox_expandido=!inbox_expandido;rHome();}
@@ -2453,6 +2485,7 @@ function rHome(){
   }));
   hd.querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
  }
+ rRegHoje();
  // ideias soltas vindas da Drive
  const hs=$("hSoltas");
  if(hs){
