@@ -332,7 +332,52 @@ input.tempot{width:56px;color:var(--acc2);text-align:center;}
  .nowMeta{font-size:10px !important;}
 }
 .btn.on{color:var(--acc);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
-.trkper{font-size:10px;padding:6px 12px;text-transform:lowercase;letter-spacing:.04em;}
+.tknav{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.tktitulo{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--txt);min-width:118px;text-align:center;text-transform:none;letter-spacing:.02em;}
+.tkmodo{font-size:10px;padding:6px 12px;text-transform:lowercase;letter-spacing:.04em;}
+.tkmodo.on{color:var(--acc);box-shadow:inset 3px 3px 7px var(--sh-d),inset -3px -3px 7px var(--sh-l);}
+.tkkpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px;}
+@media(max-width:1100px){.tkkpis{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:640px){.tkkpis{grid-template-columns:repeat(2,1fr);}}
+.tkkpi{padding:13px 15px;}
+.tkkl{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft);}
+.tkkl i{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.tkkv{font-size:22px;font-weight:600;margin:6px 0 6px;letter-spacing:-.01em;}
+.tkkbar{height:4px;border-radius:3px;box-shadow:inset 1px 1px 3px var(--sh-d),inset -1px -1px 3px var(--sh-l);overflow:hidden;margin-bottom:6px;}
+.tkkbar div{height:100%;border-radius:3px;}
+.tkks{font-size:10px;color:var(--soft);line-height:1.45;}
+.tkcard{padding:15px 18px;margin-bottom:14px;}
+.tkcard h5{margin-bottom:12px;}
+.tkgrid{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;}
+.tkgrid .tkcard{margin-bottom:14px;}
+@media(max-width:900px){.tkgrid{grid-template-columns:1fr;}}
+.tkdbar{display:flex;height:22px;border-radius:8px;overflow:hidden;gap:2px;}
+.tkseg{height:100%;min-width:3px;}
+.tkseg.gap,.tkleg i.gap{background:repeating-linear-gradient(45deg,transparent 0 3px,rgba(199,74,60,.45) 3px 4.5px);box-shadow:inset 0 0 0 1px var(--line);}
+.tkleg{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;}
+.tklegi{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--txt);}
+.tklegi i{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+.tkpc{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--soft);}
+.tksvg{width:100%;height:170px;display:block;overflow:visible;}
+#tkTend .tksvg{height:150px;}
+.tksvgv{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:var(--soft);}
+.tksvgl{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:var(--soft);}
+.tksvgl.hoje{fill:var(--acc);font-weight:600;}
+.tksvgl.folga{opacity:.45;}
+.tkl{font-size:12px;line-height:1.6;margin:0 0 10px;color:var(--txt);}
+.tkl:last-child{margin-bottom:0;}
+.tkl b{font-weight:600;}
+.tkprow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(60px,1fr) auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);}
+.tkprow:last-child{border-bottom:none;}
+.tkpn{font-size:11.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tkcatn,.tkmuda{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin-left:4px;}
+.tkmuda{border:none;background:none;cursor:pointer;text-decoration:underline dotted;padding:0;}
+.tkptrack{height:8px;border-radius:5px;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);overflow:hidden;}
+.tkptrack div{height:100%;border-radius:5px;}
+.tkpv{font-family:'IBM Plex Mono',monospace;font-size:10.5px;white-space:nowrap;text-align:right;}
+.tkeur{margin-left:7px;font-size:9.5px;}
+.tkeur.good{color:var(--ok);}
+.tkeur.bad{color:var(--acc);}
 .trkresumo{display:flex;gap:18px;flex-wrap:wrap;font-size:11.5px;color:var(--soft);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);}
 .trkval{font-size:11px;margin-left:8px;white-space:nowrap;}
 #syncAviso{display:none;position:fixed;left:50%;transform:translateX(-50%);top:14px;z-index:90;background:var(--bg);border-radius:14px;padding:10px 12px 10px 16px;box-shadow:0 0 0 1.5px var(--acc),0 10px 30px rgba(20,18,14,.26);align-items:center;gap:12px;max-width:min(560px,calc(100vw - 24px));}
@@ -936,16 +981,30 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <!-- ============ TRACKER ============ -->
 <div class="view" id="v-TRACKER">
   <div class="fin" id="trkHoje"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">Investimento de tempo
-   <span style="display:flex;gap:6px">
-    <button class="btn trkper on" data-per="7">semana</button>
-    <button class="btn trkper" data-per="30">mês</button>
-    <button class="btn trkper" data-per="0">sempre</button>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">Para onde vai o tempo
+   <span class="tknav">
+    <button class="ico" style="width:28px;height:28px;font-size:13px" id="tkPrev" title="anterior">‹</button>
+    <span id="tkTitulo" class="tktitulo"></span>
+    <button class="ico" style="width:28px;height:28px;font-size:13px" id="tkNext" title="seguinte">›</button>
+    <button class="btn tkmodo on" data-tkm="semana">semana</button>
+    <button class="btn tkmodo" data-tkm="mes">mês</button>
    </span>
   </h2>
-  <div class="card" style="padding:14px 20px" id="trkProj"></div>
-  <h2 class="sec">Tracker diário</h2>
-  <div class="card" style="padding:6px 0;overflow-x:auto" id="trkTab"></div>
+  <div class="tkkpis" id="tkKpis"></div>
+  <div class="card tkcard"><h5>distribuição</h5><div id="tkDist"></div></div>
+  <div class="tkgrid">
+   <div class="card tkcard"><h5>dia a dia</h5><div id="tkDias"></div></div>
+   <div class="card tkcard"><h5>leitura</h5><div id="tkLeitura"></div></div>
+  </div>
+  <div class="tkgrid">
+   <div class="card tkcard"><h5>projectos e actividades</h5><div id="tkProj"></div></div>
+   <div class="card tkcard"><h5>últimas 8 semanas</h5><div id="tkTend"></div></div>
+  </div>
+  <div class="cgroup" style="margin-top:22px"><div class="cgrouph acc" id="trkTabAcc"><span class="accarr">▸</span>registo diário · sono, sesta, energia, exercício</div>
+   <div class="cgbody" id="trkTabBody" style="display:none">
+    <div class="card" style="padding:6px 0;overflow-x:auto" id="trkTab"></div>
+   </div>
+  </div>
   <div class="vgrid" style="margin-top:18px">
    <div class="card" style="padding:14px 20px"><h5 style="margin-bottom:10px">sono · últimos 14 dias</h5><div id="trkSono"></div></div>
    <div class="card" style="padding:14px 20px"><h5 style="margin-bottom:10px">resumo mensal</h5><div id="trkMes"></div></div>
@@ -1067,7 +1126,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v05/10 23:00</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v06/10 15:57</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1178,8 +1237,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div id="prontasWrap" style="margin-bottom:26px"></div>
   <h2 class="sec">Contas</h2>
   <div class="pgrid" id="rdContas"></div>
-  <h2 class="sec">Calendário editorial</h2>
-  <div id="rdProp"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Banco de ideias<button class="ico" style="width:28px;height:28px" title="Nova ideia" onclick="addIdeiaRD()">＋</button></h2>
   <div class="card" style="padding:10px 0" id="rdIdeias"></div>
   <h2 class="sec">Reaproveitamento</h2>
@@ -2607,70 +2664,237 @@ function estimativaHoje(){
  });
  return {bloco:minutos/60,pausa:pmin/60,liquido:Math.max(0,(minutos-pmin)/60)};
 }
-let trkPeriodo=7; // 7 = semana, 30 = mês, 0 = sempre
-function rTrkProj(){
- const box=$("trkProj");if(!box)return;
- const dias=trkPeriodo===0?Object.keys(trk):Object.keys(trk).filter(d=>d>=isoLocal(new Date(Date.now()-(trkPeriodo-1)*864e5)));
- const tot={};
- dias.forEach(d=>Object.entries((trk[d]||{}).horas||{}).forEach(([k,v])=>tot[k]=(tot[k]||0)+v));
- const ent=Object.entries(tot).sort((a,b)=>b[1]-a[1]);
- if(!ent.length){box.innerHTML=`<div class="empty">sem horas registadas neste período</div>`;return;}
- const max=ent[0][1];
- const totalH=ent.reduce((s,[,v])=>s+v,0);
- const diasComRegisto=dias.filter(d=>Object.keys((trk[d]||{}).horas||{}).length).length;
- const pr=D.precario,hm=pr.horasDia*pr.diasSemana*4.33;
- const eurH={baixo:pr.niveis.baixo/hm,medio:pr.niveis.medio/hm,alto:pr.niveis.alto/hm};
+/* ============ para onde vai o tempo ============ */
+const BALDES={
+ clientes:{n:"clientes",cor:"#3AAFA9",d:"trabalho faturável"},
+ comercial:{n:"comercial",cor:"#C77B3C",d:"prospeção, propostas, visibilidade"},
+ marca:{n:"marca & lab",cor:"#6B92E5",d:"RIMA lab, RIMA studio, autoral"},
+ organizacao:{n:"organização & burocracia",cor:"#A87CA8",d:"estúdio, admin, papelada"},
+ formacao:{n:"formação",cor:"#7FA88B",d:"estudo e cursos"},
+ imprevistos:{n:"imprevistos & pessoal",cor:"#C74A3C",d:"imprevistos, saúde, deslocações"},
+ pessoal:{n:"casa & música",cor:"#94A83C",d:"projectos pessoais"},
+ outros:{n:"geral",cor:"#9A9CA5",d:"inbox e sem categoria"}
+};
+const ORDEM_BALDES=["clientes","comercial","marca","organizacao","formacao","imprevistos","pessoal","outros"];
+const BALDES_ANTIGOS={estrutura:"organizacao",pessoal:"imprevistos",desenvolvimento:"formacao",cliente:"clientes"};
+function baldeDe(nome){
+ const pj=(D.projectos||[]).find(p=>p.nome===nome);
+ if(pj){
+  if(pj.categoria==="COMERCIAL")return "comercial";
+  if(pj.categoria==="CASA"||pj.categoria==="MUSICA")return "pessoal";
+  if(pj.categoria==="ARTE")return "marca";
+  if(pj.cliente)return "clientes";
+  if(pj.nome==="Inbox")return "outros";
+  return "marca";
+ }
+ const man=(D.extrasCat||{})[nome];
+ if(man&&BALDES[man])return man;
+ const n=String(nome).toLowerCase();
+ // nome de um cliente dos registos: é trabalho de cliente
+ const cli=(D.conta||[]).some(r=>{
+  const c=String(r[3]||"").toLowerCase();
+  return c.length>=4&&(c.includes(n)||n.includes(c.slice(0,14)));
+ });
+ if(cli)return "clientes";
+ if(/imprevist|greve|doen|consulta|sa[uú]de|desloca/i.test(nome))return "imprevistos";
+ if(/forma[cç][aã]o|estudo|curso/i.test(nome))return "formacao";
+ if(/organiz|admin|burocr|papel|contab|fatur/i.test(nome))return "organizacao";
+ if(man&&BALDES_ANTIGOS[man])return BALDES_ANTIGOS[man];
+ return "outros";
+}
+// horas de trabalho previstas num dia, a partir dos blocos da rotina base
+function capacidadeDia(iso){
+ if(!diaUtil(iso))return 0;
+ const s=[...(D.rotinaBase||[])].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
+ let m=0;
+ s.forEach((it,i)=>{
+  if(!/^(Bloco de trabalho|Bloco comercial|Voltar ao estúdio)/i.test(it.t||""))return;
+  const a=min(it.q),b=i<s.length-1?min(s[i+1].q):null;
+  if(a!=null&&b!=null&&b>a)m+=b-a;
+ });
+ return m/60;
+}
+let tkModo="semana",tkOff=0;
+function fmtCurtaTk(iso){const d=new Date(iso+"T12:00");return d.getDate()+" "+d.toLocaleDateString("pt-PT",{month:"short"}).replace(".","");}
+function tkIntervalo(modo,off){
+ const h0=new Date();h0.setHours(12,0,0,0);
+ if(modo==="semana"){
+  const dow=(h0.getDay()+6)%7;
+  const ini=new Date(h0);ini.setDate(h0.getDate()-dow+off*7);
+  const dias=[...Array(7)].map((_,i)=>{const d=new Date(ini);d.setDate(ini.getDate()+i);return isoLocal(d);});
+  return {dias,titulo:`${fmtCurtaTk(dias[0])} – ${fmtCurtaTk(dias[6])}`};
+ }
+ const m0=new Date(h0.getFullYear(),h0.getMonth()+off,1,12);
+ const nd=new Date(m0.getFullYear(),m0.getMonth()+1,0).getDate();
+ const dias=[...Array(nd)].map((_,i)=>isoLocal(new Date(m0.getFullYear(),m0.getMonth(),i+1,12)));
+ return {dias,titulo:m0.toLocaleDateString("pt-PT",{month:"long",year:"numeric"})};
+}
+function tkAgregar(dias){
+ const porBalde={},porProj={},porDia={};
+ let total=0,cap=0,naoReg=0;
+ const hj=hoje();
+ dias.forEach(d=>{
+  const hs=(trk[d]||{}).horas||{};
+  porDia[d]={};let regDia=0;
+  Object.entries(hs).forEach(([k,v])=>{
+   if(!(v>0))return;
+   const b=baldeDe(k);
+   porBalde[b]=(porBalde[b]||0)+v;porProj[k]=(porProj[k]||0)+v;
+   porDia[d][b]=(porDia[d][b]||0)+v;total+=v;regDia+=v;
+  });
+  const c=capacidadeDia(d);
+  porDia[d]._cap=c;
+  if(d<hj){cap+=c;const g=Math.max(0,c-regDia);naoReg+=g;porDia[d]._gap=g;}
+  else if(d===hj){cap+=c;porDia[d]._hoje=true;}
+ });
+ return {porBalde,porProj,porDia,total,cap,naoReg};
+}
+const pctTk=(v,t)=>t>0?Math.round(v/t*100):0;
 
- // agregar por categoria
- const porCat={};
- ent.forEach(([k,v])=>{const c=tipoRegisto(k);porCat[c]=(porCat[c]||0)+v;});
- const fatH=porCat.cliente||0;
- const pctFat=totalH?Math.round(fatH/totalH*100):0;
+function rTempo(){
+ if(!$("tkKpis"))return;
+ const I=tkIntervalo(tkModo,tkOff);
+ const A=tkAgregar(I.dias);
+ const P=tkAgregar(tkIntervalo(tkModo,tkOff-1).dias);
+ $("tkTitulo").textContent=I.titulo;
+ $("tkNext").disabled=tkOff>=0;
+ document.querySelectorAll(".tkmodo").forEach(b=>b.classList.toggle("on",b.dataset.tkm===tkModo));
+ const B=k=>A.porBalde[k]||0;
+ const pr=D.precario||{horasDia:5,diasSemana:5};
+ const alvoFat=tkModo==="semana"?pr.horasDia*pr.diasSemana:pr.horasDia*pr.diasSemana*4.33;
+ const perdido=A.naoReg+B("imprevistos");
 
- const barraCat=Object.entries(porCat).sort((a,b)=>b[1]-a[1])
-  .map(([c,v])=>`<div class="catseg" style="width:${v/totalH*100}%;background:${(CATEGORIAS_TEMPO[c]||{}).cor||"var(--soft)"}" title="${c}: ${fmtH(v)}"></div>`).join("");
- const legenda=Object.entries(porCat).sort((a,b)=>b[1]-a[1])
-  .map(([c,v])=>`<span class="catleg"><i style="background:${(CATEGORIAS_TEMPO[c]||{}).cor||"var(--soft)"}"></i>${c} ${fmtH(v)}</span>`).join("");
+ // ---- números do topo ----
+ const kpi=(rot,val,sub,cor,barra)=>`<div class="card tkkpi">
+   <div class="tkkl">${cor?`<i style="background:${cor}"></i>`:""}${rot}</div>
+   <div class="tkkv">${val}</div>
+   ${barra!==undefined?`<div class="tkkbar"><div style="width:${Math.min(100,barra)}%;background:${cor||"var(--acc2)"}"></div></div>`:""}
+   <div class="tkks">${sub}</div></div>`;
+ $("tkKpis").innerHTML=
+  kpi("registado",fmtH(A.total)||"0h",A.cap?`de ${fmtH(A.cap)} de blocos de trabalho · ${pctTk(A.total,A.cap)}%`:"sem dias úteis",null,A.cap?pctTk(A.total,A.cap):undefined)+
+  kpi("clientes",fmtH(B("clientes"))||"0h",`${pctTk(B("clientes"),A.total)}% do registado · alvo ${fmtH(alvoFat)}`,BALDES.clientes.cor,pctTk(B("clientes"),alvoFat))+
+  kpi("comercial",fmtH(B("comercial"))||"0h",`${pctTk(B("comercial"),A.total)}% do registado`,BALDES.comercial.cor)+
+  kpi("organização & burocracia",fmtH(B("organizacao"))||"0h",`${pctTk(B("organizacao"),A.total)}% do registado`,BALDES.organizacao.cor)+
+  kpi("tempo perdido",fmtH(perdido)||"0h",`${fmtH(A.naoReg)||"0h"} sem registo · ${fmtH(B("imprevistos"))||"0h"} imprevistos`,"#C74A3C");
 
- const linha=([k,v])=>{
-  const cat=tipoRegisto(k);
-  const pj=D.projectos.find(x=>x.nome===k);
-  const orc=pj&&pj.orcamento?pj.orcamento:null;
-  const alvo=pj?eurH[pj.nivel||"medio"]:null;
-  let hTotProj=0;Object.values(trk).forEach(r=>{hTotProj+=((r.horas||{})[k]||0);});
-  const real=orc&&hTotProj>0?orc/hTotProj:null;
-  const abaixo=real!==null&&alvo!==null&&real<alvo;
-  const editavel=!pj;
-  return `<div class="grow"><div class="gl">${esc(k)}${editavel?`<button class="catbtn" data-cat="${esc(k)}" title="mudar categoria">${cat}</button>`:""}</div><div class="gtrack"><div class="gbar" style="left:0;width:${v/max*100}%;background:${(CATEGORIAS_TEMPO[cat]||{}).cor||"var(--acc2)"}"></div></div><span class="mono trkval">${fmtH(v)}${real!==null?` · <span class="${abaixo?"bad":"good"}" title="€/hora real sobre ${fmtH(hTotProj)} totais${alvo?` · alvo ${alvo.toFixed(0)}€/h`:""}">${real.toFixed(0)}€/h</span>`:""}</span></div>`;
- };
- const fatur=ent.filter(([k])=>tipoRegisto(k)==="cliente");
- const resto=ent.filter(([k])=>tipoRegisto(k)!=="cliente");
+ // ---- distribuição numa barra só (inclui o tempo de trabalho não registado) ----
+ const base=A.total+A.naoReg;
+ const segs=ORDEM_BALDES.filter(k=>B(k)>0).map(k=>({k,v:B(k),cor:BALDES[k].cor,n:BALDES[k].n}));
+ if(A.naoReg>0)segs.push({k:"_gap",v:A.naoReg,cor:null,n:"não registado"});
+ $("tkDist").innerHTML=base>0?`
+  <div class="tkdbar">${segs.map(s=>`<div class="tkseg${s.cor?"":" gap"}" style="width:${s.v/base*100}%;${s.cor?`background:${s.cor}`:""}" title="${s.n}: ${fmtH(s.v)}"></div>`).join("")}</div>
+  <div class="tkleg">${segs.map(s=>`<span class="tklegi"><i class="${s.cor?"":"gap"}" style="${s.cor?`background:${s.cor}`:""}"></i>${s.n} <b>${fmtH(s.v)}</b> <span class="tkpc">${pctTk(s.v,base)}%</span></span>`).join("")}</div>`
+  :`<div class="empty">sem horas registadas neste período</div>`;
 
- box.innerHTML=`<div class="trkresumo">
-   <span><b>${fmtH(totalH)}</b> no total</span>
-   <span class="${pctFat>=50?"good":"bad"}"><b>${pctFat}%</b> faturável (${fmtH(fatH)})</span>
-   <span>${diasComRegisto} dia${diasComRegisto===1?"":"s"} com registo</span>
-   <span>média <b>${diasComRegisto?fmtH(totalH/diasComRegisto):"0m"}</b>/dia</span>
-  </div>
-  <div class="catbar">${barraCat}</div>
-  <div class="catlegs">${legenda}</div>`+
-  (fatur.length?`<div class="trksub">faturável · cliente</div>`+fatur.map(linha).join(""):"")+
-  (resto.length?`<div class="trksub">não faturável</div>`+resto.map(linha).join(""):"");
+ // ---- dia a dia: colunas empilhadas com a capacidade marcada ----
+ const dias=I.dias, W=640, H=170, padB=22, padT=14;
+ const maxV=Math.max(1,...dias.map(d=>Math.max(A.porDia[d]._cap||0,ORDEM_BALDES.reduce((s,k)=>s+(A.porDia[d][k]||0),0)+(A.porDia[d]._gap||0))));
+ const esc_=v=>(H-padB-padT)*v/maxV;
+ const cw=W/dias.length,bw=Math.min(46,cw*0.62);
+ const nomesDia=["dom","seg","ter","qua","qui","sex","sáb"];
+ let svg="";
+ dias.forEach((d,i)=>{
+  const x=i*cw+(cw-bw)/2;let y=H-padB;
+  const pd=A.porDia[d];
+  ORDEM_BALDES.forEach(k=>{const v=pd[k]||0;if(!v)return;const hh=esc_(v);y-=hh;
+   svg+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" fill="${BALDES[k].cor}" rx="2"><title>${fmtCurtaTk(d)} · ${BALDES[k].n}: ${fmtH(v)}</title></rect>`;});
+  if(pd._gap>0){const hh=esc_(pd._gap);y-=hh;
+   svg+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" fill="url(#tkHatch)" stroke="var(--line)" rx="2"><title>${fmtCurtaTk(d)} · não registado: ${fmtH(pd._gap)}</title></rect>`;}
+  if(pd._cap>0){const yc=H-padB-esc_(pd._cap);
+   svg+=`<line x1="${(x-4).toFixed(1)}" x2="${(x+bw+4).toFixed(1)}" y1="${yc.toFixed(1)}" y2="${yc.toFixed(1)}" stroke="var(--txt)" stroke-width="1" stroke-dasharray="3,2" opacity=".45"/>`;}
+  const tot=ORDEM_BALDES.reduce((s,k)=>s+(pd[k]||0),0);
+  if(tot>0&&dias.length<=10)svg+=`<text x="${(x+bw/2).toFixed(1)}" y="${(y-4).toFixed(1)}" text-anchor="middle" class="tksvgv">${fmtH(tot)}</text>`;
+  const dt=new Date(d+"T12:00");
+  const lbl=dias.length<=10?`${nomesDia[dt.getDay()]} ${dt.getDate()}`:(dt.getDate()%5===1||dt.getDate()===1?String(dt.getDate()):"");
+  svg+=`<text x="${(x+bw/2).toFixed(1)}" y="${H-6}" text-anchor="middle" class="tksvgl${d===hoje()?" hoje":""}${pd._cap===0?" folga":""}">${lbl}</text>`;
+ });
+ $("tkDias").innerHTML=`<svg viewBox="0 0 ${W} ${H}" class="tksvg" preserveAspectRatio="none">
+  <defs><pattern id="tkHatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="transparent"/><line x1="0" y1="0" x2="0" y2="5" stroke="#C74A3C" stroke-width="1.4" opacity=".45"/></pattern></defs>
+  ${svg}</svg>
+  <div class="hsub" style="margin-top:4px">tracejado = horas de trabalho previstas · riscado = blocos de trabalho sem registo</div>`;
 
- box.querySelectorAll("[data-cat]").forEach(b=>b.addEventListener("click",async()=>{
-  const nome=b.dataset.cat;
-  const opts=Object.keys(CATEGORIAS_TEMPO).filter(c=>c!=="cliente");
-  const r=await pedir({titulo:"Categoria",sub:nome,campos:[{tipo:"escolha",nome:"cat",label:"tipo de tempo",valor:tipoRegisto(nome),
-   opcoes:opts.map(c=>({v:c,txt:c,cor:(CATEGORIAS_TEMPO[c]||{}).cor}))}]});
-  if(!r||!CATEGORIAS_TEMPO[r.cat])return;
-  D.extrasCat[nome]=r.cat;await save();rTrkProj();
+ // ---- projectos e actividades ----
+ const pre=D.precario||{niveis:{medio:8000},horasDia:5,diasSemana:5};
+ const hm=pre.horasDia*pre.diasSemana*4.33;
+ const ent=Object.entries(A.porProj).sort((a,b)=>b[1]-a[1]);
+ const maxP=ent.length?ent[0][1]:1;
+ $("tkProj").innerHTML=ent.length?ent.map(([k,v])=>{
+  const b=baldeDe(k),pj=(D.projectos||[]).find(p=>p.nome===k);
+  let eur="";
+  if(b==="clientes"&&pj){
+   const reg=(D.conta||[]).find(r=>contaProjId(r)===pj.id);
+   const valor=reg?(+reg[6]||0):(+pj.orcamento||0);
+   let hTot=0;Object.values(trk).forEach(r=>{hTot+=((r.horas||{})[k]||0);});
+   if(valor>0&&hTot>0){
+    const real=valor/hTot,alvo=(pre.niveis[pj.nivel||"medio"]||pre.niveis.medio)/hm;
+    eur=`<span class="tkeur ${real<alvo?"bad":"good"}" title="valor ${valor.toFixed(0)}€ ÷ ${fmtH(hTot)} totais · alvo ${alvo.toFixed(0)}€/h">${real.toFixed(0)}€/h</span>`;
+   }
+  }
+  const muda=!pj?`<button class="tkmuda" data-tkbalde="${esc(k)}" title="mudar categoria">${BALDES[b].n}</button>`:`<span class="tkcatn">${BALDES[b].n}</span>`;
+  return `<div class="tkprow"><div class="tkpn">${esc(k)} ${muda}</div>
+   <div class="tkptrack"><div style="width:${v/maxP*100}%;background:${BALDES[b].cor}"></div></div>
+   <span class="tkpv">${fmtH(v)}${eur}</span></div>`;
+ }).join(""):`<div class="empty">nada registado</div>`;
+ $("tkProj").querySelectorAll("[data-tkbalde]").forEach(btn=>btn.addEventListener("click",async()=>{
+  const nome=btn.dataset.tkbalde;
+  const r=await pedir({titulo:"Categoria",sub:nome,campos:[{tipo:"escolha",nome:"b",label:"onde conta este tempo",valor:baldeDe(nome),
+   opcoes:ORDEM_BALDES.map(k=>({v:k,txt:BALDES[k].n,cor:BALDES[k].cor}))}]});
+  if(!r||!BALDES[r.b])return;
+  D.extrasCat=D.extrasCat||{};D.extrasCat[nome]=r.b;await save();rTempo();
  }));
+
+ // ---- últimas 8 semanas ----
+ const sem=[...Array(8)].map((_,i)=>{const off=tkModo==="semana"?tkOff-7+i:-7+i;const iv=tkIntervalo("semana",off);return {off,iv,a:tkAgregar(iv.dias)};});
+ const W2=640,H2=150,pb2=22,pt2=12;
+ const mx2=Math.max(1,...sem.map(s=>s.a.total+s.a.naoReg));
+ const cw2=W2/8,bw2=Math.min(52,cw2*0.6);
+ let s2="";
+ sem.forEach((s,i)=>{
+  const x=i*cw2+(cw2-bw2)/2;let y=H2-pb2;
+  const sc=v=>(H2-pb2-pt2)*v/mx2;
+  ORDEM_BALDES.forEach(k=>{const v=s.a.porBalde[k]||0;if(!v)return;const hh=sc(v);y-=hh;
+   s2+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw2.toFixed(1)}" height="${hh.toFixed(1)}" fill="${BALDES[k].cor}" rx="2"><title>${s.iv.titulo} · ${BALDES[k].n}: ${fmtH(v)}</title></rect>`;});
+  if(s.a.naoReg>0){const hh=sc(s.a.naoReg);y-=hh;s2+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw2.toFixed(1)}" height="${hh.toFixed(1)}" fill="url(#tkHatch2)" stroke="var(--line)" rx="2"/>`;}
+  const pc=pctTk(s.a.porBalde.clientes||0,s.a.total);
+  if(s.a.total>0)s2+=`<text x="${(x+bw2/2).toFixed(1)}" y="${(y-4).toFixed(1)}" text-anchor="middle" class="tksvgv">${pc}%</text>`;
+  const sel=tkModo==="semana"&&s.off===tkOff;
+  s2+=`<text x="${(x+bw2/2).toFixed(1)}" y="${H2-6}" text-anchor="middle" class="tksvgl${sel?" hoje":""}">${fmtCurtaTk(s.iv.dias[0])}</text>`;
+  s2+=`<rect x="${(i*cw2).toFixed(1)}" y="0" width="${cw2.toFixed(1)}" height="${H2}" fill="transparent" data-tksem="${s.off}" style="cursor:pointer"/>`;
+ });
+ $("tkTend").innerHTML=`<svg viewBox="0 0 ${W2} ${H2}" class="tksvg" preserveAspectRatio="none">
+  <defs><pattern id="tkHatch2" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="5" stroke="#C74A3C" stroke-width="1.4" opacity=".45"/></pattern></defs>${s2}</svg>
+  <div class="hsub" style="margin-top:4px">percentagem = parte do tempo registado que foi de clientes · clica numa semana para a abrir</div>`;
+ $("tkTend").querySelectorAll("[data-tksem]").forEach(r=>r.addEventListener("click",()=>{tkModo="semana";tkOff=+r.dataset.tksem;rTempo();}));
+
+ // ---- leitura: frases calculadas a partir dos dados ----
+ const L=[];
+ const per=tkModo==="semana"?"semana":"mês";
+ if(A.total===0){L.push(`Nada registado neste ${per}.`);}
+ else{
+  const pc=pctTk(B("clientes"),A.total),pcAnt=pctTk(P.porBalde.clientes||0,P.total);
+  L.push(`<b>${pc}%</b> do tempo registado foi trabalho de clientes (${fmtH(B("clientes"))||"0h"}). O teu preçário conta com <b>${fmtH(alvoFat)}</b> faturáveis por ${per}${B("clientes")>=alvoFat?" — alvo atingido.":`: faltaram ${fmtH(alvoFat-B("clientes"))}.`}`);
+  // só compara com um período com registo suficiente para a comparação valer alguma coisa
+  if(P.total>=(tkModo==="semana"?8:30)){const dif=pc-pcAnt;if(Math.abs(dif)>=5)L.push(`${dif>0?"Subiu":"Desceu"} <b>${Math.abs(dif)} pontos</b> face ${tkModo==="semana"?"à semana anterior":"ao mês anterior"} (${pcAnt}%).`);}
+  const nf=ORDEM_BALDES.filter(k=>k!=="clientes"&&B(k)>0).sort((a,b)=>B(b)-B(a));
+  if(nf.length){const k=nf[0];L.push(`O maior bloco não faturável foi <b>${BALDES[k].n}</b>: ${fmtH(B(k))}, ${pctTk(B(k),A.total)}% do registado.`);}
+  // pico de organização num só dia
+  const picos=I.dias.map(d=>[d,A.porDia[d].organizacao||0]).sort((a,b)=>b[1]-a[1]);
+  if(picos[0]&&picos[0][1]>=3)L.push(`Só em ${fmtCurtaTk(picos[0][0])} foram <b>${fmtH(picos[0][1])}</b> de organização e burocracia.`);
+  if(B("comercial")===0&&tkModo==="semana")L.push(`Nenhuma hora comercial registada — sem prospeção, a carteira não se renova.`);
+ }
+ if(A.naoReg>=1)L.push(`Ficaram <b>${fmtH(A.naoReg)}</b> de blocos de trabalho sem registo. Esse tempo não aparece em nenhuma categoria — é o ponto cego da leitura.`);
+ if(A.cap>0&&A.total/A.cap<0.5)L.push(`Registaste só ${pctTk(A.total,A.cap)}% do tempo de trabalho previsto: as percentagens acima valem pouco enquanto o registo for parcial.`);
+ $("tkLeitura").innerHTML=L.map(x=>`<p class="tkl">${x}</p>`).join("");
 }
 document.addEventListener("click",e=>{
- const b=e.target.closest(".trkper");if(!b)return;
- trkPeriodo=+b.dataset.per;
- document.querySelectorAll(".trkper").forEach(x=>x.classList.toggle("on",x===b));
- rTrkProj();
+ const m=e.target.closest(".tkmodo");
+ if(m){tkModo=m.dataset.tkm;tkOff=0;rTempo();return;}
+ if(e.target.closest("#tkPrev")){tkOff--;rTempo();return;}
+ if(e.target.closest("#tkNext")){if(tkOff<0){tkOff++;rTempo();}return;}
+ if(e.target.closest("#trkTabAcc")){
+  const b=$("trkTabBody"),a=$("trkTabAcc");const ab=b.style.display==="none";
+  b.style.display=ab?"block":"none";a.querySelector(".accarr").textContent=ab?"▾":"▸";
+ }
 });
 function diaUtil(iso){
  const dt=new Date(iso+"T12:00");
@@ -2731,7 +2955,7 @@ function rTracker(){
   else trk[d][k]=!trk[d][k];
   await save();rTracker();
  }));
- rTrkProj();
+ rTempo();
  // gráfico de sono: sparkline 14 dias
  const d14=[];
  for(let i=13;i>=0;i--){const d=isoLocal(new Date(Date.now()-i*864e5));d14.push([d,(trk[d]||{}).sono??null]);}
@@ -3512,25 +3736,6 @@ function rRedes(){
   </div>`).join("");
  $("rdContas").querySelectorAll("[data-rc]").forEach(el=>el.addEventListener("blur",async()=>{
   const c=R.contas.find(x=>x.id===el.dataset.cid);if(c)c[el.dataset.rc]=el.innerText.trim();await save();
- }));
- const CONTAS_ORDEM=["RIMA studio","RIMA lab","Ricardo Esteves Corga"];
- $("rdProp").innerHTML=CONTAS_ORDEM.map(nome=>{
-  const arr=R.propostas[nome]||[null,null,null,null];
-  return `<div class="propsec">
-    <div class="propsech"><i class="pdot" style="background:${CONTAS_COR[nome]}"></i>${esc(nome)}</div>
-    <div class="propgrid">
-     ${arr.map((p,i)=>p?`<div class="propcard card">
-        <button class="ico propx" data-propdel="${esc(nome)}|${i}" title="descartar">✕</button>
-        <div class="propimg" style="background:${CONTAS_COR[nome]}22">${p.icone}</div>
-        <div class="propt">${esc(p.titulo)}</div>
-        <div class="propd">${esc(p.texto)}</div>
-       </div>`:`<div class="propcard card vazio">— vazio —<span class="hsub" style="margin-top:4px">pede "novos posts"</span></div>`).join("")}
-    </div>
-   </div>`;
- }).join("");
- $("rdProp").querySelectorAll("[data-propdel]").forEach(b=>b.addEventListener("click",async()=>{
-  const [nome,i]=b.dataset.propdel.split("|");
-  R.propostas[nome][+i]=null;await save();rRedes();
  }));
  $("rdIdeias").innerHTML=R.ideias.map(i=>`<div class="irow" data-iid2="${i.id}">
    <i class="pdot" style="background:${CONTAS_COR[i.conta]||"var(--soft)"};margin-top:5px"></i>
