@@ -335,6 +335,23 @@ input.tempot{width:56px;color:var(--acc2);text-align:center;}
 .regrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);}
 .regrow:last-child{border-bottom:none;}
 .regl{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);}
+/* registo de hoje compacto: pares etiqueta+controlo em fila corrida */
+.regmini{display:flex;flex-wrap:wrap;align-items:center;gap:9px 16px;}
+.regp{display:flex;align-items:center;gap:6px;}
+.regp .tcell{width:52px;padding:3px 6px;font-size:10.5px;text-align:center;}
+.regp .trkdots{gap:4px;}
+.regp .trkdot{width:13px;height:13px;}
+.regp .tsesta{padding:3px 7px;font-size:10px;}
+.regp .rsub{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);}
+/* véu de alerta do semáforo: a interface inteira muda de cor */
+#alertaVeu{position:fixed;inset:0;pointer-events:none;z-index:9990;opacity:0;transition:opacity .5s,background .5s;mix-blend-mode:multiply;}
+body.alerta-vermelho #alertaVeu{opacity:1;background:rgba(214,58,40,.34);box-shadow:inset 0 0 0 7px rgba(214,58,40,.85);}
+body.alerta-laranja #alertaVeu{opacity:1;background:rgba(222,128,44,.30);box-shadow:inset 0 0 0 7px rgba(222,128,44,.85);}
+body.alerta-amarelo #alertaVeu{opacity:1;background:rgba(226,186,52,.30);box-shadow:inset 0 0 0 7px rgba(226,186,52,.85);}
+body.dark #alertaVeu{mix-blend-mode:normal;}
+body.dark.alerta-vermelho #alertaVeu{background:rgba(210,52,36,.26);}
+body.dark.alerta-laranja #alertaVeu{background:rgba(222,128,44,.22);}
+body.dark.alerta-amarelo #alertaVeu{background:rgba(226,186,52,.20);}
 .regin{width:86px;text-align:right;}
 .tknav{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
 .tktitulo{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--txt);min-width:118px;text-align:center;text-transform:none;letter-spacing:.02em;}
@@ -462,6 +479,8 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .home>*{min-width:0;}
 .hcol{display:flex;flex-direction:column;gap:16px;}
 .hcol .hcard{margin-bottom:0;}
+/* caixas opcionais (super urgente, ideias soltas, objectivos) vazias não ocupam o espaço do gap */
+.hcol>[data-box]:empty{display:none;}
 @media(min-width:1000px){
  .hcol .hcard{max-height:420px;overflow:auto;}
  .hcard.mini{overflow:visible;}
@@ -1131,7 +1150,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v06/10 16:04</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v12/10 11:25</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1945,6 +1964,40 @@ async function pullCloud(){
  catch(e){setSt("nuvem indisponível");}
 }
 
+/* ============ ritmo de fundo ============ */
+// Os browsers abrandam os setInterval de separadores escondidos (o Chrome chega
+// a 1 vez por minuto). Os temporizadores de um Web Worker não sofrem esse
+// estrangulamento, por isso é ele que dá o ritmo e a página só reage.
+const pulsos=[];
+function aCada(ms,fn){pulsos.push({cada:ms,fn,ult:Date.now()});}
+function pulsar(){
+ const a=Date.now();
+ pulsos.forEach(p=>{if(a-p.ult>=p.cada){p.ult=a;try{p.fn();}catch(e){}}});
+}
+(function(){
+ try{
+  const w=new Worker(URL.createObjectURL(new Blob(["setInterval(()=>postMessage(0),1000);"],{type:"text/javascript"})));
+  w.onmessage=pulsar;
+  w.onerror=()=>{if(!window._pulsoFallback)window._pulsoFallback=setInterval(pulsar,1000);};
+  window._relogio=w;
+ }catch(e){window._pulsoFallback=setInterval(pulsar,1000);}
+})();
+// Ecrã acordado durante os blocos de trabalho, com a Station visível
+// (se o ecrã adormece, o computador pode suspender e os alarmes não tocam).
+let wakeLock=null;
+async function gerirWakeLock(){
+ if(!("wakeLock" in navigator)||!D)return;
+ let quer=false;
+ try{quer=!document.hidden&&estadoSemaforo().cor!=="off";}catch(e){}
+ try{
+  if(quer&&!wakeLock){
+   wakeLock=await navigator.wakeLock.request("screen");
+   wakeLock.addEventListener("release",()=>{wakeLock=null;});
+  }else if(!quer&&wakeLock){const w=wakeLock;wakeLock=null;await w.release();}
+ }catch(e){wakeLock=null;}
+}
+document.addEventListener("visibilitychange",()=>{wakeLock=null;gerirWakeLock();});
+
 /* ============ relógio ============ */
 let lastBlockQ=undefined,audioCtx=null;
 function toggleSom(){
@@ -1958,10 +2011,24 @@ function rSomBtn(){
  b.style.opacity=on?"1":".4";
  b.style.color=on?"var(--acc2)":"var(--soft)";
 }
-function beep(){
+function somCtx(){
+ if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+ return audioCtx;
+}
+// Só toca com o áudio mesmo a correr. Com o contexto suspenso (separador
+// escondido, ecrã bloqueado), os sons agendados ficavam em fila e saíam todos
+// juntos ao voltar. Agora, se o áudio não arrancar logo, o toque é descartado.
+function tocarSom(fn){
  try{
-  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  if(audioCtx.state==="suspended")audioCtx.resume();
+  const c=somCtx();
+  if(c.state==="running"){fn();return;}
+  const t0=Date.now();
+  c.resume().then(()=>{if(c.state==="running"&&Date.now()-t0<1200)fn();}).catch(()=>{});
+ }catch(e){}
+}
+function beep(){tocarSom(beepJa);}
+function beepJa(){
+ try{
   const o=audioCtx.createOscillator(),g=audioCtx.createGain();
   o.type="sine";o.frequency.value=740;
   g.gain.setValueAtTime(0.0001,audioCtx.currentTime);
@@ -1977,38 +2044,41 @@ function beep(){
   o2.start(audioCtx.currentTime+0.16);o2.stop(audioCtx.currentTime+0.62);
  }catch(e){}
 }
-// Aviso do semáforo vermelho: dois toques graves e curtos, bem mais discretos
-// que o beep de mudança de bloco, para não se confundirem.
-function beepAviso(){
+// Aviso do semáforo: os mesmos dois toques graves e curtos de sempre,
+// agora em volume alto para se ouvirem bem.
+function beepAviso(){tocarSom(beepAvisoJa);}
+function beepAvisoJa(){
  try{
-  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  if(audioCtx.state==="suspended")audioCtx.resume();
   const t=audioCtx.currentTime;
   [[0,196],[0.14,165]].forEach(([atraso,freq])=>{
    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
    o.type="triangle";o.frequency.value=freq;
    g.gain.setValueAtTime(0.0001,t+atraso);
-   g.gain.exponentialRampToValueAtTime(0.045,t+atraso+0.015);
+   g.gain.exponentialRampToValueAtTime(0.7,t+atraso+0.015);
    g.gain.exponentialRampToValueAtTime(0.0001,t+atraso+0.18);
    o.connect(g);g.connect(audioCtx.destination);
    o.start(t+atraso);o.stop(t+atraso+0.2);
   });
  }catch(e){}
 }
-// enquanto houver alerta (vermelho ou pausa), avisa de 20 em 20 segundos
+// enquanto houver alerta (vermelho ou pausa), avisa de 10 em 10 segundos
 let ultimoAvisoVermelho=0;
 function verificarAvisoSemaforo(){
  if(!D||D.som===false)return;
  const st=estadoSemaforo();
  if(!st.avisa){ultimoAvisoVermelho=0;return;}
  const agora=Date.now();
- if(agora-ultimoAvisoVermelho>=20000){
+ if(agora-ultimoAvisoVermelho>=10000){
   ultimoAvisoVermelho=agora;
   beepAviso();
  }
 }
-setInterval(verificarAvisoSemaforo,5000);
-document.addEventListener("click",()=>{if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}},{once:true});
+aCada(2000,verificarAvisoSemaforo);
+aCada(30000,gerirWakeLock);
+// qualquer clique ou tecla destrava o áudio (os browsers exigem um gesto)
+["click","keydown","touchstart"].forEach(ev=>document.addEventListener(ev,()=>{
+ try{const c=somCtx();if(c.state!=="running")c.resume().catch(()=>{});}catch(e){}
+},{passive:true}));
 function tituloTarefa(ref){
  const t=(D.tarefas||[]).find(x=>x.id===ref);
  return t?t.titulo:ref;
@@ -2296,15 +2366,13 @@ function bindHomeDrag(){
 function rRegHoje(){
  const box=$("hReg");if(!box)return;
  const d=hoje(),r=trk[d]||{};
- box.innerHTML=`
-  <div class="regrow"><span class="regl">sono</span><input class="tcell regin" data-rk="sono" value="${r.sono?fmtH(r.sono):""}" placeholder="ex: 7h30"/></div>
-  <div class="regrow"><span class="regl">energia</span><span class="trkdots">${[1,2,3,4,5].map(n=>`<button class="trkdot${(r.energia||0)>=n?" on":""}" data-rk="energia" data-rv="${n}" title="${n}/5"></button>`).join("")}</span></div>
-  <div class="regrow"><span class="regl">sesta</span><button class="tsesta" data-rk="sesta">${r.sesta===true?"✓":r.sesta===false?"✗":"—"}</button></div>
-  <div class="regrow"><span class="regl">exercício</span><input class="tcell regin" data-rk="exercicio" value="${r.exercicio||""}" placeholder="minutos"/></div>
-  <div class="regrow"><span class="regl">esticar</span><span style="display:flex;gap:6px;align-items:center">
-   <button class="trkdot${r.esticar1?" on":""}" data-rk="esticar1" title="pausa da manhã"></button><span class="hsub" style="margin:0">manhã</span>
-   <button class="trkdot${r.esticar2?" on":""}" data-rk="esticar2" title="pausa da tarde" style="margin-left:6px"></button><span class="hsub" style="margin:0">tarde</span>
-  </span></div>`;
+ box.innerHTML=`<div class="regmini">
+  <span class="regp"><span class="regl">sono</span><input class="tcell" data-rk="sono" value="${r.sono?fmtH(r.sono):""}" placeholder="7h30"/></span>
+  <span class="regp"><span class="regl">exerc.</span><input class="tcell" data-rk="exercicio" value="${r.exercicio||""}" placeholder="min"/></span>
+  <span class="regp"><span class="regl">sesta</span><button class="tsesta" data-rk="sesta">${r.sesta===true?"✓":r.sesta===false?"✗":"—"}</button></span>
+  <span class="regp"><span class="regl">energia</span><span class="trkdots">${[1,2,3,4,5].map(n=>`<button class="trkdot${(r.energia||0)>=n?" on":""}" data-rk="energia" data-rv="${n}" title="${n}/5"></button>`).join("")}</span></span>
+  <span class="regp"><span class="regl">esticar</span><button class="trkdot${r.esticar1?" on":""}" data-rk="esticar1" title="pausa da manhã"></button><span class="rsub">manhã</span><button class="trkdot${r.esticar2?" on":""}" data-rk="esticar2" title="pausa da tarde"></button><span class="rsub">tarde</span></span>
+ </div>`;
  box.querySelectorAll("input[data-rk]").forEach(inp=>inp.onchange=async()=>{
   trk[d]=trk[d]||{};
   if(inp.dataset.rk==="sono"){const v=parseH(inp.value);trk[d].sono=(v===null||isNaN(v))?null:v;}
@@ -4381,6 +4449,8 @@ function rSemaforo(){
  const st=estadoSemaforo();
  el.className="semaforo sem-"+st.cor;
  el.title=st.txt;
+ const veu={vermelho:"alerta-vermelho",laranja:"alerta-laranja",amarelo:"alerta-amarelo"}[st.cor]||"";
+ ["alerta-vermelho","alerta-laranja","alerta-amarelo"].forEach(c=>document.body.classList.toggle(c,c===veu));
  el.onclick=()=>{
   if(st.cor==="vermelho"||st.cor==="laranja"||st.cor==="off")registarExtra();
   else pararTimer();
@@ -4400,8 +4470,8 @@ function rTimerBar(){
     :`<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>`}</button>`+
   `<button class="ico" style="width:26px;height:26px" title="Parar e registar" onclick="pararTimer()"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></button>`;
 }
-setInterval(()=>{if(D&&D.timer)rTimerBar();},1000);
-setInterval(()=>{if(D)rSemaforo();},20000);
+aCada(1000,()=>{if(D&&D.timer)rTimerBar();});
+aCada(5000,()=>{if(D)rSemaforo();});
 function rTaskList(el,list,editavel){
  el.innerHTML="";
  if(!list.length){el.innerHTML=`<div class="empty">sem tarefas</div>`;return;}
@@ -5726,34 +5796,18 @@ const EXTRAS_SUGESTOES=[
 async function registarExtra(){
  const r=await pedir({
   titulo:"Registar tempo",
-  sub:"O que estás (ou estiveste) a fazer?",
-  campos:[
-   {tipo:"escolha",nome:"sug",label:"tipo",valor:EXTRAS_SUGESTOES[0][0],
-    opcoes:EXTRAS_SUGESTOES.map(([s])=>({v:s,txt:s}))},
-   {tipo:"texto",nome:"outro",label:"ou escreve outro nome",ph:"deixa vazio para usar o tipo escolhido"},
-   {tipo:"texto",nome:"horas",label:"horas já gastas",ph:"vazio = começar a contar agora"}
-  ]
+  sub:"O que estás a fazer?",
+  campos:[{tipo:"texto",nome:"t",label:"tarefa",ph:"ex: organizar estúdio"}]
  });
  if(!r)return;
- const outro=(r.outro||"").trim();
- const titulo=outro||r.sug;
- if(!titulo){setSt("escolhe ou escreve o que estiveste a fazer");return;}
- const par=EXTRAS_SUGESTOES.find(([s])=>s===titulo);
- D.extrasCat=D.extrasCat||{};
- if(!D.extrasCat[titulo])D.extrasCat[titulo]=par?par[1]:"estrutura";
- const q=String(r.horas||"").trim().replace(",",".");
- if(q===""){
-  if(D.timer)await pararTimer(true);
-  D.timer={tid:null,proj:titulo,titulo,inicio:Date.now(),dia:hoje(),extra:true,pausadoTotal:0,pausadoEm:null};
-  await save();setSt(`a contar: ${titulo}`);rAll();
-  return;
- }
- const horas=parseH(q);
- if(horas===null||isNaN(horas)||horas<=0){setSt("valor inválido");return;}
- const dia=hoje();
- trk[dia]=trk[dia]||{};trk[dia].horas=trk[dia].horas||{};
- trk[dia].horas[titulo]=Math.round(((trk[dia].horas[titulo]||0)+horas)*100)/100;
- await save();setSt(`registado ${fmtH(horas)} em ${titulo}`);rAll();
+ const titulo=(r.t||"").trim();
+ if(!titulo){setSt("escreve o que estás a fazer");return;}
+ // nomes conhecidos mantêm a categoria; os outros ficam com a do baldeDe()
+ const par=EXTRAS_SUGESTOES.find(([s])=>s.toLowerCase()===titulo.toLowerCase());
+ if(par){D.extrasCat=D.extrasCat||{};if(!D.extrasCat[titulo])D.extrasCat[titulo]=par[1];}
+ if(D.timer)await pararTimer(true);
+ D.timer={tid:null,proj:titulo,titulo,inicio:Date.now(),dia:hoje(),extra:true,pausadoTotal:0,pausadoEm:null};
+ await save();setSt(`a contar: ${titulo}`);rAll();
 }
 async function iniciarAlmoco(){
  // qualquer tarefa a contar pára aqui, como se carregasses em stop
@@ -5822,7 +5876,7 @@ async function boot(){
  if(_booted)return;_booted=true;
  document.getElementById("gate").classList.add("hidden");
  try{ await load(); }catch(e){ return; }  // sem chave, load() mostra o ecrã próprio
- rAll();setInterval(tick,30000);
+ rAll();aCada(15000,tick);
 }
 // A entrada passa a validar a chave real contra o Worker, não no browser.
 async function gateTry(){
@@ -5852,5 +5906,6 @@ document.addEventListener("keydown",e=>{
  else{const g=document.getElementById("gatePin");if(g)setTimeout(()=>g.focus(),200);}
 })();
 </script>
+<div id="alertaVeu"></div>
 </body>
 </html>
