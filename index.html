@@ -549,6 +549,10 @@ h2.sec::after{content:"";flex:1;height:1px;background:var(--line);}
 .hchk{width:14px;height:14px;min-width:14px;border-radius:5px;border:none;cursor:pointer;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);background:var(--bg);padding:0;}
 .hchk:hover{box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l),0 0 0 2px var(--acc2);}
 .hchk.c{position:relative;}
+.inpchk{display:flex;align-items:center;gap:10px;cursor:pointer;margin:-4px 0 16px;user-select:none;}
+.inpchk .hchk{width:18px;height:18px;min-width:18px;}
+.inpchk span{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft);}
+.inpchk.on span{color:var(--txt);}
 .hchk.c::after{content:"✓";position:absolute;inset:-2px;display:flex;align-items:center;justify-content:center;color:var(--ok);font-size:9px;font-weight:700;}
 .hitem:last-child{border-bottom:none;}
 .hitem .hm{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--soft);margin-left:auto;white-space:nowrap;}
@@ -1150,7 +1154,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v12/10 12:05</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v12/10 13:05</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -4461,6 +4465,7 @@ function estadoSemaforo(){
  const eTrabalho=t=>/^(Bloco de trabalho|Bloco comercial|Voltar ao estúdio)/i.test(t||"");
  const emTrabalho=atual&&eTrabalho(atual.t);
  if(!emTrabalho)return {cor:"off",txt:atual?atual.t:"fora de horas de trabalho"};
+ if(restoDiaAtivo())return {cor:"off",txt:"resto do dia: "+D.restoDia.titulo+". Clica para anular."};
  if(!D.timer)return {cor:"vermelho",txt:"em bloco de trabalho, sem nada a contar. Clica para registar.",avisa:true};
  if(D.timer.pausadoEm)return {cor:"amarelo",txt:"em pausa: "+(D.timer.titulo||"")+". Retoma ou pára.",avisa:true};
  if(D.timer.tid)return {cor:"verde",txt:"a contar: "+(D.timer.titulo||"")};
@@ -4474,7 +4479,8 @@ function rSemaforo(){
  const veu={vermelho:"alerta-vermelho",laranja:"alerta-laranja",amarelo:"alerta-amarelo"}[st.cor]||"";
  ["alerta-vermelho","alerta-laranja","alerta-amarelo"].forEach(c=>document.body.classList.toggle(c,c===veu));
  el.onclick=()=>{
-  if(st.cor==="vermelho"||st.cor==="laranja"||st.cor==="off")registarExtra();
+  if(restoDiaAtivo())anularRestoDia();
+  else if(st.cor==="vermelho"||st.cor==="laranja"||st.cor==="off")registarExtra();
   else pararTimer();
  };
 }
@@ -4760,6 +4766,10 @@ function fecharInput(){$("inpOvl").classList.remove("on");if(inpResolve){inpReso
 function rInpCampos(){
  const box=$("inpCampos");if(!box||!inpEstado)return;
  box.innerHTML=inpEstado.campos.map(c=>{
+  if(c.tipo==="check"){
+   const on=!!inpEstado.valores[c.nome];
+   return `<div class="inpchk${on?" on":""}" data-inpchk="${c.nome}"><button type="button" class="hchk${on?" c":""}" tabindex="-1"></button><span>${esc(c.label||c.nome)}</span></div>`;
+  }
   if(c.tipo==="escolha"){
    return `<div style="margin-bottom:16px"><label class="trkfl" style="display:block;margin-bottom:8px">${esc(c.label||c.nome)}</label>
     <div style="display:flex;gap:7px;flex-wrap:wrap">${c.opcoes.map(o=>`<button class="btn catpick${inpEstado.valores[c.nome]===o.v?" on":""}" data-inpop="${c.nome}|${o.v}">${o.cor?`<i class="metadot" style="background:${o.cor}"></i>`:""}${esc(o.txt)}</button>`).join("")}</div></div>`;
@@ -4772,6 +4782,11 @@ function rInpCampos(){
   inpEstado.valores[n]=v;rInpCampos();
  }));
  box.querySelectorAll("[data-inpc]").forEach(el=>el.addEventListener("input",()=>{inpEstado.valores[el.dataset.inpc]=el.value;}));
+ box.querySelectorAll("[data-inpchk]").forEach(el=>el.addEventListener("click",()=>{
+  const n=el.dataset.inpchk,on=!inpEstado.valores[n];
+  inpEstado.valores[n]=on;
+  el.classList.toggle("on",on);el.querySelector(".hchk").classList.toggle("c",on);
+ }));
 }
 function pedir(cfg){
  return new Promise(res=>{
@@ -5818,11 +5833,30 @@ const EXTRAS_SUGESTOES=[
  ["Formação / estudo","desenvolvimento"],
  ["Imprevisto","estrutura"]
 ];
+// minutos de blocos de trabalho que ainda faltam hoje, a partir de agora
+function minutosTrabalhoRestantes(){
+ if(isFolga())return 0;
+ const its=(rot&&rot.data===hoje()?rot.itens:null)||D.rotinaBase||[];
+ const n=new Date(),nm=n.getHours()*60+n.getMinutes()+n.getSeconds()/60;
+ const s=[...its].sort((x,y)=>(min(x.q)??9999)-(min(y.q)??9999));
+ let tot=0;
+ s.forEach((it,i)=>{
+  if(!/^(Bloco de trabalho|Bloco comercial|Voltar ao estúdio)/i.test(it.t||""))return;
+  const ini=min(it.q),fim=i<s.length-1?min(s[i+1].q):null;
+  if(ini==null||fim==null||fim<=ini)return;
+  tot+=Math.max(0,fim-Math.max(ini,nm));
+ });
+ return tot;
+}
+function restoDiaAtivo(){return !!(D&&D.restoDia&&D.restoDia.data===hoje());}
 async function registarExtra(){
  const r=await pedir({
   titulo:"Registar tempo",
   sub:"O que estás a fazer?",
-  campos:[{tipo:"texto",nome:"t",label:"tarefa",ph:"ex: organizar estúdio"}]
+  campos:[
+   {tipo:"texto",nome:"t",label:"tarefa",ph:"ex: organizar estúdio"},
+   {tipo:"check",nome:"resto",label:"tirar o resto do dia",valor:false}
+  ]
  });
  if(!r)return;
  const titulo=(r.t||"").trim();
@@ -5831,8 +5865,33 @@ async function registarExtra(){
  const par=EXTRAS_SUGESTOES.find(([s])=>s.toLowerCase()===titulo.toLowerCase());
  if(par){D.extrasCat=D.extrasCat||{};if(!D.extrasCat[titulo])D.extrasCat[titulo]=par[1];}
  if(D.timer)await pararTimer(true);
+ if(r.resto){
+  // o que falta dos blocos de trabalho de hoje fica registado nesta tarefa
+  const mins=minutosTrabalhoRestantes();
+  if(mins<1){setSt("já não há horas de trabalho hoje");return;}
+  const horas=Math.round(mins/60*100)/100,dia=hoje();
+  trk[dia]=trk[dia]||{};trk[dia].horas=trk[dia].horas||{};
+  trk[dia].horas[titulo]=Math.round(((trk[dia].horas[titulo]||0)+horas)*100)/100;
+  D.restoDia={data:dia,titulo,horas,inicio:Date.now()};
+  await save();setSt(`resto do dia: ${fmtH(horas)} em ${titulo}`);rAll();
+  return;
+ }
  D.timer={tid:null,proj:titulo,titulo,inicio:Date.now(),dia:hoje(),extra:true,pausadoTotal:0,pausadoEm:null};
  await save();setSt(`a contar: ${titulo}`);rAll();
+}
+// desfaz o "resto do dia": fica só o tempo que já passou, o que faltava sai do registo
+function anularRestoDia(){
+ const rd=D.restoDia;if(!rd)return;
+ const falta=Math.round(minutosTrabalhoRestantes()/60*100)/100;
+ confirmar("Anular o resto do dia?",`"${rd.titulo}" deixa de ocupar o que falta (${fmtH(falta)}). O tempo que já passou fica registado.`,async()=>{
+  const h=(trk[rd.data]||{}).horas||{};
+  if(h[rd.titulo]!=null){
+   h[rd.titulo]=Math.round(Math.max(0,h[rd.titulo]-Math.min(falta,rd.horas))*100)/100;
+   if(h[rd.titulo]<=0)delete h[rd.titulo];
+  }
+  D.restoDia=null;
+  await save();setSt("resto do dia anulado");rAll();
+ },"anular");
 }
 async function iniciarAlmoco(){
  // qualquer tarefa a contar pára aqui, como se carregasses em stop
