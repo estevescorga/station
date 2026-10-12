@@ -1150,7 +1150,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v12/10 11:25</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v12/10 12:05</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -2083,6 +2083,28 @@ function tituloTarefa(ref){
  const t=(D.tarefas||[]).find(x=>x.id===ref);
  return t?t.titulo:ref;
 }
+// Horas de um projecto. O tempo da Marta (tarefas atribuídas a ela) fica em
+// trk[dia].horasMarta: conta para o valor do projecto, mas não para o tracker,
+// que só segue o trabalho do Ricardo.
+function horasProjecto(nome){
+ let r=0,m=0;
+ Object.values(trk||{}).forEach(d=>{r+=((d.horas||{})[nome]||0);m+=((d.horasMarta||{})[nome]||0);});
+ return {ricardo:r,marta:m,total:r+m};
+}
+// correcção única: as 20h da Marta na Paginação AIVP (12/10) tinham entrado no tracker
+function migrarTempoMarta(){
+ if(D._migMarta1)return false;
+ const r=trk["2026-10-12"],tid="mv549q6g",pk="AIVP";
+ if(r&&r.tarefas&&r.tarefas[tid]>0&&r.horas&&r.horas[pk]>0){
+  const h=Math.min(r.tarefas[tid],r.horas[pk]);
+  r.horas[pk]=Math.round((r.horas[pk]-h)*100)/100;
+  if(r.horas[pk]<=0)delete r.horas[pk];
+  r.horasMarta=r.horasMarta||{};
+  r.horasMarta[pk]=Math.round(((r.horasMarta[pk]||0)+h)*100)/100;
+ }
+ D._migMarta1=true;
+ return true;
+}
 // total de horas já registadas numa tarefa (via projecto do tracker)
 function horasTarefa(t){
  if(!t)return 0;
@@ -2925,10 +2947,10 @@ function rTempo(){
   if(b==="clientes"&&pj){
    const reg=(D.conta||[]).find(r=>contaProjId(r)===pj.id);
    const valor=reg?(+reg[6]||0):(+pj.orcamento||0);
-   let hTot=0;Object.values(trk).forEach(r=>{hTot+=((r.horas||{})[k]||0);});
+   const HP=horasProjecto(k),hTot=HP.total;
    if(valor>0&&hTot>0){
     const real=valor/hTot,alvo=(pre.niveis[pj.nivel||"medio"]||pre.niveis.medio)/hm;
-    eur=`<span class="tkeur ${real<alvo?"bad":"good"}" title="valor ${valor.toFixed(0)}€ ÷ ${fmtH(hTot)} totais · alvo ${alvo.toFixed(0)}€/h">${real.toFixed(0)}€/h</span>`;
+    eur=`<span class="tkeur ${real<alvo?"bad":"good"}" title="valor ${valor.toFixed(0)}€ ÷ ${fmtH(hTot)} totais${HP.marta>0?` (inclui ${fmtH(HP.marta)} da Marta)`:""} · alvo ${alvo.toFixed(0)}€/h">${real.toFixed(0)}€/h</span>`;
    }
   }
   const muda=!pj?`<button class="tkmuda" data-tkbalde="${esc(k)}" title="mudar categoria">${BALDES[b].n}</button>`:`<span class="tkcatn">${BALDES[b].n}</span>`;
@@ -4308,14 +4330,14 @@ function renderBudget(p){
  const netOrc=orc!=null?Math.max(0,orc-totGastos):null;
  const hEst=netOrc?netOrc/eurH[nivel]:null; // previstas: valor líquido (orçamento − gastos) a dividir pela taxa do nível
  // gastas: somadas do tracker (fecho do dia), não manuais
- const hg=Object.values(trk||{}).reduce((s,dia)=>s+((dia.horas&&dia.horas[p.nome])||0),0);
+ const HP=horasProjecto(p.nome),hg=HP.total;
  const pct=hEst?Math.min(100,Math.round(hg/hEst*100)):0;
  const over=hEst&&hg>hEst;
  box.innerHTML=`<div class="pedit" style="margin-bottom:8px">
    <label class="mono">orçamento € <input class="pin" type="number" min="0" step="10" data-bf="orcamento" value="${orc??""}" style="width:74px" ${orcLink!==null?"disabled title=\"ligado ao registo "+esc(reg[0])+"\"":""}/></label>
    <label class="mono">nível cliente <select data-bf="nivel">${["baixo","medio","alto"].map(n=>`<option value="${n}" ${nivel===n?"selected":""}>${n}</option>`).join("")}</select></label>
   </div>
-  ${hEst?`<div class="hsub" style="margin-bottom:8px">orçamento${totGastos>0?" líquido":""}: <b>${fmtH(hEst)} disponíveis</b> · ${fmtH(hg)} usadas (tracker) · ${fmtH(Math.max(0,hEst-hg))} restantes${totGastos>0?` <span class="hsub" style="display:inline">(€${orc.toLocaleString("pt-PT")} − €${totGastos.toLocaleString("pt-PT")} de gastos)</span>`:""}</div>`:""}
+  ${hEst?`<div class="hsub" style="margin-bottom:8px">orçamento${totGastos>0?" líquido":""}: <b>${fmtH(hEst)} disponíveis</b> · ${fmtH(hg)} usadas${HP.marta>0?` (${fmtH(HP.ricardo)} Ricardo + ${fmtH(HP.marta)} Marta)`:" (tracker)"} · ${fmtH(Math.max(0,hEst-hg))} restantes${totGastos>0?` <span class="hsub" style="display:inline">(€${orc.toLocaleString("pt-PT")} − €${totGastos.toLocaleString("pt-PT")} de gastos)</span>`:""}</div>`:""}
   ${balancoFinal(p,orc,hEst,hg,alvoH)}
   ${hEst?`<div class="pbar" style="margin-bottom:10px"><div style="width:${pct}%;background:${over?"var(--acc)":"var(--acc2)"}"></div></div>${over?`<div class="hsub" style="margin-bottom:12px;color:var(--acc)">acima do previsto</div>`:""}`:""}
   <div class="msech" style="display:flex;justify-content:space-between;align-items:center;margin-top:14px">gastos<button class="ico" style="width:22px;height:22px;font-size:12px" onclick="addGasto()" title="Novo gasto">+</button></div>
@@ -4549,8 +4571,11 @@ function rTaskList(el,list,editavel){
   if(task){
    let projKey=task.projecto;
    if(!projKey||projKey==="Inbox")projKey=task.titulo;
-   trk[d].horas=trk[d].horas||{};
-   trk[d].horas[projKey]=Math.round(((trk[d].horas[projKey]||0)+delta)*100)/100;
+   // tarefa da Marta: conta para o valor do projecto, não para o tracker do Ricardo
+   const chave=(task.responsavel||"Ricardo")==="Marta"?"horasMarta":"horas";
+   trk[d][chave]=trk[d][chave]||{};
+   trk[d][chave][projKey]=Math.round(((trk[d][chave][projKey]||0)+delta)*100)/100;
+   if(trk[d][chave][projKey]<=0)delete trk[d][chave][projKey];
   }
   await save();rAll();
  }));
@@ -5876,6 +5901,7 @@ async function boot(){
  if(_booted)return;_booted=true;
  document.getElementById("gate").classList.add("hidden");
  try{ await load(); }catch(e){ return; }  // sem chave, load() mostra o ecrã próprio
+ try{if(migrarTempoMarta())await save();}catch(e){}
  rAll();aCada(15000,tick);
 }
 // A entrada passa a validar a chave real contra o Worker, não no browser.
