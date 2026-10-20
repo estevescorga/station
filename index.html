@@ -197,31 +197,23 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .fmtb{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'Inter',sans-serif;font-size:11.5px;min-width:26px;height:26px;padding:0 6px;border-radius:7px;box-shadow:2px 2px 4px var(--sh-d),-2px -2px 4px var(--sh-l);transition:all .15s;}
 .fmtb:hover{color:var(--txt);}
 .fmtb:active{box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
-.fmtb.fmt-h1{font-size:14px;font-weight:700;}
-.fmtb.fmt-p{font-size:10px;font-weight:400;}
-.fmtb.fmt-menor{font-size:9px;}
-.fmtb.fmt-maior{font-size:14px;font-weight:600;}
 .fmtcor{min-width:22px;padding:0;display:inline-flex;align-items:center;justify-content:center;}
 .fmtcor i{width:11px;height:11px;border-radius:50%;display:block;}
-.notaedit .tam-pq{font-size:9.5px;}
-.notaedit .tam-n{font-size:11px;}
-.notaedit .tam-gr{font-size:13px;}
-.notaedit li{font-size:11px;}
 .fmtsep{width:1px;height:16px;background:var(--line);margin:0 3px;}
-/* tudo no mesmo tipo de letra: título grande em caps, texto pequeno e cinzento */
-.notaedit,.notaedit *{font-family:'Inter',sans-serif !important;}
-.notaedit{font-size:11px;line-height:1.85;letter-spacing:.005em;color:var(--soft);}
-.notaedit h2,.notaedit h2 *{font-size:12.5px !important;font-weight:700 !important;text-transform:uppercase;letter-spacing:.08em;line-height:1.35;color:var(--txt) !important;}
-.notaedit h2{margin:18px 0 8px;}
-.notaedit h2:first-child{margin-top:2px;}
-.notaedit h3,.notaedit h3 *{font-size:12.5px !important;font-weight:700 !important;text-transform:uppercase;letter-spacing:.08em;color:var(--txt) !important;}
-.notaedit h3{margin:18px 0 8px;}
-.notaedit p{margin:0 0 10px;font-size:11px;}
-.notaedit ul,.notaedit ol{margin:10px 0 12px 22px;}
-.notaedit li{margin-bottom:6px;padding-left:3px;}
-.notaedit b,.notaedit strong{font-weight:600;}
+.fmtb.on{color:var(--acc2);box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
+/* editor simples, como um email: um tipo de letra, texto legível, sem regras escondidas */
+.notaedit,.notaedit *{font-family:'Inter',sans-serif;}
+.notaedit{font-size:13px;line-height:1.6;color:var(--txt);}
+.notaedit p{margin:0 0 8px;}
+.notaedit ul,.notaedit ol{margin:4px 0 8px 22px;}
+.notaedit li{margin-bottom:2px;}
+.notaedit b,.notaedit strong{font-weight:650;}
+.notaedit font[size="5"],.notaedit .tam-gr{font-size:17px;}
+.notaedit font[size="2"],.notaedit .tam-pq{font-size:11px;}
+/* conteúdo antigo: títulos passam a negrito simples */
+.notaedit h1,.notaedit h2,.notaedit h3{font-size:15px;font-weight:650;margin:12px 0 6px;text-transform:none;letter-spacing:0;color:var(--txt);}
 .notaedit .ck{display:flex;align-items:flex-start;gap:10px;margin:6px 0;}
-.notaedit .ck input{margin-top:7px;flex-shrink:0;accent-color:var(--acc2);}
+.notaedit .ck input{margin-top:5px;flex-shrink:0;accent-color:var(--acc2);}
 .notaedit .ck span{flex:1;min-width:0;}
 .soltarow{display:grid;grid-template-columns:24px minmax(0,1fr) auto 26px;gap:10px;align-items:start;padding:9px 16px;border-bottom:1px solid var(--line);font-size:13px;}
 .soltarow:last-child{border-bottom:none;}
@@ -1154,7 +1146,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v20/10 10:10</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v20/10 20:30</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1678,7 +1670,25 @@ function applySnapshot(s){
  s=deepFix(s);
  D=s.D;rot=(s.rot&&s.rot.data===hoje())?s.rot:null;docs=s.docs||[];news=s.news||[];
  agenda=s.agenda||null;mail=s.mail||null;pausas=s.pausas||null;trk=s.trk||{};
+ normalizarAniversarios();
  return true;
+}
+// O calendário "Aniversários" às vezes chega misturado com os eventos.
+// Tudo o que começa por "Aniversário"/"Aniversários:" passa para a lista de aniversários.
+function normalizarAniversarios(){
+ if(!agenda||!Array.isArray(agenda.eventos))return;
+ const re=/^\s*anivers[aá]rios?\s*[:\-–]?\s*/i;
+ const fica=[],anv=agenda.aniversarios=Array.isArray(agenda.aniversarios)?agenda.aniversarios:[];
+ const existe=(d,n)=>anv.some(a=>a.data===d&&(a.nome||"").toLowerCase()===n.toLowerCase());
+ agenda.eventos.forEach(e=>{
+  const t=e&&e.t||"";
+  if(!re.test(t)||/festa|jantar|lanche/i.test(t)){fica.push(e);return;}
+  const resto=t.replace(re,"").trim();
+  const nomes=/^anivers[aá]rios/i.test(t.trim())?resto.split(/\s*,\s*|\s+e\s+/):[resto];
+  nomes.filter(Boolean).forEach(n=>{if(!existe(e.data,n))anv.push({data:e.data,nome:n});});
+ });
+ agenda.eventos=fica;
+ anv.sort((a,b)=>(a.data||"").localeCompare(b.data||""));
 }
 async function load(){
  if(!SENHA){mostrarGate();throw new Error("sem chave");}
@@ -5166,322 +5176,66 @@ $("nTit").addEventListener("keydown",e=>{if(e.key==="Enter")addTask();});
 
 /* ============ docs ============ */
 /* ============ editor de texto com formatação ============ */
-/* Reescrito sem execCommand: todas as operações são feitas à mão sobre o DOM,
-   sempre e só sobre o texto seleccionado. */
+/* Simples, como num email: usa a edição nativa do browser (o mesmo que o Gmail).
+   Atalhos ⌘B / ⌘I / ⌘U e ⌘Z funcionam. Colar entra sempre como texto simples. */
 const CORES_TXT=[
- {n:"preto",v:"#2A2C33"},{n:"cinzento",v:"#8B8D96"},
- {n:"verde",v:"#6E9E7A"},{n:"laranja",v:"#C77B3C"},{n:"vermelho",v:"#C0503F"}
+ {n:"normal",v:""},{n:"cinzento",v:"#8B8D96"},
+ {n:"verde",v:"#4F8F63"},{n:"laranja",v:"#C77B3C"},{n:"vermelho",v:"#C0503F"}
 ];
 function barraEditor(alvoId){
- const b=(cmd,arg,titulo,txt,cls)=>`<button type="button" class="fmtb ${cls||""}" data-fmt="${cmd}" data-fmtarg="${arg||""}" data-fmtalvo="${alvoId}" title="${titulo}">${txt}</button>`;
+ const b=(cmd,arg,titulo,txt)=>`<button type="button" class="fmtb" data-fmt="${cmd}" data-fmtarg="${arg||""}" data-fmtalvo="${alvoId}" title="${titulo}">${txt}</button>`;
  return `<div class="fmtbar">
-   ${b("bloco","h2","Título","T","fmt-h1")}
-   ${b("bloco","p","Texto normal","T","fmt-p")}
+   ${b("bold","","Negrito (⌘B)","<b>B</b>")}
+   ${b("italic","","Itálico (⌘I)","<i>I</i>")}
+   ${b("underline","","Sublinhado (⌘U)","<u>U</u>")}
    <span class="fmtsep"></span>
-   ${b("inline","b","Negrito","<b>B</b>")}
-   ${b("inline","i","Itálico","<i>I</i>")}
-   ${b("inline","u","Sublinhado","<u>U</u>")}
+   ${b("grande","","Texto grande","<span style='font-size:14px;font-weight:600'>A</span>")}
    <span class="fmtsep"></span>
-   ${b("lista","ul","Lista","•")}
-   ${b("lista","ol","Lista numerada","1.")}
+   ${b("insertUnorderedList","","Lista","•")}
+   ${b("insertOrderedList","","Lista numerada","1.")}
    <span class="fmtsep"></span>
-   ${b("tam","-1","Diminuir texto","A","fmt-menor")}
-   ${b("tam","1","Aumentar texto","A","fmt-maior")}
-   <span class="fmtsep"></span>
-   ${CORES_TXT.map(c=>`<button type="button" class="fmtb fmtcor" data-fmt="cor" data-fmtarg="${c.v}" data-fmtalvo="${alvoId}" title="${c.n}"><i style="background:${c.v}"></i></button>`).join("")}
+   ${CORES_TXT.map(c=>`<button type="button" class="fmtb fmtcor" data-fmt="cor" data-fmtarg="${c.v}" data-fmtalvo="${alvoId}" title="${c.n}"><i style="background:${c.v||"var(--txt)"}"></i></button>`).join("")}
    <span class="fmtsep"></span>
    ${b("limpar","","Limpar formatação","⌫")}
   </div>`;
 }
-
-/* ---- seleção: guardar a última dentro de um editor (o iPad perde-a ao tocar num botão) ---- */
-let edUltimaSel=null;
-document.addEventListener("selectionchange",()=>{
- const s=window.getSelection();if(!s||!s.rangeCount)return;
- const r=s.getRangeAt(0);
- let n=r.commonAncestorContainer;if(n&&n.nodeType!==1)n=n.parentNode;
- if(n&&n.closest&&n.closest(".notaedit"))edUltimaSel=r.cloneRange();
-});
-function selDoEditor(alvo){
- const s=window.getSelection();
- if(s&&s.rangeCount){
-  const r=s.getRangeAt(0);
-  if(alvo.contains(r.startContainer)&&alvo.contains(r.endContainer)&&!r.collapsed)return r;
- }
- if(edUltimaSel&&alvo.contains(edUltimaSel.startContainer)&&alvo.contains(edUltimaSel.endContainer)&&!edUltimaSel.collapsed){
-  s.removeAllRanges();s.addRange(edUltimaSel.cloneRange());
-  return s.getRangeAt(0);
- }
- return null;
-}
-function selecionar(n1,o1,n2,o2){
- try{
-  const r=document.createRange();r.setStart(n1,o1);r.setEnd(n2,o2);
-  const s=window.getSelection();s.removeAllRanges();s.addRange(r);
-  edUltimaSel=r.cloneRange();
- }catch(e){}
-}
-function selecionarNo(n){
- const r=document.createRange();r.selectNodeContents(n);
- const s=window.getSelection();s.removeAllRanges();s.addRange(r);
- edUltimaSel=r.cloneRange();
-}
-
-/* ---- pontos de seleção sempre em nós de texto (sobrevivem a mudanças de estrutura) ---- */
-function primeiroTexto(n){
- if(!n)return null;if(n.nodeType===3)return n;
- const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);return w.nextNode();
-}
-function ultimoTexto(n){
- if(!n)return null;if(n.nodeType===3)return n;
- const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let t=null,x;while((x=w.nextNode()))t=x;return t;
-}
-function pontoTexto(c,o,inicio){
- if(c.nodeType===3)return {n:c,o};
- const filho=c.childNodes[o];
- if(filho){const t=inicio?primeiroTexto(filho):(ultimoTexto(c.childNodes[o-1])||primeiroTexto(filho));
-  if(t)return t===primeiroTexto(filho)&&inicio?{n:t,o:0}:{n:t,o:inicio?0:t.length};}
- const ant=c.childNodes[o-1];
- const t=ultimoTexto(ant)||ultimoTexto(c);
- return t?{n:t,o:t.length}:null;
-}
-
-/* ---- estrutura: tudo o que está solto passa a parágrafo ---- */
-const BLOCO_RE=/^(P|H2|H3|UL|OL|BLOCKQUOTE)$/;
-function normalizarEditor(alvo){
- let run=null;
- [...alvo.childNodes].forEach(n=>{
-  if(n.nodeType===1&&n.tagName==="DIV"){
-   const p=document.createElement("p");
-   while(n.firstChild)p.appendChild(n.firstChild);
-   alvo.replaceChild(p,n);run=null;
-   normalizarDentro(p);return;
-  }
-  if(n.nodeType===1&&BLOCO_RE.test(n.tagName)){run=null;return;}
-  if(n.nodeType===1&&n.tagName==="BR"){run=null;n.remove();return;}
-  if(n.nodeType===3&&!n.textContent.trim()&&!run){n.remove();return;}
-  if(!run){run=document.createElement("p");alvo.insertBefore(run,n);}
-  run.appendChild(n);
+function estadoBarra(scope){
+ ["bold","italic","underline","insertUnorderedList","insertOrderedList"].forEach(c=>{
+  let on=false;try{on=document.queryCommandState(c);}catch(e){}
+  scope.querySelectorAll(`[data-fmt="${c}"]`).forEach(b=>b.classList.toggle("on",on));
  });
- // garantir que existe pelo menos um parágrafo
- if(!alvo.firstChild){const p=document.createElement("p");p.appendChild(document.createElement("br"));alvo.appendChild(p);}
+ let g=false;try{g=String(document.queryCommandValue("fontSize"))==="5";}catch(e){}
+ scope.querySelectorAll('[data-fmt="grande"]').forEach(b=>b.classList.toggle("on",g));
 }
-function normalizarDentro(p){
- // divs aninhados dentro de um parágrafo (colagens) ficam planos
- p.querySelectorAll("div").forEach(d=>{
-  const pai=d.parentNode;while(d.firstChild)pai.insertBefore(d.firstChild,d);pai.removeChild(d);
- });
-}
-function blocoDeTopo(no,alvo){
- while(no&&no!==alvo){
-  if(no.parentNode===alvo)return no.nodeType===1?no:null;
-  no=no.parentNode;
- }
- return null;
-}
-function textoEntre(n1,o1,n2,o2){
- try{const r=document.createRange();r.setStart(n1,o1);r.setEnd(n2,o2);return r.toString();}catch(e){return "";}
-}
-function unwrap(el){
- const pai=el.parentNode;if(!pai)return;
- while(el.firstChild)pai.insertBefore(el.firstChild,el);pai.removeChild(el);
-}
-function limparInline(el){
- el.querySelectorAll("font,span").forEach(unwrap);
- el.querySelectorAll("[style]").forEach(e=>e.removeAttribute("style"));
- if(el.removeAttribute)el.removeAttribute("style");
-}
-
-/* ---- título / texto normal: só o texto seleccionado; o resto do parágrafo fica como estava ---- */
-function aplicarBloco(alvo,tag){
- const r=selDoEditor(alvo);
- if(!r){setSt("seleciona o texto primeiro");return false;}
- let s=pontoTexto(r.startContainer,r.startOffset,true);
- let e=pontoTexto(r.endContainer,r.endOffset,false);
- if(!s||!e)return false;
- normalizarEditor(alvo);
- let b1=blocoDeTopo(s.n,alvo),b2=blocoDeTopo(e.n,alvo);
- if(!b1||!b2)return false;
- // fim encostado ao início de um bloco sem texto seleccionado lá: recua
- if(b2!==b1&&!textoEntre(b2,0,e.n,e.o)){
-  b2=b2.previousElementSibling;const t=ultimoTexto(b2);if(!t)return false;e={n:t,o:t.length};
- }
- // início encostado ao fim de um bloco: avança
- if(b1!==b2&&!textoEntre(s.n,s.o,b1,b1.childNodes.length)){
-  b1=b1.nextElementSibling;const t=primeiroTexto(b1);if(!t)return false;s={n:t,o:0};
- }
- const tagB1=b1.tagName,tagB2=b2.tagName;
- // partir o último bloco no fim da seleção (primeiro, para não estragar os offsets do início)
- const rD=document.createRange();rD.setStart(e.n,e.o);rD.setEnd(b2,b2.childNodes.length);
- const fragD=rD.extractContents();
- const rA=document.createRange();rA.setStart(b1,0);rA.setEnd(s.n,s.o);
- const fragA=rA.extractContents();
- if(fragA.textContent.trim()){const p=document.createElement(tagB1);p.appendChild(fragA);b1.parentNode.insertBefore(p,b1);}
- if(fragD.textContent.trim()){const p=document.createElement(tagB2);p.appendChild(fragD);b2.parentNode.insertBefore(p,b2.nextSibling);}
- // converter os blocos seleccionados
- const blocos=[];let n=b1;
- while(n){blocos.push(n);if(n===b2)break;n=n.nextElementSibling;}
- const novos=blocos.map(b=>{
-  if(b.tagName==="UL"||b.tagName==="OL")return b; // listas mantêm-se
-  limparInline(b);
-  if(b.tagName.toLowerCase()===tag)return b;
-  const nb=document.createElement(tag);
-  while(b.firstChild)nb.appendChild(b.firstChild);
-  b.parentNode.replaceChild(nb,b);return nb;
- });
- const t1=primeiroTexto(novos[0]),t2=ultimoTexto(novos[novos.length-1]);
- if(t1&&t2)selecionar(t1,0,t2,t2.length);
- return true;
-}
-
-/* ---- envolver só o texto seleccionado num elemento (negrito, cor, tamanho) ---- */
-function envolver(alvo,criar,limparSel){
- const r=selDoEditor(alvo);
- if(!r){setSt("seleciona o texto primeiro");return false;}
- const frag=r.extractContents();
- if(limparSel)frag.querySelectorAll(limparSel).forEach(unwrap);
- const el=criar();
- el.appendChild(frag);
- r.insertNode(el);
- // remover elementos vazios que a extração possa ter deixado
- alvo.querySelectorAll("b,i,u,span,strong,em").forEach(x=>{if(!x.textContent&&!x.querySelector("br"))x.remove();});
- selecionarNo(el);
- return el;
-}
-function ancestralCom(no,alvo,teste){
- while(no&&no!==alvo){if(no.nodeType===1&&teste(no))return no;no=no.parentNode;}
- return null;
-}
-function aplicarInline(alvo,tag){
- const r=selDoEditor(alvo);if(!r){setSt("seleciona o texto primeiro");return false;}
- // se tudo o que está seleccionado já tem o estilo, retira-o; senão aplica
- const MAP={b:"B,STRONG",i:"I,EM",u:"U"};
- const tags=MAP[tag].split(",");
- const temEstilo=n=>!!ancestralCom(n,alvo,x=>tags.includes(x.tagName));
- const textos=[];const w=document.createTreeWalker(r.commonAncestorContainer.nodeType===3?r.commonAncestorContainer.parentNode:r.commonAncestorContainer,NodeFilter.SHOW_TEXT);
- let x;while((x=w.nextNode()))if(r.intersectsNode(x)&&x.textContent.trim())textos.push(x);
- const jaTem=textos.length&&textos.every(temEstilo);
- if(jaTem){
-  const frag=r.extractContents();
-  frag.querySelectorAll(tags.join(",").toLowerCase()).forEach(unwrap);
-  // tirar o texto de dentro do ancestral com o estilo, partindo-o
-  const span=document.createElement("span");span.appendChild(frag);
-  r.insertNode(span);
-  const anc=ancestralCom(span.parentNode,alvo,x=>tags.includes(x.tagName));
-  if(anc){
-   const antes=document.createRange();antes.setStart(anc,0);antes.setEndBefore(span);
-   const depois=document.createRange();depois.setStartAfter(span);depois.setEnd(anc,anc.childNodes.length);
-   const fA=antes.extractContents(),fD=depois.extractContents();
-   const pai=anc.parentNode;
-   if(fA.textContent){const a=anc.cloneNode(false);a.appendChild(fA);pai.insertBefore(a,anc);}
-   pai.insertBefore(span,anc);
-   if(fD.textContent){const d=anc.cloneNode(false);d.appendChild(fD);pai.insertBefore(d,anc.nextSibling);}
-   anc.remove();
-  }
-  const t1=primeiroTexto(span),t2=ultimoTexto(span);
-  unwrap(span);
-  if(t1&&t2)selecionar(t1,0,t2,t2.length);
-  return true;
- }
- return !!envolver(alvo,()=>document.createElement(tag),tags.join(",").toLowerCase());
-}
-
-/* ---- tamanho: três níveis fixos (pequeno, normal, grande), nunca acumulam ---- */
-const TAMS=["tam-pq","tam-n","tam-gr"];
-function nivelTam(no,alvo){
- const a=ancestralCom(no,alvo,x=>x.tagName==="SPAN"&&TAMS.some(c=>x.classList.contains(c)));
- if(!a)return 0;
- return a.classList.contains("tam-pq")?-1:a.classList.contains("tam-gr")?1:0;
-}
-function aplicarTamanho(alvo,delta){
- const r=selDoEditor(alvo);if(!r){setSt("seleciona o texto primeiro");return false;}
- const novo=Math.max(-1,Math.min(1,nivelTam(r.startContainer,alvo)+delta));
- // se a seleção é exactamente um bloco de tamanho já existente, muda-o em vez de embrulhar outra vez
- const ja=ancestralCom(r.startContainer,alvo,x=>x.tagName==="SPAN"&&TAMS.some(c=>x.classList.contains(c)));
- if(ja&&r.toString()===ja.textContent){
-  TAMS.forEach(c=>ja.classList.remove(c));
-  const fora=ancestralCom(ja.parentNode,alvo,x=>x.tagName==="SPAN"&&TAMS.some(c=>x.classList.contains(c)));
-  if(novo===0&&!fora){const t1=primeiroTexto(ja),t2=ultimoTexto(ja);unwrap(ja);if(t1&&t2)selecionar(t1,0,t2,t2.length);}
-  else{ja.classList.add(TAMS[novo+1]);selecionarNo(ja);}
-  return true;
- }
- const el=envolver(alvo,()=>{const s=document.createElement("span");s.className=TAMS[novo+1];return s;},"span.tam-pq,span.tam-n,span.tam-gr");
- // "normal" sem nenhum tamanho por fora é redundante: tirar
- if(el&&el.classList.contains("tam-n")&&!ancestralCom(el.parentNode,alvo,x=>x.tagName==="SPAN"&&TAMS.some(c=>x.classList.contains(c)))){
-  const t1=primeiroTexto(el),t2=ultimoTexto(el);unwrap(el);if(t1&&t2)selecionar(t1,0,t2,t2.length);
- }
- return true;
-}
-function aplicarCor(alvo,cor){
- return !!envolver(alvo,()=>{const s=document.createElement("span");s.className="cortxt";s.style.color=cor;return s;},"span.cortxt");
-}
-function limparSelecao(alvo){
- const r=selDoEditor(alvo);if(!r){setSt("seleciona o texto primeiro");return false;}
- const frag=r.extractContents();
- frag.querySelectorAll("b,i,u,strong,em,font,span").forEach(unwrap);
- const marca=document.createElement("span");marca.appendChild(frag);
- r.insertNode(marca);
- // sair de negritos/itálicos/cores por fora, partindo-os
- let anc;
- while((anc=ancestralCom(marca.parentNode,alvo,x=>/^(B|I|U|STRONG|EM|FONT|SPAN)$/.test(x.tagName)))){
-  const antes=document.createRange();antes.setStart(anc,0);antes.setEndBefore(marca);
-  const depois=document.createRange();depois.setStartAfter(marca);depois.setEnd(anc,anc.childNodes.length);
-  const fA=antes.extractContents(),fD=depois.extractContents(),pai=anc.parentNode;
-  if(fA.textContent){const a=anc.cloneNode(false);a.appendChild(fA);pai.insertBefore(a,anc);}
-  pai.insertBefore(marca,anc);
-  if(fD.textContent){const d=anc.cloneNode(false);d.appendChild(fD);pai.insertBefore(d,anc.nextSibling);}
-  anc.remove();
- }
- const t1=primeiroTexto(marca),t2=ultimoTexto(marca);unwrap(marca);
- if(t1&&t2)selecionar(t1,0,t2,t2.length);
- return true;
-}
-function aplicarLista(alvo,tipo){
- const r=selDoEditor(alvo);if(!r){setSt("seleciona o texto primeiro");return false;}
- let s=pontoTexto(r.startContainer,r.startOffset,true),e=pontoTexto(r.endContainer,r.endOffset,false);
- if(!s||!e)return false;
- normalizarEditor(alvo);
- let b1=blocoDeTopo(s.n,alvo),b2=blocoDeTopo(e.n,alvo);
- if(!b1||!b2)return false;
- if(b2!==b1&&!textoEntre(b2,0,e.n,e.o))b2=b2.previousElementSibling;
- const blocos=[];let n=b1;while(n){blocos.push(n);if(n===b2)break;n=n.nextElementSibling;}
- const T=tipo.toUpperCase();
- // se já são todos desta lista, desfaz em parágrafos
- if(blocos.every(b=>b.tagName===T)){
-  blocos.forEach(l=>{
-   [...l.children].forEach(li=>{const p=document.createElement("p");while(li.firstChild)p.appendChild(li.firstChild);l.parentNode.insertBefore(p,l);});
-   l.remove();
-  });
- }else{
-  const lista=document.createElement(tipo);
-  b1.parentNode.insertBefore(lista,b1);
-  blocos.forEach(b=>{
-   if(b.tagName==="UL"||b.tagName==="OL"){while(b.firstChild)lista.appendChild(b.firstChild);b.remove();return;}
-   const li=document.createElement("li");while(b.firstChild)li.appendChild(b.firstChild);lista.appendChild(li);b.remove();
-  });
- }
- const t1=primeiroTexto(s.n.isConnected?s.n:alvo),t2=e.n.isConnected?e.n:ultimoTexto(alvo);
- if(s.n.isConnected&&e.n.isConnected)selecionar(s.n,s.o,e.n,Math.min(e.o,e.n.length));
- return true;
-}
-
 function bindEditor(scope,onSave){
+ try{document.execCommand("styleWithCSS",false,false);}catch(e){}
  scope.querySelectorAll("[data-fmt]").forEach(b=>{
-  // impedir que o botão roube o foco (e a seleção) ao editor
+  // o botão não rouba o foco nem a selecção ao texto
   b.onmousedown=e=>e.preventDefault();
   b.onclick=()=>{
    const alvo=$(b.dataset.fmtalvo);if(!alvo)return;
    alvo.focus({preventScroll:true});
    const cmd=b.dataset.fmt,arg=b.dataset.fmtarg;
-   let ok=false;
-   if(cmd==="bloco")ok=aplicarBloco(alvo,arg);
-   else if(cmd==="inline")ok=aplicarInline(alvo,arg);
-   else if(cmd==="lista")ok=aplicarLista(alvo,arg);
-   else if(cmd==="tam")ok=aplicarTamanho(alvo,+arg);
-   else if(cmd==="cor")ok=aplicarCor(alvo,arg);
-   else if(cmd==="limpar")ok=limparSelecao(alvo);
-   if(ok&&onSave)onSave();
+   if(cmd==="grande"){
+    let g=false;try{g=String(document.queryCommandValue("fontSize"))==="5";}catch(e){}
+    document.execCommand("fontSize",false,g?"3":"5");
+   }else if(cmd==="cor"){
+    document.execCommand("foreColor",false,arg||getComputedStyle(alvo).color);
+   }else if(cmd==="limpar"){
+    document.execCommand("removeFormat");document.execCommand("fontSize",false,"3");
+   }else document.execCommand(cmd);
+   estadoBarra(scope);
+   if(onSave)onSave();
   };
+ });
+ scope.querySelectorAll(".notaedit").forEach(ed=>{
+  // colar: só texto, sem formatação vinda de outros sítios
+  ed.onpaste=e=>{
+   e.preventDefault();
+   const t=(e.clipboardData||window.clipboardData).getData("text/plain");
+   document.execCommand("insertText",false,t);
+  };
+  ed.onkeyup=ed.onmouseup=()=>estadoBarra(scope);
  });
 }
 
@@ -5623,27 +5377,11 @@ function rCaderno(chave){
  if(!lst)return;
  lst.dataset.zcad=chave;
  lst.classList.add("dropzona");
- lst.innerHTML=L.map(n=>`<button class="cadbtn notadrag" draggable="true" data-nk="${chave}|${n.id}" data-nid="${n.id}" data-nch="${chave}">${esc(n.titulo)}</button>`).join("")||`<div class="hsub" style="padding:4px 2px">sem notas</div>`;
+ lst.innerHTML=L.map(n=>`<div role="button" tabindex="0" class="cadbtn notadrag" draggable="true" data-nk="${chave}|${n.id}" data-nid="${n.id}" data-nch="${chave}">${esc(n.titulo)}</div>`).join("")||`<div class="hsub" style="padding:4px 2px">sem notas</div>`;
  lst.querySelectorAll("[data-nk]").forEach(b=>{
   b.onclick=()=>{const [c,id]=b.dataset.nk.split("|");abrirNota(c,id);};
-  b.ondragstart=()=>{notaDrag={ch:b.dataset.nch,id:b.dataset.nid};b.classList.add("dragging");};
-  b.ondragend=()=>{b.classList.remove("dragging");notaDrag=null;
-   document.querySelectorAll(".dropzona.over").forEach(z=>z.classList.remove("over"));};
  });
- lst.ondragover=e=>{if(notaDrag&&notaDrag.ch!==chave){e.preventDefault();lst.classList.add("over");}};
- lst.ondragleave=()=>lst.classList.remove("over");
- lst.ondrop=async e=>{
-  lst.classList.remove("over");
-  if(!notaDrag||notaDrag.ch===chave)return;
-  e.preventDefault();
-  const org=D[notaDrag.ch]||[];
-  const i=org.findIndex(x=>x.id===notaDrag.id);
-  if(i<0)return;
-  const [n]=org.splice(i,1);
-  D[chave]=D[chave]||[];D[chave].unshift(n);
-  const de=notaDrag.ch;notaDrag=null;
-  await save();rCaderno(de);rCaderno(chave);setSt("nota movida");
- };
+ bindArrastoNotas();
 }
 let notaCtx=null;
 function fecharNota(){
@@ -5704,7 +5442,6 @@ async function addNota(chave){
 }
 function addNotaRima(){addNota("notasRima");}
 let docsProjOpen={};
-let notaDrag=null;
 function rDocsProjectos(){
  const box=$("docsProj");if(!box)return;
  const ordem=["RIMA","COMERCIAL","ARTE","MUSICA","CASA"];
@@ -5727,7 +5464,7 @@ function rDocsProjectos(){
    <div class="cgbody" style="display:${ab?"block":"none"};padding:10px 12px">
     ${grupos.map(g=>`<div class="dropzona" data-zproj="${esc(g.p.nome)}">
       <div class="zonah"><i class="pdot" style="background:${g.p.cor||"var(--soft)"}"></i>${esc(g.p.nome)}</div>
-      ${g.arr.map(x=>`<button class="cadbtn docdrag" draggable="true" data-doc2="${x.id}" style="width:100%;margin-bottom:6px">${esc(x.titulo)}</button>`).join("")||`<div class="hsub" style="padding:2px 4px">arrasta documentos para aqui</div>`}
+      ${g.arr.map(x=>`<div role="button" tabindex="0" class="cadbtn docdrag" draggable="true" data-doc2="${x.id}" style="width:100%;margin-bottom:6px">${esc(x.titulo)}</div>`).join("")||`<div class="hsub" style="padding:2px 4px">arrasta documentos para aqui</div>`}
      </div>`).join("")}
    </div></div>`;
  }).join("");
@@ -5735,47 +5472,71 @@ function rDocsProjectos(){
   const k=g.dataset.dpcat;docsProjOpen[k]=!docsProjOpen[k];rDocsProjectos();
  }));
  box.querySelectorAll("[data-doc2]").forEach(b=>b.addEventListener("click",()=>abrirDoc(b.dataset.doc2)));
- bindDocDrag();
+ bindArrastoNotas();
 }
-/* ============ arrastar documentos entre projectos e cadernos ============ */
-let docDragId=null;
-function bindDocDrag(){
- // onX em vez de addEventListener: substitui sempre, nunca acumula ouvintes
- document.querySelectorAll(".docdrag").forEach(b=>{
-  b.ondragstart=e=>{docDragId=b.dataset.doc2;b.classList.add("dragging");e.dataTransfer.effectAllowed="move";};
-  b.ondragend=()=>{b.classList.remove("dragging");docDragId=null;
-   document.querySelectorAll(".dropzona.over").forEach(z=>z.classList.remove("over"));};
+/* ============ arrastar notas e documentos entre secções ============ */
+// Um só sistema para tudo (antes havia dois que se apagavam um ao outro):
+//  nota → outro caderno: muda de caderno
+//  nota → projecto: passa a documento desse projecto
+//  documento → outro projecto: muda de projecto
+//  documento → caderno: passa a nota desse caderno
+let arrasto=null; // {tipo:"nota"|"doc", ch, id}
+function bindArrastoNotas(){
+ const limpar=()=>document.querySelectorAll(".dropzona.over").forEach(z=>z.classList.remove("over"));
+ document.querySelectorAll("#v-NOTASRIMA .notadrag, #v-NOTASRIMA .docdrag").forEach(b=>{
+  b.ondragstart=e=>{
+   arrasto=b.dataset.doc2?{tipo:"doc",id:b.dataset.doc2}:{tipo:"nota",ch:b.dataset.nch,id:b.dataset.nid};
+   b.classList.add("dragging");
+   try{e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",arrasto.id);}catch(x){}
+  };
+  b.ondragend=()=>{b.classList.remove("dragging");arrasto=null;limpar();};
  });
- document.querySelectorAll("[data-zproj]").forEach(z=>{
-  z.ondragover=e=>{if(!docDragId)return;e.preventDefault();z.classList.add("over");};
-  z.ondragleave=()=>z.classList.remove("over");
+ const aceita=z=>{
+  if(!arrasto)return false;
+  if(z.dataset.zcad)return !(arrasto.tipo==="nota"&&arrasto.ch===z.dataset.zcad);
+  if(z.dataset.zproj){
+   if(arrasto.tipo==="doc"){const d=docs.find(x=>x.id===arrasto.id);return !!d&&d.projecto!==z.dataset.zproj;}
+   return true;
+  }
+  return false;
+ };
+ document.querySelectorAll("#v-NOTASRIMA [data-zcad], #v-NOTASRIMA [data-zproj]").forEach(z=>{
+  z.ondragover=e=>{if(!aceita(z))return;e.preventDefault();z.classList.add("over");};
+  z.ondragleave=e=>{if(!z.contains(e.relatedTarget))z.classList.remove("over");};
   z.ondrop=async e=>{
-   if(!docDragId)return;
-   e.preventDefault();z.classList.remove("over");
-   const id=docDragId;docDragId=null;
-   const doc=docs.find(x=>x.id===id);
-   const pj=(D.projectos||[]).find(p=>p.nome===z.dataset.zproj);
-   if(doc&&pj){doc.projecto=pj.nome;doc.categoria=pj.categoria;await saveDocs();rDocsProjectos();setSt(`movido para ${pj.nome}`);}
+   if(!aceita(z))return;
+   e.preventDefault();limpar();
+   const a=arrasto;arrasto=null;
+   await largarArrasto(a,z.dataset.zcad||null,z.dataset.zproj||null);
   };
  });
- // largar num caderno converte o documento em nota
- document.querySelectorAll("[data-zcad]").forEach(z=>{
-  z.ondragover=e=>{if(!docDragId)return;e.preventDefault();z.classList.add("over");};
-  z.ondragleave=()=>z.classList.remove("over");
-  z.ondrop=async e=>{
-   if(!docDragId)return;
-   e.preventDefault();z.classList.remove("over");
-   const id=docDragId;docDragId=null;
-   const doc=docs.find(x=>x.id===id);
-   const chave=z.dataset.zcad;
-   if(!doc||!D[chave]||doc.arquivado)return;
-   D[chave].unshift({id:"n"+Date.now(),titulo:doc.titulo,corpo:doc.corpo||"",html:doc.html||""});
+}
+async function largarArrasto(a,cad,projNome){
+ if(a.tipo==="nota"){
+  const org=D[a.ch]||[];const i=org.findIndex(x=>x.id===a.id);if(i<0)return;
+  if(cad){
+   const [n]=org.splice(i,1);
+   (D[cad]=D[cad]||[]).unshift(n);
+   await save();rCaderno(a.ch);rCaderno(cad);setSt("nota movida");
+  }else if(projNome){
+   const pj=(D.projectos||[]).find(p=>p.nome===projNome);if(!pj)return;
+   const [n]=org.splice(i,1);
+   docs.push({id:"d"+Date.now(),titulo:n.titulo,categoria:pj.categoria,projecto:pj.nome,caderno:"notas",criado:hoje(),corpo:n.corpo||"",html:n.html||"",img:null});
+   await saveDocs();await save();rCaderno(a.ch);rDocsProjectos();setSt(`movida para ${pj.nome}`);
+  }
+ }else{
+  const doc=docs.find(x=>x.id===a.id);if(!doc)return;
+  if(projNome){
+   const pj=(D.projectos||[]).find(p=>p.nome===projNome);if(!pj)return;
+   doc.projecto=pj.nome;doc.categoria=pj.categoria;
+   await saveDocs();rDocsProjectos();setSt(`movido para ${pj.nome}`);
+  }else if(cad){
+   if(doc.arquivado||doc.img)return;
+   (D[cad]=D[cad]||[]).unshift({id:"n"+Date.now(),titulo:doc.titulo,corpo:doc.corpo||"",html:doc.html||""});
    doc.arquivado=true;
-   await saveDocs();await save();
-   rCaderno(chave);rDocsProjectos();
-   setSt("movido para notas práticas");
-  };
- });
+   await saveDocs();await save();rCaderno(cad);rDocsProjectos();setSt("movido para notas práticas");
+  }
+ }
 }
 function rBuscaNotas(){
  const q=($("nqBusca").value||"").trim().toLowerCase();
