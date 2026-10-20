@@ -1154,7 +1154,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v12/10 13:05</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v20/10 10:10</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1618,11 +1618,27 @@ async function cloudGet(){
  return txt&&txt!=="{}"?JSON.parse(txt):null;
 }
 let tsConhecido=0;   // ts do último snapshot que este separador enviou ou recebeu
+let ultimaConfirmacao=0; // última vez que este separador confirmou estar igual à nuvem
 async function cloudPut(obj){
  const r=await fetch(WORKER,{method:"POST",headers:{"X-Auth":SENHA,"Content-Type":"application/json"},body:JSON.stringify(obj)});
  if(!r.ok)throw new Error("worker "+r.status);
- tsConhecido=obj.ts||Date.now();
+ tsConhecido=obj.ts||Date.now();ultimaConfirmacao=Date.now();
  return true;
+}
+// Outro separador ou dispositivo gravou depois do que este separador conhece.
+// Gravar por cima apagava esse trabalho: em vez disso, a nuvem ganha e avisa.
+function conflitoNuvem(cloud){
+ try{localStorage.setItem("station:descartado",JSON.stringify(snapshot()));}catch(e){}
+ applySnapshot(cloud);tsConhecido=cloud.ts||Date.now();ultimaConfirmacao=Date.now();
+ limparLocal();marcarPorGravar(false);tentativas=0;
+ try{rAll();}catch(e){}
+ setSave("versão mais recente carregada",true);
+ const el=$("syncAviso");if(!el)return;
+ const quando=new Date(cloud.ts||Date.now()).toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
+ avisoAberto=true;
+ el.innerHTML=`<span class="sadot"></span><span class="satxt">Esta janela estava desatualizada: outra janela ou dispositivo gravou às ${quando}. Carreguei essa versão. A última alteração feita aqui não foi gravada, repete-a.</span><button class="btn" id="saNo">ok</button>`;
+ el.classList.add("on");
+ $("saNo").onclick=()=>{el.classList.remove("on");avisoAberto=false;};
 }
 /* ============ aviso de alterações externas ============ */
 let avisoAberto=false;
@@ -1632,8 +1648,14 @@ async function verificarNuvem(){
   const cloud=await cloudGet();
   if(!cloud||!cloud.D)return;
   if((cloud.ts||0)>tsConhecido+1500){   // margem para não disparar com o nosso próprio save
-   mostrarAvisoNuvem(cloud);
-  }
+   // sem nada por gravar e sem edição a meio: actualiza sozinho
+   const ae=document.activeElement;
+   const aEditar=ae&&(ae.tagName==="INPUT"||ae.tagName==="TEXTAREA"||ae.isContentEditable);
+   const modal=document.querySelector(".ovl.on");
+   if(!porGravar&&!aGravar&&!aEditar&&!modal){
+    if(applySnapshot(cloud)){tsConhecido=cloud.ts||Date.now();ultimaConfirmacao=Date.now();rAll();setSt("atualizado da nuvem");}
+   }else mostrarAvisoNuvem(cloud);
+  }else ultimaConfirmacao=Date.now();
  }catch(e){}
 }
 function mostrarAvisoNuvem(cloud){
@@ -1643,10 +1665,10 @@ function mostrarAvisoNuvem(cloud){
  el.innerHTML=`<span class="sadot"></span><span class="satxt">Há alterações novas na nuvem (${quando}). O que estás a ver pode estar desatualizado.</span><button class="btn" id="saLoad">carregar</button><button class="ico" id="saNo" style="width:26px;height:26px;font-size:11px" title="ignorar">✕</button>`;
  el.classList.add("on");
  $("saLoad").onclick=async()=>{
-  if(applySnapshot(cloud)){tsConhecido=cloud.ts||Date.now();rAll();setSt("atualizado da nuvem");}
+  if(applySnapshot(cloud)){tsConhecido=cloud.ts||Date.now();ultimaConfirmacao=Date.now();limparLocal();marcarPorGravar(false);rAll();setSt("atualizado da nuvem");}
   el.classList.remove("on");avisoAberto=false;
  };
- $("saNo").onclick=()=>{el.classList.remove("on");avisoAberto=false;tsConhecido=cloud.ts||Date.now();};
+ $("saNo").onclick=()=>{el.classList.remove("on");avisoAberto=false;};
 }
 setInterval(verificarNuvem,60000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(verificarNuvem,800);});
@@ -1676,11 +1698,13 @@ async function load(){
    // ruído de relógio ou uma gravação antiga do próprio separador, e nesse caso
    // a cópia local ficava presa a dados velhos para sempre.
    // alterações locais por enviar ganham à nuvem se forem mais recentes
-   if(pendente&&pendente.D&&(pendente.ts||0)>(cloud.ts||0)){
+   const pendenteValido=pendente&&pendente.D&&(pendente.ts||0)>(cloud.ts||0)&&(pendente.base||0)>=(cloud.ts||0)-1500;
+   if(pendente&&!pendenteValido){try{localStorage.setItem("station:descartado",JSON.stringify(pendente));}catch(e){}}
+   if(pendenteValido){
     applySnapshot(pendente);
     setSt("recuperadas alterações por gravar — a enviar…");
     setTimeout(()=>{marcarPorGravar(true);gravarJa();},500);
-    tsConhecido=cloud.ts||0;
+    tsConhecido=cloud.ts||0;ultimaConfirmacao=Date.now();
     rAll();return;
    }
    if(pendente)limparLocal();
@@ -1688,7 +1712,7 @@ async function load(){
    const localGanha=local&&local.ts&&dif>120000; // 2 minutos
    if(!localGanha){applySnapshot(cloud);}
    else setSt("alterações locais por enviar");
-   tsConhecido=cloud.ts||0;
+   tsConhecido=cloud.ts||0;ultimaConfirmacao=Date.now();
    if(!localGanha)setSt("sincronizado");
   }else if(local&&local.D){
    // nuvem vazia: semear com o que temos localmente
@@ -1890,17 +1914,26 @@ function marcarPorGravar(v){
 }
 // rede de segurança: cópia local imediata, que sobrevive a fechar o separador
 function guardarLocal(){
- try{localStorage.setItem("station:pendente",JSON.stringify(snapshot()));}catch(e){}
+ // base = versão da nuvem sobre a qual estas alterações foram feitas
+ try{localStorage.setItem("station:pendente",JSON.stringify({...snapshot(),base:tsConhecido}));}catch(e){}
 }
 function limparLocal(){
  try{localStorage.removeItem("station:pendente");}catch(e){}
 }
+let aGravar=false,gravarOutraVez=false;
 async function gravarJa(){
  clearTimeout(saveTimer);
  if(!cloudOn){setSave("só no dispositivo",true);return false;}
+ // uma gravação de cada vez, para a verificação abaixo não se confundir
+ if(aGravar){gravarOutraVez=true;return false;}
+ aGravar=true;
  try{
+  // antes de escrever: alguém gravou entretanto (outra janela, outro dispositivo)?
+  const cloud=await cloudGet();
+  if(cloud&&cloud.D&&(cloud.ts||0)>tsConhecido+1500){conflitoNuvem(cloud);gravarOutraVez=false;return false;}
   await cloudPut(snapshot());
-  tentativas=0;marcarPorGravar(false);limparLocal();
+  tentativas=0;
+  if(!gravarOutraVez){marcarPorGravar(false);limparLocal();}
   setSave("guardado ✓");return true;
  }catch(e){
   tentativas++;
@@ -1909,6 +1942,9 @@ async function gravarJa(){
   if(tentativas<5)setTimeout(gravarJa,2000*tentativas);
   else{setSave("NÃO GRAVADO",true);setSt("NÃO GRAVADO — verifica a ligação e clica em guardar");}
   return false;
+ }finally{
+  aGravar=false;
+  if(gravarOutraVez){gravarOutraVez=false;setTimeout(gravarJa,50);}
  }
 }
 async function persist(tag){
@@ -1926,6 +1962,8 @@ document.addEventListener("visibilitychange",()=>{
 window.addEventListener("pagehide",()=>{
  if(porGravar){
   guardarLocal();
+  // um separador adormecido não pode gravar às cegas ao fechar
+  if(Date.now()-ultimaConfirmacao>20000)return;
   try{
    const b=new Blob([JSON.stringify(snapshot())],{type:"application/json"});
    navigator.sendBeacon(WORKER+"?k="+encodeURIComponent(SENHA),b);
@@ -1974,8 +2012,11 @@ async function pullCloud(){
 // estrangulamento, por isso é ele que dá o ritmo e a página só reage.
 const pulsos=[];
 function aCada(ms,fn){pulsos.push({cada:ms,fn,ult:Date.now()});}
+let ultimoPulso=Date.now();
 function pulsar(){
  const a=Date.now();
+ if(a-ultimoPulso>60000)setTimeout(()=>{try{verificarNuvem();}catch(e){}},300);
+ ultimoPulso=a;
  pulsos.forEach(p=>{if(a-p.ult>=p.cada){p.ult=a;try{p.fn();}catch(e){}}});
 }
 (function(){
