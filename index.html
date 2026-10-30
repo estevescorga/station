@@ -798,6 +798,37 @@ body.paused #pauseTint{opacity:1;}
 .wt.prazo{opacity:.7;font-style:italic;}
 .wt.late{color:var(--acc);}
 .wt .wm{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);display:block;}
+/* agenda semanal */
+.semtopo{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.semtit{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--txt);min-width:130px;text-align:center;}
+.semleg{margin-left:auto;display:flex;gap:12px;flex-wrap:wrap;}
+.semgrid{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:14px;align-items:start;}
+@media(max-width:900px){.semgrid{grid-template-columns:1fr;}}
+.semscroll{overflow-x:auto;padding-bottom:8px;}
+.semdias{display:grid;gap:8px;}
+.sdia{border-radius:12px;padding:8px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);min-width:0;}
+.sdia.today{box-shadow:inset 0 0 0 2px var(--acc),inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
+.sdia.folga{background:color-mix(in srgb,var(--acc) 5%,var(--bg));}
+.sdh{display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);margin-bottom:6px;}
+.sdia.today .sdh{color:var(--acc);font-weight:700;}
+.sadd{width:20px;height:20px;font-size:11px;}
+.sdcols{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:6px;}
+.sdia.semrot .sdcols{grid-template-columns:1fr;}
+.stask{min-height:120px;padding:6px 6px;border-radius:9px;font-size:10px;box-shadow:none;background:transparent;}
+.stask.dragover{box-shadow:inset 0 0 0 2px var(--acc2);}
+.ssep{border-top:1px solid var(--line);margin:5px 0;}
+.wev.sanv{border-left-color:#D99A3C;color:var(--txt);}
+.srot{display:flex;flex-direction:column;gap:2px;border-left:1px solid var(--line);padding-left:4px;}
+.sblk{border-radius:5px;padding:2px 4px;font-size:8.5px;line-height:1.2;overflow:hidden;cursor:pointer;color:var(--soft);display:flex;gap:4px;align-items:flex-start;flex-shrink:0;}
+.sblk.cont{border-top-left-radius:0;border-top-right-radius:0;margin-top:-1px;}
+.sblk.cont .sbt{opacity:.55;font-weight:400;}
+.sblk:hover{outline:1px solid var(--acc2);}
+.sblk.trab{background:color-mix(in srgb,var(--ac) 20%,var(--bg));color:var(--txt);border-left:3px solid var(--ac);}
+.sbq{font-family:'IBM Plex Mono',monospace;font-size:8px;opacity:.75;flex-shrink:0;}
+.sbt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.sblk.trab .sbt{font-weight:600;font-size:8.5px;letter-spacing:.02em;white-space:normal;}
+.sobjcol{padding:14px 14px;position:sticky;top:120px;}
+.sobj{display:flex;justify-content:space-between;gap:6px;font-size:11.5px;padding:5px 0;border-bottom:1px solid var(--line);}
 .grow{display:grid;grid-template-columns:170px 1fr;gap:12px;align-items:center;margin-bottom:10px;}
 .grow .gl{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .gtrack{position:relative;height:14px;border-radius:7px;box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
@@ -1016,7 +1047,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="cond" style="margin-bottom:16px">
    <span class="condbtns" id="agTabs"></span>
   </div>
-  <div class="week" id="wGrid"></div>
+  <div id="semWrap"></div>
+  <div class="week" id="wGrid" hidden></div>
   <div id="anualWrap" hidden>
    <div id="anualTopo" class="anualTopo"></div>
    <div class="catlegs" id="anualLeg" style="margin-bottom:12px"></div>
@@ -1196,7 +1228,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/10 15:10</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/10 15:20</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -2244,7 +2276,7 @@ function tick(){
  $("cH").textContent=n.toLocaleTimeString("pt-PT",{hour:"2-digit",minute:"2-digit"});
  // em folga não há blocos: sem rotina do dia, a barra fica em "dia livre"
  const folga=!(rot&&rot.itens)&&isFolga();
- const its=(rot&&rot.itens)||(folga?[]:D.rotinaBase), nm=n.getHours()*60+n.getMinutes();
+ const its=(rot&&rot.itens)||(folga?[]:rotinaDia(hoje())), nm=n.getHours()*60+n.getMinutes();
  const s=[...its].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
  let c=null,cFim=null;
  for(let i=0;i<s.length;i++){const m=min(s[i].q),nx=i<s.length-1?min(s[i+1].q):1440;if(m!==null&&nm>=m&&nm<nx){c=s[i];cFim=nx;break;}}
@@ -2372,8 +2404,7 @@ function rHoje(){
   return;
  }else{
   base=true;
-  D.rotinaBase=deepFix(D.rotinaBase);
-  lista=D.rotinaBase;
+  lista=deepFix(rotinaDia(hoje()));
  }
  const nm=new Date().getHours()*60+new Date().getMinutes();
  const s=[...lista].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
@@ -2382,7 +2413,7 @@ function rHoje(){
   const cur=!base&&m!==null&&nm>=m&&nm<nx;
   return `<div class="rrow${cur?" cur":""}"${base?' style="opacity:.6"':""}>
    <span class="q">${esc(it.q)}</span>
-   <span><span class="t">${esc(it.t)}${base?" *":""}</span>${it.n?`<span class="n">${esc(it.n)}</span>`:""}${(it.tarefas||[]).map(t=>tkLabel(t)).join("")}</span>
+   <span><span class="t"${it.area&&AREAS_ROT[it.area]?` style="color:${AREAS_ROT[it.area].cor}"`:""}>${esc(it.t)}${base?" *":""}</span>${it.n?`<span class="n">${esc(it.n)}</span>`:""}${(it.tarefas||[]).map(t=>tkLabel(t)).join("")}</span>
    <span></span></div>`;
  };
  let iAtual=s.findIndex((it,i)=>{
@@ -2396,7 +2427,7 @@ function rHoje(){
   html+=`<div class="cgroup"><div class="cgrouph acc" id="rotPassAcc"><span class="accarr">${rotPassOpen?"▾":"▸"}</span>já passou · ${passados.length}</div><div class="cgbody" style="display:${rotPassOpen?"block":"none"}">${passados.map((it,i)=>linha(it,i)).join("")}</div></div>`;
  }
  html+=resto.map((it,i)=>linha(it,iAtual+i)).join("");
- if(base)html=`<div class="hsub" style="padding:6px 16px 2px">rotina base · ainda não há rotina para hoje</div>`+html;
+ if(base)html=`<div class="hsub" style="padding:6px 16px 2px">rotina de ${["","segunda","terça","quarta","quinta","sexta","sábado","domingo"][dowISO(hoje())]} · edita em Agenda › semanal</div>`+html;
  el.innerHTML=html;
  const acc=$("rotPassAcc");
  if(acc)acc.addEventListener("click",()=>{rotPassOpen=!rotPassOpen;rHoje();});
@@ -2528,7 +2559,7 @@ function rRegHoje(){
   await save();rRegHoje();
  });
 }
-let urgTodas_expandido=false;
+let urgTodas_expandido=false,agProxOpen=false;
 let inbox_expandido=false;
 function toggleInboxTodas(){inbox_expandido=!inbox_expandido;rHome();}
 function toggleUrgTodas(){urgTodas_expandido=!urgTodas_expandido;rHome();}
@@ -2546,7 +2577,8 @@ function rHome(){
  if(!agOk){$("hAg").innerHTML=`<div class="hsub">por atualizar</div>`;}
  else{
   let html=evHoje.map(linhaEv).join("")||`<div class="hsub">sem eventos hoje</div>`;
-  // próximos 3 dias, em listas separadas
+  // próximos 3 dias: escondidos por defeito, para o foco ficar no presente
+  let prox="";
   for(let k=1;k<=3;k++){
    const d=new Date();d.setDate(d.getDate()+k);
    const iso=isoLocal(d);
@@ -2554,14 +2586,16 @@ function rHome(){
    const anv=(agenda.aniversarios||[]).filter(a=>a.data===iso);
    if(!evs.length&&!anv.length)continue;
    const nome=k===1?"amanhã":d.toLocaleDateString("pt-PT",{weekday:"long",day:"2-digit"});
-   html+=`<div class="hgrouph" style="margin-top:12px">${esc(nome)}</div>`+
+   prox+=`<div class="hgrouph" style="margin-top:12px">${esc(nome)}</div>`+
      anv.map(a=>`<div class="hitem"><span class="hm" style="margin:0"></span><span>🎂 ${esc(a.nome)}</span></div>`).join("")+
      evs.map(linhaEv).join("");
   }
+  if(prox)html+=`<div class="cgroup" style="margin-top:12px"><div class="cgrouph acc" id="agProxAcc"><span class="accarr">${agProxOpen?"▾":"▸"}</span>próximos dias</div><div class="cgbody" style="display:${agProxOpen?"block":"none"}">${prox}</div></div>`;
   const prHoje=(D.prontas||[]).filter(x=>x.data===hoje()&&!x.arquivada);
   if(prHoje.length)html=prHoje.map(x=>`<div class="hitem">${prmark()}<span>${esc(x.titulo)}</span><span class="hm">${esc(x.conta.replace("RICARDO ESTEVES CORGA","REC"))}</span></div>`).join("")+html;
   if(diasAg>=4)html+=`<div class="hsub" style="margin-top:10px;opacity:.6">recolhida há ${diasAg} dias</div>`;
   $("hAg").innerHTML=html;
+  const pa=$("agProxAcc");if(pa)pa.onclick=()=>{agProxOpen=!agProxOpen;rHome();};
  }
  $("hAniv").innerHTML=anivHoje.length?anivHoje.map(a=>`<div class="hitem"><span>🎂 ${esc(a.nome)}</span></div>`).join(""):`<div class="hsub">nenhum hoje</div>`;
  // emails
@@ -2997,12 +3031,52 @@ function rInbox(){
  if(acc)acc.addEventListener("click",()=>{inboxDoneOpen=!inboxDoneOpen;rInbox();});
 }
 
+/* ============ rotina semanal: um modelo por dia da semana ============ */
+// D.rotinaSemanal = {"1":[...seg], ..., "7":[...dom]}; cada item {q, t, n?, area?}
+// area marca os blocos de trabalho: GESTAO, CLIENTES, INTERNO, REC
+const AREAS_ROT={
+ GESTAO:{n:"GESTÃO INTERNA",cor:"#3AAFA9"},
+ CLIENTES:{n:"CLIENTES",cor:"#C74A3C"},
+ INTERNO:{n:"INTERNO",cor:"#6B8FB0"},
+ REC:{n:"REC",cor:"#9B7BC0"}
+};
+const RE_TRAB=/^(Bloco de trabalho|Bloco comercial|Voltar ao estúdio)/i;
+function ehTrabalho(it){return !!(it&&(it.area||RE_TRAB.test(it.t||"")));}
+function dowISO(iso){const d=new Date(iso+"T12:00");return ((d.getDay()+6)%7)+1;} // 1=seg … 7=dom
+function rotinaDia(iso){
+ const R=D&&D.rotinaSemanal;
+ if(R){const l=R[String(dowISO(iso||hoje()))];if(Array.isArray(l))return l;}
+ return (D&&D.rotinaBase)||[];
+}
+// cria o modelo semanal a partir da rotina base, com as áreas pedidas pelo Ricardo
+function migrarRotinaSemanal(){
+ if(!D||D.rotinaSemanal)return false;
+ const base=deepFix(D.rotinaBase||[]);
+ const R={};
+ // tarde de qua e sex: REC; tarde de qui: INTERNO; manhã de seg: GESTÃO INTERNA; resto: CLIENTES
+ const plano={1:["GESTAO","CLIENTES"],2:["CLIENTES","CLIENTES"],3:["CLIENTES","REC"],4:["CLIENTES","INTERNO"],5:["CLIENTES","REC"]};
+ for(let dia=1;dia<=7;dia++){
+  if(!plano[dia]){R[dia]=[];continue;}
+  R[dia]=base.map(it=>{
+   const x={q:it.q,t:it.t};if(it.n)x.n=it.n;
+   const m=/^Bloco de trabalho (\d)/i.exec(it.t||"");
+   if(m){
+    const area=plano[dia][+m[1]-1]||"CLIENTES";
+    x.area=area;x.t=AREAS_ROT[area].n+(/cont\./i.test(it.t)?" (cont.)":"");
+   }
+   return x;
+  });
+ }
+ D.rotinaSemanal=R;
+ return true;
+}
+
 /* ============ tracker ============ */
 function estimativaHoje(){
  // camada 1: horas de bloco da rotina de hoje, menos pausas registadas
- const its=(rot&&rot.data===hoje()&&rot.itens)||D.rotinaBase;
+ const its=(rot&&rot.data===hoje()&&rot.itens)||rotinaDia(hoje());
  let minutos=0;
- const blocos=its.filter(x=>/bloco/i.test(x.t||""));
+ const blocos=its.filter(ehTrabalho);
  blocos.forEach((b,i)=>{
   const ini=min(b.q);if(ini===null)return;
   // fim: próximo item na rotina depois deste
@@ -3060,10 +3134,10 @@ function baldeDe(nome){
 // horas de trabalho previstas num dia, a partir dos blocos da rotina base
 function capacidadeDia(iso){
  if(!diaUtil(iso))return 0;
- const s=[...(D.rotinaBase||[])].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
+ const s=[...rotinaDia(iso)].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
  let m=0;
  s.forEach((it,i)=>{
-  if(!/^(Bloco de trabalho|Bloco comercial|Voltar ao estúdio)/i.test(it.t||""))return;
+  if(!ehTrabalho(it))return;
   const a=min(it.q),b=i<s.length-1?min(s[i+1].q):null;
   if(a!=null&&b!=null&&b>a)m+=b-a;
  });
@@ -4770,7 +4844,7 @@ function estadoSemaforo(){
  // dia de folga: sem blocos, sem semáforo
  if(isFolga())return {cor:"off",txt:"dia livre"};
  // sem rotina gerada hoje, usa a rotina base para saber se é hora de trabalho
- const its=(rot&&rot.data===hoje()?rot.itens:null)||D.rotinaBase;
+ const its=(rot&&rot.data===hoje()?rot.itens:null)||rotinaDia(hoje());
  if(!its||!its.length)return {cor:"off",txt:"sem rotina definida"};
  const nm=new Date().getHours()*60+new Date().getMinutes();
  const s=[...its].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
@@ -4781,8 +4855,7 @@ function estadoSemaforo(){
  });
  // conta como trabalho: blocos de trabalho, bloco comercial, e o regresso
  // depois do almoço (que parte o bloco original em dois)
- const eTrabalho=t=>/^(Bloco de trabalho|Bloco comercial|Voltar ao estúdio)/i.test(t||"");
- const emTrabalho=atual&&eTrabalho(atual.t);
+ const emTrabalho=atual&&ehTrabalho(atual);
  if(!emTrabalho)return {cor:"off",txt:atual?atual.t:"fora de horas de trabalho"};
  if(restoDiaAtivo())return {cor:"off",txt:"resto do dia: "+D.restoDia.titulo+". Clica para anular."};
  if(!D.timer)return {cor:"vermelho",txt:"em bloco de trabalho, sem nada a contar. Clica para registar.",avisa:true};
@@ -5065,16 +5138,13 @@ function rCal(){
 }
 
 /* ============ semana / mês ============ */
-let agModo="diario";
+let agModo="semanal";
 function rAgTabs(){
  const box=$("agTabs");if(!box)return;
- box.innerHTML=`<button class="condb${agModo==="diario"?" on":""}" data-ag="diario">diário</button><button class="condb${agModo==="anual"?" on":""}" data-ag="anual">anual comercial</button>`;
+ box.innerHTML=`<button class="condb${agModo==="semanal"?" on":""}" data-ag="semanal">semanal</button><button class="condb${agModo==="diario"?" on":""}" data-ag="diario">mensal</button><button class="condb${agModo==="anual"?" on":""}" data-ag="anual">anual comercial</button>`;
  box.querySelectorAll("[data-ag]").forEach(b=>b.addEventListener("click",()=>{
   agModo=b.dataset.ag;
-  $("wGrid").hidden=agModo!=="diario";
-  $("anualWrap").hidden=agModo!=="anual";
-  rAgTabs();
-  if(agModo==="anual")rAnual();else rSemana();
+  rAgTabs();rAgendaVista();
  }));
 }
 /* ============ caixa de entrada com o visual do site ============ */
@@ -5326,6 +5396,149 @@ function rSemana(){
   const b=document.querySelector('.nav [data-v="REDES"]');if(b)b.click();
  }));
 }
+/* ============ agenda semanal: segunda a segunda, tarefas + rotinas + objectivos ============ */
+let semOff=0;
+const ROT_PX=0.75; // pixels por minuto nos blocos de trabalho
+function inicioSemana(off){
+ const d=new Date();d.setHours(12,0,0,0);
+ d.setDate(d.getDate()-((d.getDay()+6)%7)+off*7);
+ return d;
+}
+function rSemanal(){
+ const w=$("semWrap");if(!w)return;
+ const ini=inicioSemana(semOff);
+ const dias=[...Array(8)].map((_,i)=>{const d=new Date(ini);d.setDate(ini.getDate()+i);return d;});
+ const ev=(agenda&&agenda.eventos)||[],anv=(agenda&&agenda.aniversarios)||[];
+ const nomes=["dom","seg","ter","qua","qui","sex","sáb"];
+ const colTarefas=d=>{
+  const iso=isoLocal(d);
+  const anivs=anv.filter(a=>a.data===iso);
+  const evs=ev.filter(e=>e.data===iso).sort((a,b)=>(a.h||"").localeCompare(b.h||""));
+  const prs=(D.prontas||[]).filter(x=>x.data===iso&&!x.arquivada);
+  const ts=D.tarefas.filter(t=>t.data===iso&&!["arquivada","concluída"].includes(t.estado));
+  const prazos=D.tarefas.filter(t=>t.prazo===iso&&t.data!==iso&&!["arquivada","concluída"].includes(t.estado));
+  const grupos=[
+   anivs.map(a=>`<div class="wev sanv">🎂 ${esc(a.nome)}</div>`).join(""),
+   evs.map(e=>`<div class="wev">${evmark()} ${e.h?`<b>${esc(e.h)}</b> `:""}${esc(e.t||"")}${e.quem?` <span class="wm">${esc(e.quem)}</span>`:""}</div>`).join(""),
+   prs.map(x=>`<div class="wt wpr" data-prag="${x.id}" title="${esc(x.conta)}">${prmark()}<span>${esc(x.titulo)}</span></div>`).join(""),
+   ts.map(t=>taskChip(t,iso)).join("")+prazos.map(t=>taskChip(t,iso,true)).join("")
+  ].filter(Boolean);
+  return grupos.join(`<div class="ssep"></div>`)||`<div class="hsub" style="opacity:.5">—</div>`;
+ };
+ const colRotina=d=>{
+  const iso=isoLocal(d);
+  const l=[...rotinaDia(iso)].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
+  const dia=String(dowISO(iso));
+  if(!l.length)return "";
+  // blocos de trabalho com altura proporcional à duração; o resto fica compacto
+  return `<div class="srot" data-rotdia="${dia}">`+l.map((it,i)=>{
+   const m=min(it.q);if(m===null)return "";
+   const nx=i<l.length-1?min(l[i+1].q):m+30;
+   const a=it.area&&AREAS_ROT[it.area];
+   const h=a?Math.max(26,Math.round((nx-m)*ROT_PX)):17;
+   const idx=(D.rotinaSemanal&&D.rotinaSemanal[dia]||[]).indexOf(it);
+   const cont=a&&/cont\./i.test(it.t);
+   return `<div class="sblk${a?" trab":""}${cont?" cont":""}" data-rotedit="${dia}|${idx}" style="height:${h}px;${a?`--ac:${a.cor};`:""}" title="${esc(it.q+" · "+it.t+(it.n?" · "+it.n:""))}"><span class="sbq">${esc(it.q)}</span><span class="sbt">${esc(cont?it.t.replace(/\s*\(cont\.\)/i,""):it.t)}</span></div>`;
+  }).join("")+`</div>`;
+ };
+ const hj=hoje();
+ const fim=dias[7];
+ const titulo=`${ini.getDate()} ${ini.toLocaleDateString("pt-PT",{month:"short"}).replace(".","")} – ${fim.getDate()} ${fim.toLocaleDateString("pt-PT",{month:"short"}).replace(".","")}`;
+ // objectivos dos meses que a semana toca, mais os do ano inteiro
+ const MESN=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+ const meses=[...new Set(dias.map(d=>d.getMonth()+1))];
+ const lin=x=>{const cs=typeof catsDe==="function"?catsDe(x):[];return `<div class="sobj"><span>${esc(x.titulo)}</span><span class="metaicons">${cs.map(k=>iconeCat(k,10)).join("")}</span></div>`;};
+ const objs=meses.map(m=>{const l=(D.metasAnuais||[]).filter(x=>x.mes===m);return `<div class="hgrouph">${MESN[m-1]}</div>`+(l.map(lin).join("")||`<div class="hsub">sem objectivos</div>`);}).join("")+
+  (()=>{const l=(D.metasAnuais||[]).filter(x=>x.mes===0);return l.length?`<div class="hgrouph" style="margin-top:12px">o ano inteiro</div>`+l.map(lin).join(""):"";})();
+ w.innerHTML=`<div class="semtopo">
+   <button class="ico" data-semnav="-1" title="Semana anterior">‹</button>
+   <span class="semtit">${esc(titulo)}</span>
+   <button class="ico" data-semnav="1" title="Semana seguinte">›</button>
+   ${semOff?`<button class="btn" data-semnav="0" style="font-size:10px;padding:6px 11px">esta semana</button>`:""}
+   <span class="semleg">${Object.values(AREAS_ROT).map(a=>`<span class="catleg"><i class="pdot" style="background:${a.cor}"></i>${a.n}</span>`).join("")}</span>
+  </div>
+  <div class="semgrid">
+   <div class="semscroll"><div class="semdias" style="grid-template-columns:${dias.map(d=>rotinaDia(isoLocal(d)).length?"minmax(205px,1.6fr)":"minmax(110px,.8fr)").join(" ")}">${dias.map(d=>{
+    const iso=isoLocal(d),folga=isFolga(d),semRot=!rotinaDia(iso).length;
+    return `<div class="sdia${iso===hj?" today":""}${folga?" folga":""}${semRot?" semrot":""}">
+     <div class="sdh"><span>${nomes[d.getDay()]} ${d.getDate()}</span><button class="ico sadd" data-rotadd="${dowISO(iso)}" title="Novo bloco na rotina de ${nomes[d.getDay()]}">+</button></div>
+     <div class="sdcols"><div class="stask wcell" data-day="${iso}">${colTarefas(d)}</div>${colRotina(d)}</div>
+    </div>`;}).join("")}</div></div>
+   <aside class="sobjcol card"><h5 class="trkfl" style="margin-bottom:10px">objectivos</h5>${objs}</aside>
+  </div>
+  <div class="hsub" style="margin-top:8px">A rotina é igual todas as semanas: clica num bloco para editar ou apagar, "+" para acrescentar.</div>`;
+ w.querySelectorAll("[data-semnav]").forEach(b=>b.onclick=()=>{const v=+b.dataset.semnav;semOff=v===0?0:semOff+v;rSemanal();});
+ w.querySelectorAll("[data-rotedit]").forEach(b=>b.onclick=()=>{const [d,i]=b.dataset.rotedit.split("|");editarBlocoRotina(d,+i);});
+ w.querySelectorAll("[data-rotadd]").forEach(b=>b.onclick=()=>editarBlocoRotina(b.dataset.rotadd,-1));
+ w.querySelectorAll("[data-prag]").forEach(el=>el.addEventListener("click",e=>{e.stopPropagation();const b=document.querySelector('.nav [data-v="REDES"]');if(b)b.click();}));
+ bindTarefasSemana(w);
+ // mostra o dia de hoje sem ter de andar com a barra
+ const t=w.querySelector(".sdia.today");if(t&&!semOff){const sc=w.querySelector(".semscroll");const x=t.offsetLeft-sc.offsetLeft;if(x>sc.clientWidth-60)sc.scrollLeft=x-8;}
+}
+// arrastar e clicar nas tarefas (mesmo comportamento do mensal)
+function bindTarefasSemana(w){
+ w.querySelectorAll(".wt[data-tid]").forEach(el=>{
+  el.onclick=()=>{
+   if(el._dragging)return;
+   const pid=el.dataset.pid;
+   if(pid){openP(pid);return;}
+   const t=D.tarefas.find(x=>x.id===el.dataset.tid);
+   if(t)pedir({titulo:"Editar tarefa",campos:[{tipo:"texto",nome:"nv",label:"título",valor:t.titulo}]}).then(async r=>{
+    if(r&&r.nv&&r.nv.trim()){t.titulo=r.nv.trim();await save();rSemanal();}
+   });
+  };
+  el.ondragstart=e=>{el._dragging=true;dragTid=el.dataset.tid;el.classList.add("dragging");try{e.dataTransfer.setData("text/plain",dragTid);}catch(x){}};
+  el.ondragend=()=>{el.classList.remove("dragging");setTimeout(()=>{el._dragging=false;},50);};
+ });
+ w.querySelectorAll(".stask[data-day]").forEach(c=>{
+  c.ondragover=e=>{if(!dragTid)return;e.preventDefault();c.classList.add("dragover");};
+  c.ondragleave=e=>{if(!c.contains(e.relatedTarget))c.classList.remove("dragover");};
+  c.ondrop=async e=>{
+   e.preventDefault();c.classList.remove("dragover");
+   if(!dragTid)return;
+   const t=D.tarefas.find(x=>x.id===dragTid);dragTid=null;
+   if(t){t.data=c.dataset.day;await save();rSemanal();}
+  };
+ });
+}
+// criar, editar e apagar blocos da rotina semanal
+async function editarBlocoRotina(dia,idx){
+ D.rotinaSemanal=D.rotinaSemanal||{};
+ const lista=D.rotinaSemanal[dia]=D.rotinaSemanal[dia]||[];
+ const it=idx>=0?lista[idx]:null;
+ const nomesD=["","segunda","terça","quarta","quinta","sexta","sábado","domingo"];
+ const r=await pedir({titulo:it?`Bloco de ${nomesD[+dia]}`:`Novo bloco · ${nomesD[+dia]}`,sub:"Igual em todas as semanas. Para apagar, deixa o nome vazio.",campos:[
+  {tipo:"texto",nome:"q",label:"hora de início (HH:MM)",valor:it?it.q:"",ph:"10:10"},
+  {tipo:"texto",nome:"t",label:"nome",valor:it?it.t:"",ph:"ex: Esticar, Almoço…"},
+  {tipo:"texto",nome:"n",label:"nota (opcional)",valor:it&&it.n||""},
+  {tipo:"escolha",nome:"area",label:"bloco de trabalho",valor:it&&it.area||"",opcoes:[{v:"",txt:"não é trabalho"},...Object.keys(AREAS_ROT).map(k=>({v:k,txt:AREAS_ROT[k].n,cor:AREAS_ROT[k].cor}))]},
+  {tipo:"check",nome:"todos",label:"aplicar também aos outros dias úteis",valor:false}
+ ]});
+ if(!r)return;
+ const nome=(r.t||"").trim(),q=(r.q||"").trim();
+ if(!nome){
+  if(it){lista.splice(idx,1);await save();rSemanal();setSt("bloco apagado");}
+  return;
+ }
+ if(!/^\d{1,2}:\d{2}$/.test(q)){setSt("hora inválida: usa HH:MM");return;}
+ const qq=q.padStart(5,"0");
+ // se o nome era só o nome da área, acompanha a mudança de área
+ let nomeF=nome;
+ const mA=Object.values(AREAS_ROT).find(a=>nome.replace(/\s*\(cont\.\)$/i,"").toUpperCase()===a.n);
+ if(mA&&r.area&&AREAS_ROT[r.area].n!==mA.n)nomeF=AREAS_ROT[r.area].n+(/\(cont\.\)$/i.test(nome)?" (cont.)":"");
+ const novo={q:qq,t:nomeF};if((r.n||"").trim())novo.n=r.n.trim();if(r.area)novo.area=r.area;
+ if(it)lista[idx]=novo;else lista.push(novo);
+ lista.sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
+ if(r.todos){
+  ["1","2","3","4","5"].filter(d=>d!==dia).forEach(d=>{
+   const l=D.rotinaSemanal[d]=D.rotinaSemanal[d]||[];
+   const j=it?l.findIndex(x=>x.q===it.q&&x.t===it.t):-1;
+   if(j>=0)l[j]={...novo};else l.push({...novo});
+   l.sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
+  });
+ }
+ await save();rSemanal();setSt(it?"bloco actualizado":"bloco acrescentado");
+}
 // ideias prontas: avião de divulgação, a violeta
 function prmark(){
  return `<svg class="pmk" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8B6BB1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>`;
@@ -5366,7 +5579,13 @@ function bindAgendaDnD(){
  });
 }
 let agMode="s",gSpan="m",mcY,mcM;
-function rAgenda(){ rAgTabs(); if(agModo==="anual")rAnual(); else rSemana(); }
+function rAgendaVista(){
+ $("wGrid").hidden=agModo!=="diario";
+ $("anualWrap").hidden=agModo!=="anual";
+ $("semWrap").hidden=agModo!=="semanal";
+ if(agModo==="anual")rAnual();else if(agModo==="semanal")rSemanal();else rSemana();
+}
+function rAgenda(){ rAgTabs(); rAgendaVista(); }
 function rMes(){
  const n=new Date(),y=n.getFullYear();
  const ps=(D.projectos||[]).filter(p=>p.estado!=="arquivado");
@@ -5907,12 +6126,12 @@ const EXTRAS_SUGESTOES=[
 // minutos de blocos de trabalho que ainda faltam hoje, a partir de agora
 function minutosTrabalhoRestantes(){
  if(isFolga())return 0;
- const its=(rot&&rot.data===hoje()?rot.itens:null)||D.rotinaBase||[];
+ const its=(rot&&rot.data===hoje()?rot.itens:null)||rotinaDia(hoje());
  const n=new Date(),nm=n.getHours()*60+n.getMinutes()+n.getSeconds()/60;
  const s=[...its].sort((x,y)=>(min(x.q)??9999)-(min(y.q)??9999));
  let tot=0;
  s.forEach((it,i)=>{
-  if(!/^(Bloco de trabalho|Bloco comercial|Voltar ao estúdio)/i.test(it.t||""))return;
+  if(!ehTrabalho(it))return;
   const ini=min(it.q),fim=i<s.length-1?min(s[i+1].q):null;
   if(ini==null||fim==null||fim<=ini)return;
   tot+=Math.max(0,fim-Math.max(ini,nm));
@@ -5970,7 +6189,7 @@ async function iniciarAlmoco(){
  // sem rotina gerada hoje, arranca uma a partir da rotina base
  if(!rot||rot.data!==hoje()){
   if(isFolga()){setSt("hoje é dia livre");return;}
-  rot={data:hoje(),itens:deepFix(D.rotinaBase).map(x=>({...x,feito:false}))};
+  rot={data:hoje(),itens:deepFix(rotinaDia(hoje())).map(x=>({...x,feito:false}))};
  }
  const n=new Date();
  const hm=x=>String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");
@@ -6033,6 +6252,7 @@ async function boot(){
  try{ await load(); }catch(e){ return; }  // sem chave, load() mostra o ecrã próprio
  try{if(migrarTempoMarta())await save();}catch(e){}
  try{if(migrouREC){migrouREC=false;await save();}}catch(e){}
+ try{if(migrarRotinaSemanal())await save();}catch(e){}
  rAll();aCada(15000,tick);
 }
 // A entrada passa a validar a chave real contra o Worker, não no browser.
