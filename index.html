@@ -22,10 +22,10 @@ body[data-theme="REC"]{
   --sh-d:#17181C; --sh-l:#2F323A;
   --acc:#A87CA8; --acc2:#6E8FB8; --ok:#7FA88B;
 }
-body[data-theme="COMERCIAL"]{
-  --bg:#EAD9C0; --txt:#3D2E1E; --soft:#9C7F58; --line:#D8C09E;
-  --sh-d:#CDB088; --sh-l:#FBF1E0;
-  --acc:#C0491E; --acc2:#D98A2B; --ok:#6E8F5E;
+body[data-theme="COMERCIAL"]{ /* INTERNO: azul muito claro, quase o neutro */
+  --bg:#ECEFF1; --txt:#363B41; --soft:#8B939B; --line:#DCE1E6;
+  --sh-d:rgba(150,163,178,.32); --sh-l:#FFFFFF;
+  --acc:#C74A3C; --acc2:#3AAFA9; --ok:#7FA88B;
 }
 body[data-theme="CASA"]{
   --bg:#CDE3E0; --txt:#1E3D3A; --soft:#5E8A85; --line:#B0D0CC;
@@ -39,7 +39,7 @@ body.dark{
   --sh-d:#16171B; --sh-l:#2E313A;
   --acc:#E06A58; --acc2:#4FC7C0; --ok:#8FBF9B;
 }
-body.dark[data-theme="COMERCIAL"]{--acc:#D9743C; --acc2:#E0A050; --ok:#8FAE78;}
+body.dark[data-theme="COMERCIAL"]{--bg:#21252B; --line:#30353D; --sh-d:#15181C; --sh-l:#2C323A;}
 body.dark[data-theme="CASA"]{--acc:#3FB8AA; --acc2:#5EC4B6; --ok:#7FBF97;}
 body.dark[data-theme="REC"]{--acc:#B98FB9; --acc2:#7FA0C9;}
 
@@ -125,9 +125,7 @@ body[data-theme="REC"]::after,body.dark::after{opacity:.09;mix-blend-mode:screen
 .pqrow.dragging{opacity:.4;}
 .pqn{flex:1;min-width:0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .pqm{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);white-space:nowrap;}
-.nav button.ns-cli,.nav button.ns-cli.on{color:#C74A3C;}
-.nav button.ns-int,.nav button.ns-int.on{color:#D98A2B;}
-.nav button.ns-rec,.nav button.ns-rec.on{color:#9B7BC0;}
+.nav button.navsec,.nav button.navsec.on{color:var(--acc);}
 
 /* icon buttons */
 .btn{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'Inter',sans-serif;font-size:11.5px;padding:9px 16px;border-radius:12px;box-shadow:4px 4px 8px var(--sh-d),-5px -5px 10px var(--sh-l);display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
@@ -759,6 +757,16 @@ body.paused #pauseTint{opacity:1;}
 .pcard:hover{box-shadow:6px 6px 14px var(--sh-d),-8px -8px 18px var(--sh-l),inset 2px 2px 5px rgba(255,255,255,.3);}
 .pcard.editing{background:var(--bg);box-shadow:inset 6px 6px 14px var(--sh-d),inset -8px -8px 18px var(--sh-l);}
 .pcard.parado{opacity:.55;}
+.pcard.parado .esperabtn{opacity:1;}
+.esperabtn{border:none;cursor:pointer;background:var(--bg);color:var(--soft);width:24px;height:24px;border-radius:8px;padding:0;display:inline-flex;align-items:center;justify-content:center;box-shadow:2px 2px 5px var(--sh-d),-2px -2px 5px var(--sh-l);flex-shrink:0;}
+.esperabtn:hover{color:var(--txt);}
+.esperabtn.on{color:#C9A227;box-shadow:inset 2px 2px 4px var(--sh-d),inset -2px -2px 4px var(--sh-l);}
+.pcard .esperabtn{position:absolute;top:14px;right:14px;}
+.pcard .pname{padding-right:30px;}
+.pqrow .esperabtn{width:20px;height:20px;border-radius:6px;}
+.pqrow.parado .pqn{opacity:.5;}
+.esperachip{display:inline-flex;align-items:center;gap:7px;width:auto;height:30px;padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.07em;}
+.mhead .mhacts{display:flex;align-items:center;gap:8px;}
 .pcard .pname{font-size:14.5px;font-weight:600;line-height:1.3;padding-right:20px;}
 .pcard .tags{display:flex;gap:6px;flex-wrap:wrap;}
 .pcard .accbar{height:4px;border-radius:2px;background:var(--acc);opacity:.85;}
@@ -1128,13 +1136,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <div class="ovl janela" id="notaOvl">
  <div class="modal card">
-  <div class="janbar" data-jan="notaOvl"><span class="jangrip">⠿⠿</span><span class="jantit" id="notaJanTit">nota</span><button class="ico" title="Minimizar" data-janmin="notaOvl">–</button></div>
+  <div class="janbar" data-jan="notaOvl"><span class="jangrip">⠿⠿</span><span class="jantit" id="notaJanTit">nota</span><button class="ico" title="Minimizar" data-janmin="notaOvl">–</button><button class="ico" title="Fechar (grava)" onclick="fecharNota()">✕</button></div>
   <div class="mhead">
    <h3 id="notaTit" contenteditable></h3>
-   <span style="display:flex;gap:6px">
-    <button class="ico" style="width:30px;height:30px;font-size:11px" id="notaDel" title="Apagar">✕</button>
-    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="fecharNota()" title="Fechar">✓</button>
-   </span>
+   <button class="ico" style="width:30px;height:30px" id="notaDel" title="Apagar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
   </div>
   <div id="notaProj" style="margin-bottom:10px"></div>
   <div id="notaBarra"></div>
@@ -1191,7 +1196,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/10 12:30</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/10 15:10</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1208,10 +1213,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <div class="ovl janela" id="pOvl">
  <div class="modal card">
-  <div class="janbar" data-jan="pOvl"><span class="jangrip">⠿⠿</span><span class="jantit" id="pJanTit">projecto</span><button class="ico" title="Minimizar" data-janmin="pOvl">–</button></div>
+  <div class="janbar" data-jan="pOvl"><span class="jangrip">⠿⠿</span><span class="jantit" id="pJanTit">projecto</span><button class="ico" title="Minimizar" data-janmin="pOvl">–</button><button class="ico" title="Fechar" onclick="closeP()">✕</button></div>
   <div class="mhead">
    <h3 id="mName"></h3>
-   <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeP()" title="Fechar">✕</button>
+   <span class="mhacts" id="mActs"></span>
   </div>
   <div class="mrow2">
    <div class="msec"><div class="msech">definições</div><div class="pedit" id="mEdit"></div></div>
@@ -1281,6 +1286,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 </div>
 
 <div class="view" id="v-COMERCIAL">
+ <div class="catwrap compq">
+  <aside class="pqcol" id="pqColInt"></aside>
+  <div class="catmain">
   <div id="cmFixos"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Projectos internos<button class="ico" style="width:28px;height:28px" title="Novo projecto interno" onclick="novoProjComercial()">＋</button></h2>
   <h2 class="sec">Prioridade alta</h2>
@@ -1290,6 +1298,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <h2 class="sec">Prioridade baixa</h2>
   <div class="pgrid pzone" id="cmGridBaixa" data-cpri="1"></div>
   <div id="cmArqWrap" style="margin-top:10px"></div>
+  </div>
+ </div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Ideias<button class="ico" style="width:28px;height:28px" title="Nova ideia" onclick="addIdeia()">＋</button></h2>
   <div class="card" style="padding:10px 0" id="eideias"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Princípios<button class="ico" style="width:28px;height:28px" title="Novo princípio" onclick="addPrincipio()">＋</button></h2>
@@ -2764,8 +2774,9 @@ function rCat(){
  const zonas=[["pGridAlta",3],["pGridMedia",2],["pGridBaixa",1]];
  const ativos=(D.projectos||[]).filter(p=>p.categoria===cat&&!p.pequeno&&p.estado!=="arquivado"&&p.estado!=="concluído");
  const concluidos=(D.projectos||[]).filter(p=>p.categoria===cat&&!p.pequeno&&(p.estado==="concluído"||p.estado==="arquivado"));
- const cw=$("catWrap");if(cw)cw.classList.toggle("compq",cat==="RIMA");
- if(cat==="RIMA")rPequenos();
+ const comPq=cat==="RIMA"||cat==="REC";
+ const cw=$("catWrap");if(cw)cw.classList.toggle("compq",comPq);
+ if(comPq)rPequenos(cat,"pqCol");
  const ehFixo=p=>PROJECTOS_FIXOS.includes(p.id)||PROJECTOS_FIXOS.includes(p.nome);
  const fixos=ativos.filter(ehFixo);
  const todos=ativos.filter(x=>!ehFixo(x));
@@ -2786,6 +2797,7 @@ function rCat(){
    const dl=p.prazo?Math.ceil((new Date(p.prazo)-new Date())/864e5):null;
    const urg=dl!==null&&dl<=2&&st!=="concluído";
    g.insertAdjacentHTML("beforeend",`<div class="pcard card${st==="em espera"?" parado":""}" data-pc="${p.id}">
+    ${btnEspera(p)}
     <div class="pname">${esc(p.nome)}</div>
     <div class="tags">
      ${p.cliente?'<span class="chip hot">cliente</span>':'<span class="chip">interno</span>'}
@@ -2825,6 +2837,7 @@ function rCat(){
   if(acc)acc.addEventListener("click",()=>{catArqOpen[cat]=!catArqOpen[cat];rCat();});
  }
  document.querySelectorAll(".fixchip").forEach(b=>b.addEventListener("click",()=>openP(b.dataset.pc)));
+ ligarEspera($("v-CAT"));
  // drag entre zonas e dentro da zona
  document.querySelectorAll(".pzone .pcard").forEach(c=>{
   c.addEventListener("click",()=>{if(!c._drag)openP(c.dataset.pc);});
@@ -2863,10 +2876,32 @@ function rCat(){
   });
  });
 }
-let pqDrag=null,pqFeitosOpen=false;
-function rPequenos(){
- const box=$("pqCol");if(!box)return;
- const todos=(D.projectos||[]).filter(p=>p.categoria==="RIMA"&&p.pequeno);
+const ICON_ESPERA='<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+function btnEspera(p){
+ const on=p.estado==="em espera";
+ return `<button class="esperabtn${on?" on":""}" data-espera="${p.id}" title="${on?"em espera: clica para retomar":"pôr em espera"}">${ICON_ESPERA}</button>`;
+}
+async function alternarEspera(id){
+ const p=(D.projectos||[]).find(x=>x.id===id);if(!p)return;
+ p.estado=p.estado==="em espera"?"em curso":"em espera";
+ await save();
+ if(cat)rCat();
+ if($("v-COMERCIAL").classList.contains("on"))rEstrategia();
+ if(mP===id)renderP();
+ rHome();setSt(p.estado==="em espera"?`${p.nome} em espera`:`${p.nome} retomado`);
+}
+function ligarEspera(scope){
+ (scope||document).querySelectorAll("[data-espera]").forEach(b=>{
+  b.onmousedown=e=>e.stopPropagation();
+  b.onclick=e=>{e.stopPropagation();e.preventDefault();alternarEspera(b.dataset.espera);};
+  b.setAttribute("draggable","false");
+ });
+}
+let pqDrag=null,pqFeitosOpen={};
+function rPequenos(catP,boxId){
+ catP=catP||"RIMA";
+ const box=$(boxId||"pqCol");if(!box)return;
+ const todos=(D.projectos||[]).filter(p=>p.categoria===catP&&p.pequeno);
  const ativos=todos.filter(p=>p.estado!=="concluído"&&p.estado!=="arquivado");
  const feitos=todos.filter(p=>p.estado==="concluído"||p.estado==="arquivado");
  const linha=p=>{
@@ -2875,15 +2910,17 @@ function rPequenos(){
   const done=ts.filter(t=>t.estado==="concluída").length;
   const dl=p.prazo?Math.ceil((new Date(p.prazo)-new Date())/864e5):null;
   const meta=[nums[0]||(p.registo?p.registo+"?":""),ts.length?`${done}/${ts.length}`:"",dl!==null?(dl<0?`${-dl}d atraso`:`${dl}d`):""].filter(Boolean).join(" · ");
-  return `<div class="pqrow" draggable="true" data-pq="${p.id}" title="${esc(p.nome)}"><i class="pdot" style="background:${p.cor||"var(--acc)"}"></i><span class="pqn">${esc(p.nome)}</span><span class="pqm${dl!==null&&dl<=2?" urg":""}">${esc(meta)}</span></div>`;
+  return `<div class="pqrow${p.estado==="em espera"?" parado":""}" draggable="true" data-pq="${p.id}" title="${esc(p.nome)}"><i class="pdot" style="background:${p.cor||"var(--acc)"}"></i><span class="pqn">${esc(p.nome)}</span><span class="pqm${dl!==null&&dl<=2?" urg":""}">${esc(meta)}</span>${btnEspera(p)}</div>`;
  };
  const grupos=[[3,"prioridade alta"],[2,"prioridade média"],[1,"prioridade baixa"]];
- box.innerHTML=`<div class="pqhead"><h2 class="sec">Trabalhos pequenos</h2><button class="ico" style="width:26px;height:26px" title="Novo trabalho pequeno" onclick="novoProjectoCliente(true)">＋</button></div>`+
+ const ab=!!pqFeitosOpen[catP];
+ box.innerHTML=`<div class="pqhead"><h2 class="sec">Trabalhos pequenos</h2><button class="ico" style="width:26px;height:26px" title="Novo trabalho pequeno" data-pqnovo="${catP}">＋</button></div>`+
   grupos.map(([pri,nm])=>{
    const ps=ativos.filter(p=>(p.prioridade||2)===pri).sort((a,b)=>(a.ordem??999)-(b.ordem??999)||a.nome.localeCompare(b.nome));
    return `<div class="pqgrp" data-pqpri="${pri}"><div class="pqh">${nm}</div>${ps.map(linha).join("")}</div>`;
   }).join("")+
-  (feitos.length?`<div class="cgroup"><div class="cgrouph acc" id="pqFeitosAcc"><span class="accarr">${pqFeitosOpen?"▾":"▸"}</span>concluídos · ${feitos.length}</div><div class="cgbody" style="display:${pqFeitosOpen?"block":"none"};padding:8px 0">${feitos.map(linha).join("")}</div></div>`:"");
+  (feitos.length?`<div class="cgroup"><div class="cgrouph acc" data-pqfeitos="${catP}"><span class="accarr">${ab?"▾":"▸"}</span>concluídos · ${feitos.length}</div><div class="cgbody" style="display:${ab?"block":"none"};padding:8px 0">${feitos.map(linha).join("")}</div></div>`:"");
+ box.querySelector("[data-pqnovo]").onclick=()=>novoProjectoPequeno(catP);
  box.querySelectorAll("[data-pq]").forEach(r=>{
   r.onclick=()=>openP(r.dataset.pq);
   r.ondragstart=e=>{pqDrag=r.dataset.pq;r.classList.add("dragging");try{e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",pqDrag);}catch(x){}};
@@ -2895,17 +2932,31 @@ function rPequenos(){
   g.ondrop=async e=>{
    if(!pqDrag)return;e.preventDefault();g.classList.remove("over");
    const p=D.projectos.find(x=>x.id===pqDrag);pqDrag=null;if(!p)return;
-   // posição: antes da linha mais próxima do ponto onde largou
    const rows=[...g.querySelectorAll("[data-pq]")].filter(x=>x.dataset.pq!==p.id);
    let idx=rows.length;
    for(let i=0;i<rows.length;i++){const rr=rows[i].getBoundingClientRect();if(e.clientY<rr.top+rr.height/2){idx=i;break;}}
    p.prioridade=+g.dataset.pqpri;
    const ids=rows.map(x=>x.dataset.pq);ids.splice(idx,0,p.id);
    ids.forEach((id,i)=>{const q=D.projectos.find(x=>x.id===id);if(q)q.ordem=i;});
-   await save();rPequenos();
+   await save();rPequenos(catP,boxId);
   };
  });
- const fa=$("pqFeitosAcc");if(fa)fa.onclick=()=>{pqFeitosOpen=!pqFeitosOpen;rPequenos();};
+ const fa=box.querySelector("[data-pqfeitos]");if(fa)fa.onclick=()=>{pqFeitosOpen[catP]=!pqFeitosOpen[catP];rPequenos(catP,boxId);};
+ ligarEspera(box);
+}
+async function novoProjectoPequeno(catP){
+ if(catP==="RIMA")return novoProjectoCliente(true);
+ const r=await pedir({titulo:`Novo trabalho pequeno em ${catNome(catP)}`,campos:[{tipo:"texto",nome:"nome",label:"nome"}]});
+ if(!r||!r.nome||!r.nome.trim())return;
+ const nm=r.nome.trim();
+ if((D.projectos||[]).some(p=>p.categoria===catP&&p.nome.toLowerCase()===nm.toLowerCase())){setSt("já existe um projecto com esse nome");return;}
+ const usadas=new Set((D.projectos||[]).map(p=>p.cor));
+ const cor=PAL_LOCAL.find(c=>!usadas.has(c))||PAL_LOCAL[Math.floor(Math.random()*PAL_LOCAL.length)];
+ D.projectos.push({id:nm.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g,"").slice(0,8)+Date.now().toString().slice(-4),
+  categoria:catP,nome:nm,estado:"em curso",cliente:false,pequeno:true,marca:catP==="COMERCIAL"?"studio":null,
+  prioridade:2,inicio:hoje(),prazo:null,horasPrevistas:null,horasGastas:0,orcamento:null,adjudicado:true,cor,gastos:[]});
+ await save();
+ if(catP==="COMERCIAL")rEstrategia();else rCat();
 }
 // criar projecto de cliente (normal ou pequeno). O cruzamento com os registos é feito no sync.
 async function novoProjectoCliente(pequeno){
@@ -3626,8 +3677,9 @@ function lacunasComerciais(){
 let cmArqOpen=false;
 function rProjComerciais(){
  const zonas=[["cmGridAlta",3],["cmGridMedia",2],["cmGridBaixa",1]];
- const todos=(D.projectos||[]).filter(p=>p.categoria==="COMERCIAL"&&p.estado!=="arquivado"&&p.estado!=="concluído"&&p.nome!=="Comercial");
- const feitos=(D.projectos||[]).filter(p=>p.categoria==="COMERCIAL"&&(p.estado==="concluído"||p.estado==="arquivado"));
+ const todos=(D.projectos||[]).filter(p=>p.categoria==="COMERCIAL"&&!p.pequeno&&p.estado!=="arquivado"&&p.estado!=="concluído"&&p.nome!=="Comercial");
+ const feitos=(D.projectos||[]).filter(p=>p.categoria==="COMERCIAL"&&!p.pequeno&&(p.estado==="concluído"||p.estado==="arquivado"));
+ rPequenos("COMERCIAL","pqColInt");
  const fx=$("cmFixos");
  const geral=(D.projectos||[]).find(p=>p.nome==="Comercial");
  if(fx)fx.innerHTML=geral?`<div class="fixrow"><button class="fixchip" data-cpc="${geral.id}"><i class="pdot" style="background:${geral.cor||"var(--acc)"}"></i>${esc(geral.nome)} · tarefas soltas</button></div>`:"";
@@ -3635,7 +3687,8 @@ function rProjComerciais(){
   const ts=D.tarefas.filter(t=>t.projecto===p.nome);
   const done=ts.filter(t=>t.estado==="concluída").length;
   const st=estadoP(p);
-  return `<div class="pcard card" draggable="true" data-cpc="${p.id}">
+  return `<div class="pcard card${p.estado==="em espera"?" parado":""}" draggable="true" data-cpc="${p.id}">
+   ${btnEspera(p)}
    <div class="pname">${esc(p.nome)}</div>
    <div class="tags"><span class="chip">${esc(st)}</span>${p.marca?`<span class="chip">${p.marca}</span>`:""}
     <button class="natalbtn${p.natal?" on":""}" data-natal="${p.id}" title="${p.natal?"comercializável no Natal":"marcar como comercializável no Natal"}"><svg width="13" height="13" viewBox="0 0 24 24" fill="${p.natal?"currentColor":"none"}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 8 8h2.5L7 13h3L6.5 18h11L14 13h3l-3.5-5H16Z"/><path d="M10.5 18v3h3v-3"/></svg></button>
@@ -3664,6 +3717,7 @@ function rProjComerciais(){
   const p=D.projectos.find(x=>x.id===b.dataset.natal);
   if(p){p.natal=!p.natal;await save();rEstrategia();}
  }));
+ ligarEspera($("v-COMERCIAL"));
  document.querySelectorAll("[data-cpc]").forEach(c=>{
   c.addEventListener("click",()=>openP(c.dataset.cpc));
   c.addEventListener("dragstart",()=>{cmDragId=c.dataset.cpc;c.classList.add("dragging");});
@@ -4470,11 +4524,17 @@ function renderP(){
   };
   ned.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();ned.blur();}};
  }
+ const acts=$("mActs");
+ if(acts){
+  const on=p.estado==="em espera";
+  acts.innerHTML=`<button class="esperabtn esperachip${on?" on":""}" data-espera="${p.id}" title="${on?"clica para retomar":"pôr o trabalho em espera"}">${ICON_ESPERA}<span>${on?"em espera":"pôr em espera"}</span></button>`;
+  ligarEspera(acts);
+ }
  const pr={1:"1 · baixa",2:"2 · média",3:"3 · alta"};
  $("mEdit").innerHTML=`
    <label><input type="checkbox" data-pf="cliente" ${p.cliente?"checked":""}/>cliente</label>
    <label><input type="checkbox" data-pf="adjudicado" ${p.adjudicado!==false?"checked":""}/>adjudicado</label>
-   ${p.categoria==="RIMA"?`<label><input type="checkbox" data-pf="pequeno" ${p.pequeno?"checked":""}/>trabalho pequeno</label>`:""}
+   ${["RIMA","COMERCIAL","REC"].includes(p.categoria)?`<label><input type="checkbox" data-pf="pequeno" ${p.pequeno?"checked":""}/>trabalho pequeno</label>`:""}
    <label>marca <select data-pf="marca">${["","studio","lab"].map(m=>`<option value="${m}" ${(p.marca||"")===m?"selected":""}>${m||"—"}</option>`).join("")}</select></label>
    <label>prioridade <select data-pf="prioridade">${[1,2,3].map(n=>`<option value="${n}" ${p.prioridade===n?"selected":""}>${pr[n]}</option>`).join("")}</select></label>
    <label>estado <select data-pf="estado">${["em curso","em espera","concluído","arquivado"].map(s=>`<option ${p.estado===s?"selected":""}>${s}</option>`).join("")}</select></label>
@@ -4493,6 +4553,7 @@ function renderP(){
   else if(f==="prazo")p.prazo=el.value||null;
   else p[f]=el.value;
   await save();renderP();rCat();rHome();
+  if($("v-COMERCIAL").classList.contains("on"))rEstrategia();
   if(f==="estado"&&el.value==="arquivado"){
    const ds=docs.filter(d=>!d.arquivado&&d.projecto===p.nome);
    ask(`Arquivei o projecto "${p.nome}" (${p.categoria}) no dashboard. Exporta a ficha do projecto${ds.length?` e os seus ${ds.length} documento(s)`:""} para Drive/DASHBOARD/arquivo, e confirma quando estiver feito.`);
