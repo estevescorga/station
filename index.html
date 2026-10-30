@@ -17,12 +17,12 @@ body{ /* HOJE + RIMA: branco quente, micro-acentos vermelhos */
   --sh-d:rgba(178,170,150,.30); --sh-l:#FFFFFB;
   --acc:#C74A3C; --acc2:#3AAFA9; --ok:#7FA88B;
 }
-body[data-theme="MUSICA"]{
+body[data-theme="REC"]{
   --bg:#23252B; --txt:#E8E6E1; --soft:#8E9099; --line:#33363E;
   --sh-d:#17181C; --sh-l:#2F323A;
   --acc:#A87CA8; --acc2:#6E8FB8; --ok:#7FA88B;
 }
-body[data-theme="ARTE"]{
+body[data-theme="COMERCIAL"]{
   --bg:#EAD9C0; --txt:#3D2E1E; --soft:#9C7F58; --line:#D8C09E;
   --sh-d:#CDB088; --sh-l:#FBF1E0;
   --acc:#C0491E; --acc2:#D98A2B; --ok:#6E8F5E;
@@ -39,14 +39,14 @@ body.dark{
   --sh-d:#16171B; --sh-l:#2E313A;
   --acc:#E06A58; --acc2:#4FC7C0; --ok:#8FBF9B;
 }
-body.dark[data-theme="ARTE"]{--acc:#D9743C; --acc2:#E0A050; --ok:#8FAE78;}
+body.dark[data-theme="COMERCIAL"]{--acc:#D9743C; --acc2:#E0A050; --ok:#8FAE78;}
 body.dark[data-theme="CASA"]{--acc:#3FB8AA; --acc2:#5EC4B6; --ok:#7FBF97;}
-body.dark[data-theme="MUSICA"]{--acc:#B98FB9; --acc2:#7FA0C9;}
+body.dark[data-theme="REC"]{--acc:#B98FB9; --acc2:#7FA0C9;}
 
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;padding:26px 18px 24px;transition:background .35s,color .35s;}
 body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.25;mix-blend-mode:multiply;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.92" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="linear" slope="1.35" intercept="-0.16"/><feFuncG type="linear" slope="1.35" intercept="-0.16"/><feFuncB type="linear" slope="1.35" intercept="-0.16"/></feComponentTransfer></filter><rect width="100%25" height="100%25" filter="url(%23n)"/></svg>');}
-body[data-theme="MUSICA"]::after,body.dark::after{opacity:.09;mix-blend-mode:screen;}
+body[data-theme="REC"]::after,body.dark::after{opacity:.09;mix-blend-mode:screen;}
 .wrap{max-width:1760px;margin:0 auto;padding:0 clamp(20px,4.5vw,72px);}
 @media(max-width:1100px){.wrap{padding:0;}}
 .mono{font-family:'IBM Plex Mono',monospace;}
@@ -78,6 +78,24 @@ body[data-theme="MUSICA"]::after,body.dark::after{opacity:.09;mix-blend-mode:scr
  .clock .h{font-size:15px;}
 }
 .head h1{font-size:16px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;}
+/* o header fica sempre visível e por cima das caixas abertas */
+@media(min-width:701px){.head{position:sticky;top:10px;z-index:120;}}
+.ovl{padding-top:calc(var(--headH,30px) + 16px) !important;}
+/* janelas flutuantes: ficha de projecto e notas/documentos */
+.ovl.janela{background:none;pointer-events:none;padding:0 !important;overflow:visible;}
+.ovl.janela.on{display:block;}
+.ovl.janela.min{display:none !important;}
+.ovl.janela>.modal{pointer-events:auto;position:fixed;margin:0;overflow:auto;max-height:calc(100vh - var(--jy,120px) - 14px);left:var(--jx,50%);top:var(--jy,120px);}
+#pOvl>.modal{width:min(1120px,calc(100vw - 32px));}
+#notaOvl>.modal{width:min(760px,calc(100vw - 32px));}
+.janbar{display:flex;align-items:center;gap:8px;margin:-16px -22px 12px;padding:4px 8px 6px 12px;cursor:move;user-select:none;-webkit-user-select:none;touch-action:none;border-bottom:1px solid var(--line);}
+.janbar .jangrip{color:var(--soft);font-size:12px;letter-spacing:-1px;}
+.janbar .jantit{flex:1;min-width:0;font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.janbar button{width:24px;height:22px;font-size:12px;line-height:1;}
+.ovl.janela.frente>.modal{box-shadow:0 26px 70px rgba(20,18,14,.42),0 6px 18px rgba(20,18,14,.24) !important;}
+#janDock{position:fixed;left:18px;bottom:18px;z-index:85;display:flex;gap:8px;flex-wrap:wrap;max-width:calc(100vw - 36px);}
+.dockchip{border:none;cursor:pointer;background:var(--bg);color:var(--txt);font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;padding:8px 12px;border-radius:12px;box-shadow:3px 3px 8px var(--sh-d),-3px -3px 8px var(--sh-l);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dockchip:hover{color:var(--acc);}
 .head .sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--soft);letter-spacing:.1em;text-transform:uppercase;margin-top:3px;}
 .clock{text-align:right;font-family:'IBM Plex Mono',monospace;}
 .clock .d{font-size:11px;color:var(--soft);}
@@ -89,6 +107,27 @@ body[data-theme="MUSICA"]::after,body.dark::after{opacity:.09;mix-blend-mode:scr
 @media(max-width:640px){.nav{flex-wrap:wrap;gap:6px;}.nav button{flex:0 1 auto;padding:8px 11px;font-size:9.5px;letter-spacing:.04em;}}
 .nav button:hover{color:var(--txt);}
 .nav button.on{box-shadow:inset 3px 3px 7px var(--sh-d),inset -4px -4px 9px var(--sh-l);color:var(--acc);}
+/* as três frentes têm cor própria no menu */
+.nav button.navsec{font-weight:600;}
+/* CLIENTES: coluna estreita de trabalhos pequenos */
+.catwrap{display:block;}
+.catwrap.compq{display:grid;grid-template-columns:minmax(220px,270px) minmax(0,1fr);gap:26px;align-items:start;}
+.pqcol{display:none;}
+.catwrap.compq .pqcol{display:block;}
+@media(max-width:900px){.catwrap.compq{grid-template-columns:1fr;}}
+.pqhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.pqhead .sec{margin:0;}
+.pqgrp{border-radius:14px;padding:8px 8px 6px;margin-bottom:12px;min-height:38px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
+.pqgrp.over{box-shadow:inset 0 0 0 1.5px var(--acc2),inset 2px 2px 6px var(--sh-d);}
+.pqh{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);margin:2px 4px 6px;}
+.pqrow{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:10px;cursor:pointer;background:var(--bg);box-shadow:2px 2px 5px var(--sh-d),-2px -2px 5px var(--sh-l);margin-bottom:6px;}
+.pqrow:hover{color:var(--acc);}
+.pqrow.dragging{opacity:.4;}
+.pqn{flex:1;min-width:0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pqm{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);white-space:nowrap;}
+.nav button.ns-cli,.nav button.ns-cli.on{color:#C74A3C;}
+.nav button.ns-int,.nav button.ns-int.on{color:#D98A2B;}
+.nav button.ns-rec,.nav button.ns-rec.on{color:#9B7BC0;}
 
 /* icon buttons */
 .btn{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-family:'Inter',sans-serif;font-size:11.5px;padding:9px 16px;border-radius:12px;box-shadow:4px 4px 8px var(--sh-d),-5px -5px 10px var(--sh-l);display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
@@ -915,15 +954,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="nav" id="nav">
   <button data-v="HOJE" class="on">Home</button>
   <button data-v="AGENDA">Agenda</button>
-  <button data-v="RIMA">Rima</button>
-  <button data-v="COMERCIAL">Comercial</button>
+  <button data-v="RIMA" class="navsec ns-cli">Clientes</button>
+  <button data-v="COMERCIAL" class="navsec ns-int">Interno</button>
+  <button data-v="REC" class="navsec ns-rec">Rec</button>
   <button data-v="REDES">Redes</button>
   <button data-v="TAREFAS">Tarefas</button>
   <button data-v="GESTAO">Gestão</button>
   <button data-v="REGISTOS">Registos</button>
   <button data-v="SERVICOS">Serviços</button>
-  <button data-v="MUSICA">Música</button>
-  <button data-v="ARTE">Arte</button>
   <button data-v="CASA">Casa</button>
 </div>
 
@@ -949,7 +987,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
     <div class="hcol" data-col="1">
       <div id="hMetas" data-box="objectivos"></div>
       <div class="card hcard" data-box="adjudicar"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>por adjudicar</h5><div id="hAdj"></div></div>
-      <div class="card hcard" data-box="pessoais"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>casa · arte · música</h5><div id="hOutras"></div></div>
+      <div class="card hcard" data-box="pessoais"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>rec · casa</h5><div id="hOutras"></div></div>
       <div id="hSoltas" data-box="soltas"></div>
       <div class="card hcard" data-box="registo"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>registo de hoje</h5><div id="hReg"></div></div>
     </div>
@@ -1033,6 +1071,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ CATEGORIAS (montra) ============ -->
 <div class="view" id="v-CAT">
+ <div class="catwrap" id="catWrap">
+  <aside class="pqcol" id="pqCol"></aside>
+  <div class="catmain">
   <div id="catNovo" style="margin-bottom:16px"></div>
   <div id="pFixos"></div>
   <h2 class="sec">Prioridade alta</h2>
@@ -1042,6 +1083,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <h2 class="sec">Prioridade baixa</h2>
   <div class="pgrid pzone" id="pGridBaixa" data-pri="1"></div>
   <div id="arqWrap" style="margin-top:10px"></div>
+  </div>
+ </div>
 </div>
 
 <!-- ============ GESTÃO ============ -->
@@ -1063,6 +1106,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ MODAL DE PROJECTO ============ -->
 <div id="syncAviso"></div>
+<div id="janDock"></div>
 
 <div id="timerBar"></div>
 
@@ -1082,8 +1126,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
  </div>
 </div>
 
-<div class="ovl" id="notaOvl">
- <div class="modal card" style="max-width:760px">
+<div class="ovl janela" id="notaOvl">
+ <div class="modal card">
+  <div class="janbar" data-jan="notaOvl"><span class="jangrip">⠿⠿</span><span class="jantit" id="notaJanTit">nota</span><button class="ico" title="Minimizar" data-janmin="notaOvl">–</button></div>
   <div class="mhead">
    <h3 id="notaTit" contenteditable></h3>
    <span style="display:flex;gap:6px">
@@ -1146,7 +1191,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v20/10 20:30</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/10 12:30</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1161,8 +1206,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
  </div>
 </div>
 
-<div class="ovl" id="pOvl">
+<div class="ovl janela" id="pOvl">
  <div class="modal card">
+  <div class="janbar" data-jan="pOvl"><span class="jangrip">⠿⠿</span><span class="jantit" id="pJanTit">projecto</span><button class="ico" title="Minimizar" data-janmin="pOvl">–</button></div>
   <div class="mhead">
    <h3 id="mName"></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeP()" title="Fechar">✕</button>
@@ -1236,7 +1282,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <div class="view" id="v-COMERCIAL">
   <div id="cmFixos"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Projectos comerciais<button class="ico" style="width:28px;height:28px" title="Novo projecto comercial" onclick="novoProjComercial()">＋</button></h2>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Projectos internos<button class="ico" style="width:28px;height:28px" title="Novo projecto interno" onclick="novoProjComercial()">＋</button></h2>
   <h2 class="sec">Prioridade alta</h2>
   <div class="pgrid pzone" id="cmGridAlta" data-cpri="3"></div>
   <h2 class="sec">Prioridade média</h2>
@@ -1277,7 +1323,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div id="inboxList"></div>
     </div>
     <div class="filters">
-      <select id="fCat"><option value="">todas categorias</option><option>RIMA</option><option>COMERCIAL</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
+      <select id="fCat"><option value="">todas categorias</option><option value="RIMA">CLIENTES</option><option value="COMERCIAL">INTERNO</option><option value="REC">REC</option><option value="CASA">CASA</option></select>
       <select id="fProj"><option value="">todos projectos</option></select>
       <select id="fEst"><option value="">ativas</option><option value="ativa">ativa</option><option>em espera</option><option>concluída</option><option value="*">todas</option></select>
       <select id="fOrd"><option value="data">ordenar: data</option><option value="manual">ordenar: manual</option></select>
@@ -1288,7 +1334,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
    <div class="cal card" id="calBox"></div>
   </div>
   <div class="addrow">
-    <select id="nCat"><option>RIMA</option><option>COMERCIAL</option><option>MUSICA</option><option>ARTE</option><option>CASA</option></select>
+    <select id="nCat"><option value="RIMA">CLIENTES</option><option value="COMERCIAL">INTERNO</option><option value="REC">REC</option><option value="CASA">CASA</option></select>
     <input id="nProj" placeholder="projecto" style="min-width:110px" />
     <input id="nTit" class="g2" placeholder="nova tarefa" />
     <input id="nData" type="date" />
@@ -1374,13 +1420,13 @@ ROTINA: manhã=trabalho profundo de cliente; tarefas administrativas/leves à ta
   P("ait","RIMA","AI tools",{p:1}),
   P("fast","RIMA","Fastart",{p:1}),
   P("inbox","RIMA","Inbox",{p:1}),
-  P("mono","MUSICA","Monofobia"),
-  P("diab","MUSICA","Diabra"),
+  P("mono","REC","Monofobia"),
+  P("diab","REC","Diabra"),
   P("kat","RIMA","Livro Composições Katerina",{cl:1,m:"studio",e:"em espera",p:3}),
-  P("treino","ARTE","Treino",{p:1}),
-  P("ilus","ARTE","Ilustrações",{p:1}),
-  P("mald","ARTE","Livro Maldade",{e:"em espera",p:1}),
-  P("port","ARTE","Portefólio Esteves Corga",{p:1}),
+  P("treino","REC","Treino",{p:1}),
+  P("ilus","REC","Ilustrações",{p:1}),
+  P("mald","REC","Livro Maldade",{e:"em espera",p:1}),
+  P("port","REC","Portefólio Esteves Corga",{p:1}),
   P("casa","CASA","Casa",{p:1}),
   P("fam","CASA","Família"),
   P("pess","CASA","Pessoal",{p:1})
@@ -1399,11 +1445,11 @@ ROTINA: manhã=trabalho profundo de cliente; tarefas administrativas/leves à ta
   T("RIMA","Fios e Desafios",[["Recapitular, testar","2026-07-20"]]),
   T("RIMA","A Lata Daquela",[["Repensar e reunir com Maria"]]),
   T("RIMA","Sistema comercial",[["Importar calendário comercial (GOTEN) para o Drive"]]),
-  T("MUSICA","Monofobia",[["Reflexão IA Monofobia"],["Alterações set estúdio: violino"]]),
-  T("MUSICA","Diabra",[["Rider técnico"],["Fotos banda"],["Arranjar conceito — brand"],["Completar EP caseiro"],["Enviar coisas ao Matias"],["CONCERTO"]]),
-  T("ARTE","Treino",[["AI tools (Claude / Google AI tools for design)"],["Blender"],["Ilustração ao vivo"],["Livro de ilustração"],["Vídeos Sinix"]]),
-  T("ARTE","Ilustrações",[["Reflexão Sr. Tb"],["Ilustração Tilita e Dadinho"]]),
-  T("ARTE","Portefólio Esteves Corga",[["Website portefólio pessoal ilustração"]]),
+  T("REC","Monofobia",[["Reflexão IA Monofobia"],["Alterações set estúdio: violino"]]),
+  T("REC","Diabra",[["Rider técnico"],["Fotos banda"],["Arranjar conceito — brand"],["Completar EP caseiro"],["Enviar coisas ao Matias"],["CONCERTO"]]),
+  T("REC","Treino",[["AI tools (Claude / Google AI tools for design)"],["Blender"],["Ilustração ao vivo"],["Livro de ilustração"],["Vídeos Sinix"]]),
+  T("REC","Ilustrações",[["Reflexão Sr. Tb"],["Ilustração Tilita e Dadinho"]]),
+  T("REC","Portefólio Esteves Corga",[["Website portefólio pessoal ilustração"]]),
   T("CASA","Casa",[["Ir a casa da Teresa quando for a Lisboa"],["Arrumar cozinha"],["Limpeza à casa"],["Reflexão IA sobre artista — reflexão pessoal"],["Massa nos buracos da casa (formigas)"],["Arrumar armário roupa"],["Caldeira"],["Limpar sala da música"],["Verificar chão da cozinha"],["Arranjos de músicas para tocar na escola"],["Melgas nas caixas de água?"],["Check pilhas afinadores"],["Montar bateria meninas"],["Arrumar um pouco lá em baixo"],["Acabar de conectar Intuos"]]),
   T("CASA","Família",[["Músicas concerto Margarida","2026-07-11"]]),
   T("CASA","Pessoal",[["Marcar cabeleireiro"]])
@@ -1671,7 +1717,14 @@ function applySnapshot(s){
  D=s.D;rot=(s.rot&&s.rot.data===hoje())?s.rot:null;docs=s.docs||[];news=s.news||[];
  agenda=s.agenda||null;mail=s.mail||null;pausas=s.pausas||null;trk=s.trk||{};
  normalizarAniversarios();
+ migrarCategoriasREC();
  return true;
+}
+// ARTE e MÚSICA passaram a ser uma só frente: REC (Ricardo Esteves Corga).
+let migrouREC=false;
+function migrarCategoriasREC(){
+ const muda=x=>{if(x&&(x.categoria==="ARTE"||x.categoria==="MUSICA")){x.categoria="REC";migrouREC=true;}};
+ (D&&D.projectos||[]).forEach(muda);(D&&D.tarefas||[]).forEach(muda);(docs||[]).forEach(muda);
 }
 // O calendário "Aniversários" às vezes chega misturado com os eventos.
 // Tudo o que começa por "Aniversário"/"Aniversários:" passa para a lista de aniversários.
@@ -2605,7 +2658,7 @@ function rHome(){
  $("hUrg").querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
  // projectos: só os de cliente (os internos não ajudam a decidir o dia)
  const act=D.projectos.filter(p=>p.estado==="em curso");
- const cli=act.filter(p=>p.cliente);
+ const cli=act.filter(p=>p.cliente&&!p.pequeno);
  const linha=p=>{
   const dl=p.prazo?Math.ceil((new Date(p.prazo)-n)/864e5):null;
   return `<div class="hitem" data-op="${p.id}" style="cursor:pointer"><span style="color:${p.cor};font-weight:600">${esc(p.nome)}</span><span class="hm ${dl!==null&&dl<=2?"urg":""}">${dl!==null?dl+"d":""}</span></div>`;
@@ -2656,7 +2709,7 @@ function rHome(){
  if(ho){
   const outras=D.tarefas.filter(t=>{
    if(["arquivada","concluída","em espera"].includes(t.estado))return false;
-   if(!["CASA","ARTE","MUSICA"].includes(t.categoria))return false;
+   if(!["CASA","REC"].includes(t.categoria))return false;
    const dl=t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
    return (dl!==null&&dl<=14)||t.data===hoje();
   }).sort((a,b)=>(a.prazo||a.data||"9999").localeCompare(b.prazo||b.data||"9999")).slice(0,8);
@@ -2705,12 +2758,14 @@ function rCat(){
  const cn=$("catNovo");
  if(cn){
   cn.innerHTML=cat==="RIMA"
-   ?`<div class="hsub">projectos RIMA criam-se pelo chat (envolvem orçamento, pastas e contabilidade)</div>`
-   :`<button class="ico" title="Novo projecto em ${esc(cat)}" onclick="novoProjectoLocal()">＋</button>`;
+   ?`<button class="ico" title="Novo projecto de cliente" onclick="novoProjectoCliente(false)">＋</button>`
+   :`<button class="ico" title="Novo projecto em ${esc(catNome(cat))}" onclick="novoProjectoLocal()">＋</button>`;
  }
  const zonas=[["pGridAlta",3],["pGridMedia",2],["pGridBaixa",1]];
- const ativos=(D.projectos||[]).filter(p=>p.categoria===cat&&p.estado!=="arquivado"&&p.estado!=="concluído");
- const concluidos=(D.projectos||[]).filter(p=>p.categoria===cat&&(p.estado==="concluído"||p.estado==="arquivado"));
+ const ativos=(D.projectos||[]).filter(p=>p.categoria===cat&&!p.pequeno&&p.estado!=="arquivado"&&p.estado!=="concluído");
+ const concluidos=(D.projectos||[]).filter(p=>p.categoria===cat&&!p.pequeno&&(p.estado==="concluído"||p.estado==="arquivado"));
+ const cw=$("catWrap");if(cw)cw.classList.toggle("compq",cat==="RIMA");
+ if(cat==="RIMA")rPequenos();
  const ehFixo=p=>PROJECTOS_FIXOS.includes(p.id)||PROJECTOS_FIXOS.includes(p.nome);
  const fixos=ativos.filter(ehFixo);
  const todos=ativos.filter(x=>!ehFixo(x));
@@ -2808,6 +2863,76 @@ function rCat(){
   });
  });
 }
+let pqDrag=null,pqFeitosOpen=false;
+function rPequenos(){
+ const box=$("pqCol");if(!box)return;
+ const todos=(D.projectos||[]).filter(p=>p.categoria==="RIMA"&&p.pequeno);
+ const ativos=todos.filter(p=>p.estado!=="concluído"&&p.estado!=="arquivado");
+ const feitos=todos.filter(p=>p.estado==="concluído"||p.estado==="arquivado");
+ const linha=p=>{
+  const nums=(D.conta||[]).filter(r=>contaProjId(r)===p.id).map(r=>r[0]);
+  const ts=D.tarefas.filter(t=>t.categoria===p.categoria&&t.projecto===p.nome);
+  const done=ts.filter(t=>t.estado==="concluída").length;
+  const dl=p.prazo?Math.ceil((new Date(p.prazo)-new Date())/864e5):null;
+  const meta=[nums[0]||(p.registo?p.registo+"?":""),ts.length?`${done}/${ts.length}`:"",dl!==null?(dl<0?`${-dl}d atraso`:`${dl}d`):""].filter(Boolean).join(" · ");
+  return `<div class="pqrow" draggable="true" data-pq="${p.id}" title="${esc(p.nome)}"><i class="pdot" style="background:${p.cor||"var(--acc)"}"></i><span class="pqn">${esc(p.nome)}</span><span class="pqm${dl!==null&&dl<=2?" urg":""}">${esc(meta)}</span></div>`;
+ };
+ const grupos=[[3,"prioridade alta"],[2,"prioridade média"],[1,"prioridade baixa"]];
+ box.innerHTML=`<div class="pqhead"><h2 class="sec">Trabalhos pequenos</h2><button class="ico" style="width:26px;height:26px" title="Novo trabalho pequeno" onclick="novoProjectoCliente(true)">＋</button></div>`+
+  grupos.map(([pri,nm])=>{
+   const ps=ativos.filter(p=>(p.prioridade||2)===pri).sort((a,b)=>(a.ordem??999)-(b.ordem??999)||a.nome.localeCompare(b.nome));
+   return `<div class="pqgrp" data-pqpri="${pri}"><div class="pqh">${nm}</div>${ps.map(linha).join("")}</div>`;
+  }).join("")+
+  (feitos.length?`<div class="cgroup"><div class="cgrouph acc" id="pqFeitosAcc"><span class="accarr">${pqFeitosOpen?"▾":"▸"}</span>concluídos · ${feitos.length}</div><div class="cgbody" style="display:${pqFeitosOpen?"block":"none"};padding:8px 0">${feitos.map(linha).join("")}</div></div>`:"");
+ box.querySelectorAll("[data-pq]").forEach(r=>{
+  r.onclick=()=>openP(r.dataset.pq);
+  r.ondragstart=e=>{pqDrag=r.dataset.pq;r.classList.add("dragging");try{e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain",pqDrag);}catch(x){}};
+  r.ondragend=()=>{r.classList.remove("dragging");pqDrag=null;box.querySelectorAll(".pqgrp.over").forEach(g=>g.classList.remove("over"));};
+ });
+ box.querySelectorAll("[data-pqpri]").forEach(g=>{
+  g.ondragover=e=>{if(!pqDrag)return;e.preventDefault();g.classList.add("over");};
+  g.ondragleave=e=>{if(!g.contains(e.relatedTarget))g.classList.remove("over");};
+  g.ondrop=async e=>{
+   if(!pqDrag)return;e.preventDefault();g.classList.remove("over");
+   const p=D.projectos.find(x=>x.id===pqDrag);pqDrag=null;if(!p)return;
+   // posição: antes da linha mais próxima do ponto onde largou
+   const rows=[...g.querySelectorAll("[data-pq]")].filter(x=>x.dataset.pq!==p.id);
+   let idx=rows.length;
+   for(let i=0;i<rows.length;i++){const rr=rows[i].getBoundingClientRect();if(e.clientY<rr.top+rr.height/2){idx=i;break;}}
+   p.prioridade=+g.dataset.pqpri;
+   const ids=rows.map(x=>x.dataset.pq);ids.splice(idx,0,p.id);
+   ids.forEach((id,i)=>{const q=D.projectos.find(x=>x.id===id);if(q)q.ordem=i;});
+   await save();rPequenos();
+  };
+ });
+ const fa=$("pqFeitosAcc");if(fa)fa.onclick=()=>{pqFeitosOpen=!pqFeitosOpen;rPequenos();};
+}
+// criar projecto de cliente (normal ou pequeno). O cruzamento com os registos é feito no sync.
+async function novoProjectoCliente(pequeno){
+ const r=await pedir({titulo:pequeno?"Novo trabalho pequeno":"Novo projecto de cliente",sub:"Liga ao registo se já existir; o sync confirma o resto.",campos:[
+  {tipo:"texto",nome:"nome",label:"nome do projecto"},
+  {tipo:"texto",nome:"reg",label:"nº de registo (opcional)",ph:"ex: 26_051"},
+  {tipo:"escolha",nome:"tipo",label:"tipo",valor:pequeno?"pequeno":"normal",opcoes:[{v:"normal",txt:"projecto"},{v:"pequeno",txt:"trabalho pequeno"}]}
+ ]});
+ if(!r||!r.nome||!r.nome.trim())return;
+ const nm=r.nome.trim();
+ if((D.projectos||[]).some(p=>p.categoria==="RIMA"&&p.nome.toLowerCase()===nm.toLowerCase())){setSt("já existe um projecto com esse nome");return;}
+ const id=nm.toLowerCase().normalize("NFD").replace(/[^a-z0-9]/g,"").slice(0,8)+Date.now().toString().slice(-4);
+ const usadas=new Set((D.projectos||[]).map(p=>p.cor));
+ const cor=PAL_LOCAL.find(c=>!usadas.has(c))||PAL_LOCAL[Math.floor(Math.random()*PAL_LOCAL.length)];
+ const num=(r.reg||"").trim().replace(/\s+/g,"");
+ const pj={id,categoria:"RIMA",nome:nm,estado:"em curso",cliente:true,pequeno:r.tipo==="pequeno",marca:"studio",
+  prioridade:2,inicio:hoje(),prazo:null,horasPrevistas:null,horasGastas:0,orcamento:null,adjudicado:true,cor,gastos:[]};
+ let ligado=false;
+ if(num){
+  const reg=(D.conta||[]).find(x=>x[0]===num);
+  if(reg&&!contaProjId(reg)){reg[14]=id;ligado=true;}
+  else pj.registo=num;
+ }
+ D.projectos.push(pj);
+ await save();rCat();rHome();
+ setSt(ligado?`criado e ligado a ${num}`:num?`criado; ${num} ainda não está nos registos`:"criado");
+}
 let inboxDoneOpen=false;
 function rInbox(){
  const el=$("inboxList");if(!el)return;
@@ -2846,21 +2971,22 @@ function estimativaHoje(){
 const BALDES={
  clientes:{n:"clientes",cor:"#3AAFA9",d:"trabalho faturável"},
  comercial:{n:"comercial",cor:"#C77B3C",d:"prospeção, propostas, visibilidade"},
- marca:{n:"marca & lab",cor:"#6B92E5",d:"RIMA lab, RIMA studio, autoral"},
+ marca:{n:"marca & lab",cor:"#6B92E5",d:"RIMA lab, RIMA studio"},
+ rec:{n:"REC · artista",cor:"#8B6BB1",d:"projecto artístico: ilustração autoral, música"},
  organizacao:{n:"organização & burocracia",cor:"#A87CA8",d:"estúdio, admin, papelada"},
  formacao:{n:"formação",cor:"#7FA88B",d:"estudo e cursos"},
  imprevistos:{n:"imprevistos & pessoal",cor:"#C74A3C",d:"imprevistos, saúde, deslocações"},
- pessoal:{n:"casa & música",cor:"#94A83C",d:"projectos pessoais"},
+ pessoal:{n:"casa",cor:"#94A83C",d:"projectos de casa"},
  outros:{n:"geral",cor:"#9A9CA5",d:"inbox e sem categoria"}
 };
-const ORDEM_BALDES=["clientes","comercial","marca","organizacao","formacao","imprevistos","pessoal","outros"];
+const ORDEM_BALDES=["clientes","comercial","marca","rec","organizacao","formacao","imprevistos","pessoal","outros"];
 const BALDES_ANTIGOS={estrutura:"organizacao",pessoal:"imprevistos",desenvolvimento:"formacao",cliente:"clientes"};
 function baldeDe(nome){
  const pj=(D.projectos||[]).find(p=>p.nome===nome);
  if(pj){
   if(pj.categoria==="COMERCIAL")return "comercial";
-  if(pj.categoria==="CASA"||pj.categoria==="MUSICA")return "pessoal";
-  if(pj.categoria==="ARTE")return "marca";
+  if(pj.categoria==="CASA")return "pessoal";
+  if(pj.categoria==="REC")return "rec";
   if(pj.cliente)return "clientes";
   if(pj.nome==="Inbox")return "outros";
   return "marca";
@@ -3554,7 +3680,7 @@ function rProjComerciais(){
 }
 let cmDragId=null;
 async function novoProjComercial(){
- const r=await pedir({titulo:"Novo projecto comercial",campos:[{tipo:"texto",nome:"nome",label:"nome do projecto"}]});
+ const r=await pedir({titulo:"Novo projecto interno",campos:[{tipo:"texto",nome:"nome",label:"nome do projecto"}]});
  if(!r||!r.nome||!r.nome.trim())return;
  const CORES=["#C74A3C","#3AAFA9","#7FA88B","#C77B3C","#6B92E5","#A87CA8","#94A83C"];
  D.projectos.push({id:"cm"+Date.now(),categoria:"COMERCIAL",nome:r.nome.trim(),estado:"em curso",
@@ -3814,11 +3940,11 @@ function copiarNotas(){
  setTimeout(()=>{if($("nStatus"))$("nStatus").textContent="";},1600);
 }
 
-/* ============ novo projecto local (CASA / ARTE / MUSICA) ============ */
+/* ============ novo projecto local (REC / CASA) ============ */
 const PAL_LOCAL=["#C74A3C","#3AAFA9","#D99A3C","#6B92E5","#A87CA8","#7FA88B","#B85C7A","#5C8AA8","#8A7B63","#6E8F5A","#7A3C8F","#4AA3C7"];
 async function novoProjectoLocal(){
  if(!cat||cat==="RIMA")return;
- const r=await pedir({titulo:`Novo projecto em ${cat}`,campos:[{tipo:"texto",nome:"nome",label:"nome do projecto"}]});
+ const r=await pedir({titulo:`Novo projecto em ${catNome(cat)}`,campos:[{tipo:"texto",nome:"nome",label:"nome do projecto"}]});
  if(!r)return;const nome=r.nome;
  if(!nome||!nome.trim())return;
  const nm=nome.trim();
@@ -4226,19 +4352,94 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("change",e=>{if(e.target.id==="fMesD"){mesDAtual=e.target.value;rDesp();}});
 
+/* ============ janelas flutuantes (ficha e notas) ============ */
+// Não bloqueiam a página: arrastam-se pela barra de cima, minimizam para a doca
+// em baixo à esquerda, e a que se clica passa para a frente.
+const JANELAS=["pOvl","notaOvl"];
+const janPos={};
+function alturaHeader(){const h=document.querySelector(".head");return h&&getComputedStyle(h).position==="sticky"?h.getBoundingClientRect().bottom:0;}
+function actualizarHeadH(){document.documentElement.style.setProperty("--headH",Math.round(alturaHeader())+"px");}
+window.addEventListener("resize",actualizarHeadH);
+function posicionarJanela(id){
+ const o=$(id),m=o&&o.querySelector(".modal");if(!m)return;
+ const topoMin=Math.round(alturaHeader())+12;
+ let pos=janPos[id];
+ if(!pos){
+  const w=Math.min(id==="pOvl"?1120:760,window.innerWidth-32);
+  let x=Math.round((window.innerWidth-w)/2),y=topoMin;
+  // se a outra janela já está aberta, desloca um pouco para não ficar exactamente por cima
+  const outra=JANELAS.find(j=>j!==id&&$(j).classList.contains("on"));
+  if(outra){x+=40;y+=36;}
+  pos={x,y};
+ }
+ pos.x=Math.max(8-(m.offsetWidth||300)+120,Math.min(pos.x,window.innerWidth-120));
+ pos.y=Math.max(topoMin,Math.min(pos.y,window.innerHeight-60));
+ janPos[id]=pos;
+ m.style.setProperty("--jx",pos.x+"px");m.style.setProperty("--jy",pos.y+"px");
+}
+function trazerFrente(id){
+ JANELAS.forEach(j=>{const o=$(j);if(!o)return;const f=j===id;o.style.zIndex=f?62:61;o.classList.toggle("frente",f);});
+}
+function janelaDaFrente(){
+ const ab=JANELAS.filter(j=>{const o=$(j);return o&&o.classList.contains("on")&&!o.classList.contains("min");});
+ return ab.sort((a,b)=>(+$(b).style.zIndex||0)-(+$(a).style.zIndex||0))[0]||null;
+}
+function abrirJanela(id){
+ actualizarHeadH();
+ const o=$(id);const novo=!o.classList.contains("on");
+ o.classList.remove("min");o.classList.add("on");
+ if(novo)delete janPos[id];
+ posicionarJanela(id);trazerFrente(id);rDoca();
+}
+function fecharJanela(id){const o=$(id);if(!o)return;o.classList.remove("on","min");rDoca();}
+function tituloJanela(id){
+ if(id==="pOvl"){const p=(D.projectos||[]).find(x=>x.id===mP);return p?p.nome:"projecto";}
+ const t=$("notaTit");return (t&&t.textContent.trim())||"nota";
+}
+function rDoca(){
+ JANELAS.forEach(j=>{const t=$(j==="pOvl"?"pJanTit":"notaJanTit");if(t)t.textContent=(j==="pOvl"?"projecto · ":"nota · ")+tituloJanela(j);});
+ const d=$("janDock");if(!d)return;
+ const mins=JANELAS.filter(j=>$(j).classList.contains("on")&&$(j).classList.contains("min"));
+ d.innerHTML=mins.map(j=>`<button class="dockchip" data-janrest="${j}" title="Abrir">${j==="pOvl"?"▢ ":"✎ "}${esc(tituloJanela(j))}</button>`).join("");
+ d.querySelectorAll("[data-janrest]").forEach(b=>b.onclick=()=>{const j=b.dataset.janrest;$(j).classList.remove("min");posicionarJanela(j);trazerFrente(j);rDoca();});
+}
+JANELAS.forEach(id=>{
+ const o=$(id),m=o.querySelector(".modal"),bar=o.querySelector(".janbar");
+ m.addEventListener("pointerdown",()=>trazerFrente(id),true);
+ o.querySelector("[data-janmin]").onclick=e=>{e.stopPropagation();o.classList.add("min");rDoca();};
+ let arr=null;
+ bar.addEventListener("pointerdown",e=>{
+  if(e.target.closest("button"))return;
+  arr={dx:e.clientX-(janPos[id]||{x:0}).x,dy:e.clientY-(janPos[id]||{y:0}).y};
+  bar.setPointerCapture(e.pointerId);e.preventDefault();
+ });
+ bar.addEventListener("pointermove",e=>{
+  if(!arr)return;
+  janPos[id]={x:e.clientX-arr.dx,y:e.clientY-arr.dy};posicionarJanela(id);
+ });
+ const solta=()=>{arr=null;};
+ bar.addEventListener("pointerup",solta);bar.addEventListener("pointercancel",solta);
+});
+window.addEventListener("resize",()=>JANELAS.forEach(j=>{if($(j).classList.contains("on"))posicionarJanela(j);}));
+
 /* ============ modal de projecto ============ */
 let mP=null;
-function openP(id){mP=id;sel=null;renderP();$("pOvl").classList.add("on");}
+function openP(id){mP=id;sel=null;renderP();abrirJanela("pOvl");}
 function closeP(){
- mP=null;sel=null;ttsStop();$("pOvl").classList.remove("on");
+ mP=null;sel=null;ttsStop();fecharJanela("pOvl");
  // redesenhar para as alterações de estado/prioridade aparecerem já na secção certa
  rAll();
  if(cat)rCat();
  if($("v-COMERCIAL").classList.contains("on"))rEstrategia();
 }
-$("pOvl").addEventListener("click",e=>{if(e.target.id==="pOvl")closeP();});
 $("askPanel").addEventListener("click",e=>{if(e.target.id==="askPanel")askPanelClose();});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&mP)closeP();});
+// Escape fecha só a janela da frente
+document.addEventListener("keydown",e=>{
+ if(e.key!=="Escape")return;
+ if(document.querySelector("#inpOvl.on,#confOvl.on,#metaOvl.on,#nOvl.on,#casaOvl.on,#lightOvl.on,#rotOvl.on"))return;
+ const top=janelaDaFrente();
+ if(top==="notaOvl")fecharNota();else if(top==="pOvl"&&mP)closeP();
+});
 $("mNew").addEventListener("keydown",e=>{if(e.key==="Enter")mAdd();});
 function renderP(){
  const p=D.projectos.find(x=>x.id===mP);if(!p)return;
@@ -4273,6 +4474,7 @@ function renderP(){
  $("mEdit").innerHTML=`
    <label><input type="checkbox" data-pf="cliente" ${p.cliente?"checked":""}/>cliente</label>
    <label><input type="checkbox" data-pf="adjudicado" ${p.adjudicado!==false?"checked":""}/>adjudicado</label>
+   ${p.categoria==="RIMA"?`<label><input type="checkbox" data-pf="pequeno" ${p.pequeno?"checked":""}/>trabalho pequeno</label>`:""}
    <label>marca <select data-pf="marca">${["","studio","lab"].map(m=>`<option value="${m}" ${(p.marca||"")===m?"selected":""}>${m||"—"}</option>`).join("")}</select></label>
    <label>prioridade <select data-pf="prioridade">${[1,2,3].map(n=>`<option value="${n}" ${p.prioridade===n?"selected":""}>${pr[n]}</option>`).join("")}</select></label>
    <label>estado <select data-pf="estado">${["em curso","em espera","concluído","arquivado"].map(s=>`<option ${p.estado===s?"selected":""}>${s}</option>`).join("")}</select></label>
@@ -4281,6 +4483,7 @@ function renderP(){
  $("mEdit").querySelectorAll("[data-pf]").forEach(el=>el.addEventListener("change",async()=>{
   const f=el.dataset.pf;
   if(f==="cliente")p.cliente=el.checked;
+  else if(f==="pequeno")p.pequeno=el.checked;
   else if(f==="adjudicado"){
    const antes=p.adjudicado;p.adjudicado=el.checked;
    if(el.checked&&antes===false)ask(`O projecto "${p.nome}" foi adjudicado. Cria agora a estrutura Drive (WORK, RECEBIDO, PARTILHADO, PROPOSTAS AI), o ficheiro de orçamento em PARTILHADO, atualiza a contabilidade para ATIVO, e propõe documentos de arranque em PROPOSTAS AI.`);
@@ -4421,8 +4624,12 @@ const MARCAS={
  COMERCIAL:'<path d="m12 2 2.9 6.3 6.8.8-5 4.7 1.3 6.7L12 17.3 6 20.5l1.3-6.7-5-4.7 6.8-.8Z"/>',
  CASA:'<path d="M12 2.6 2.5 10.4V21a1 1 0 0 0 1 1h5.2v-6.4h6.6V22h5.2a1 1 0 0 0 1-1V10.4Z"/>',
  MUSICA:'<path d="M20 2.2 9.4 4.6v11.7a3.4 3.4 0 1 0 2 3.1V9.1l8.6-2v6a3.4 3.4 0 1 0 2 3.1Z"/>',
- ARTE:'<path d="M20.9 3.1a2.1 2.1 0 0 0-3 0l-1.7 1.7 3 3 1.7-1.7a2.1 2.1 0 0 0 0-3ZM14.8 6.2 3 18v3h3L17.8 9.2Z"/>'
+ ARTE:'<path d="M20.9 3.1a2.1 2.1 0 0 0-3 0l-1.7 1.7 3 3 1.7-1.7a2.1 2.1 0 0 0 0-3ZM14.8 6.2 3 18v3h3L17.8 9.2Z"/>',
+ REC:'<path d="M20.9 3.1a2.1 2.1 0 0 0-3 0l-1.7 1.7 3 3 1.7-1.7a2.1 2.1 0 0 0 0-3ZM14.8 6.2 3 18v3h3L17.8 9.2Z"/>'
 };
+// nomes das secções como aparecem no ecrã (a chave interna continua igual)
+const CAT_NOME={RIMA:"CLIENTES",COMERCIAL:"INTERNO",REC:"REC",CASA:"CASA"};
+const catNome=c=>CAT_NOME[c]||c;
 function pmark(t){
  const cor=pcor(t);
  if(t.danger)
@@ -5255,7 +5462,7 @@ function rDocs(){
 }
 function rNotaProj(d){
  const box=$("notaProj");if(!box)return;
- const ordem=["RIMA","COMERCIAL","ARTE","MUSICA","CASA"];
+ const ordem=["RIMA","COMERCIAL","REC","CASA"];
  const projs=(D.projectos||[]).filter(p=>p.estado!=="arquivado")
   .sort((a,b)=>{
    const ia=ordem.indexOf(a.categoria),ib=ordem.indexOf(b.categoria);
@@ -5263,7 +5470,7 @@ function rNotaProj(d){
   });
  box.innerHTML=`<label class="trkfl" style="display:block;margin-bottom:5px">projecto</label>
   <select class="pin" id="notaProjSel" style="width:100%">
-   ${projs.map(p=>`<option value="${esc(p.nome)}" ${d.projecto===p.nome?"selected":""}>${esc(p.categoria)} · ${esc(p.nome)}</option>`).join("")}
+   ${projs.map(p=>`<option value="${esc(p.nome)}" ${d.projecto===p.nome?"selected":""}>${esc(catNome(p.categoria))} · ${esc(p.nome)}</option>`).join("")}
   </select>`;
  $("notaProjSel").addEventListener("change",async e=>{
   const pj=(D.projectos||[]).find(p=>p.nome===e.target.value);
@@ -5286,14 +5493,14 @@ function abrirDoc(id){
  $("notaBody").contentEditable=!d.img;
  $("notaSave").textContent="";
  rNotaProj(d);
- $("notaOvl").classList.add("on");
+ abrirJanela("notaOvl");
  bindEditor($("notaOvl"),gravarNota);
  $("notaTit").onblur=gravarNota;
  $("notaBody").onblur=gravarNota;
  $("notaDel").onclick=()=>{
   confirmar("Arquivar documento?",d.titulo,async()=>{
    d.arquivado=true;notaCtx=null;await saveDocs();
-   $("notaOvl").classList.remove("on");rDocs();
+   fecharJanela("notaOvl");rDocs();
   });
  };
 }
@@ -5386,7 +5593,7 @@ function rCaderno(chave){
 let notaCtx=null;
 function fecharNota(){
  gravarNota();
- $("notaOvl").classList.remove("on");
+ fecharJanela("notaOvl");
  if(notaCtx){
   if(notaCtx.tipo==="doc"){ if($("dBox"))rDocs(); if($("docsProj"))rDocsProjectos(); }
   else rCaderno(notaCtx.chave);
@@ -5405,6 +5612,7 @@ async function gravarNota(){
  if(t)n.titulo=t;
  n.html=b.innerHTML;n.corpo=b.innerText;
  if(notaCtx.tipo==="doc")await saveDocs(); else await save();
+ try{rDoca();}catch(e){}
  const s=$("notaSave");
  if(s){s.textContent="gravado";setTimeout(()=>{if($("notaSave"))$("notaSave").textContent="";},1500);}
 }
@@ -5416,7 +5624,7 @@ function abrirNota(chave,id){
  $("notaBody").innerHTML=n.html||esc(n.corpo||"");
  $("notaSave").textContent="";
  $("notaProj").innerHTML="";
- $("notaOvl").classList.add("on");
+ abrirJanela("notaOvl");
  const modal=$("notaOvl");
  bindEditor(modal,gravarNota);
  $("notaTit").onblur=gravarNota;
@@ -5425,12 +5633,12 @@ function abrirNota(chave,id){
   confirmar("Apagar nota?",n.titulo,async()=>{
    D[chave]=D[chave].filter(x=>x.id!==id);
    notaCtx=null;await save();
-   $("notaOvl").classList.remove("on");
+   fecharJanela("notaOvl");
    rCaderno(chave);
   });
  };
 }
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("notaOvl").classList.contains("on"))fecharNota();});
+
 async function addNota(chave){
  const r=await pedir({titulo:"Nova nota",campos:[{tipo:"texto",nome:"t",label:"título"}]});
  if(!r)return;const t=r.t;
@@ -5444,7 +5652,7 @@ function addNotaRima(){addNota("notasRima");}
 let docsProjOpen={};
 function rDocsProjectos(){
  const box=$("docsProj");if(!box)return;
- const ordem=["RIMA","COMERCIAL","ARTE","MUSICA","CASA"];
+ const ordem=["RIMA","COMERCIAL","REC","CASA"];
  // agrupar por projecto, dentro de cada categoria
  const projs=(D.projectos||[]).filter(p=>p.estado!=="arquivado");
  const porCat={};
@@ -5460,7 +5668,7 @@ function rDocsProjectos(){
   const grupos=porCat[c].sort((a,b)=>a.p.nome.localeCompare(b.p.nome));
   const total=grupos.reduce((s,g)=>s+g.arr.length,0);
   const ab=docsProjOpen[c];
-  return `<div class="cgroup"><div class="cgrouph acc" data-dpcat="${c}"><span class="accarr">${ab?"▾":"▸"}</span>${esc(c)} · ${total}</div>
+  return `<div class="cgroup"><div class="cgrouph acc" data-dpcat="${c}"><span class="accarr">${ab?"▾":"▸"}</span>${esc(catNome(c))} · ${total}</div>
    <div class="cgbody" style="display:${ab?"block":"none"};padding:10px 12px">
     ${grupos.map(g=>`<div class="dropzona" data-zproj="${esc(g.p.nome)}">
       <div class="zonah"><i class="pdot" style="background:${g.p.cor||"var(--soft)"}"></i>${esc(g.p.nome)}</div>
@@ -5740,11 +5948,11 @@ $("nav").addEventListener("click",e=>{
  b.classList.add("on");
  const v=b.dataset.v;
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
- if(["RIMA","MUSICA","ARTE","CASA"].includes(v)){
+ if(["RIMA","REC","CASA"].includes(v)){
   cat=v;document.body.dataset.theme=v==="RIMA"?"HOJE":v;
   $("v-CAT").classList.add("on");rCat();
  }else{
-  cat=null;document.body.dataset.theme="HOJE";
+  cat=null;document.body.dataset.theme=v==="COMERCIAL"?"COMERCIAL":"HOJE";
   $("v-"+v).classList.add("on");
   if(v==="TAREFAS"){rInbox();rGlobalTasks();rCal();}
   if(v==="AGENDA")rAgenda();
@@ -5756,13 +5964,14 @@ $("nav").addEventListener("click",e=>{
   if(v==="TRACKER")rTracker();
  }
 });
-function rAll(){if($("v-REDES")&&$("v-REDES").classList.contains("on")&&typeof rProntas==="function")rProntas();aplicarDark();rTimerBar();rSemaforo();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
+function rAll(){try{actualizarHeadH();}catch(e){}if($("v-REDES")&&$("v-REDES").classList.contains("on")&&typeof rProntas==="function")rProntas();aplicarDark();rTimerBar();rSemaforo();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
 let _booted=false;
 async function boot(){
  if(_booted)return;_booted=true;
  document.getElementById("gate").classList.add("hidden");
  try{ await load(); }catch(e){ return; }  // sem chave, load() mostra o ecrã próprio
  try{if(migrarTempoMarta())await save();}catch(e){}
+ try{if(migrouREC){migrouREC=false;await save();}}catch(e){}
  rAll();aCada(15000,tick);
 }
 // A entrada passa a validar a chave real contra o Worker, não no browser.
