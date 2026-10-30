@@ -829,6 +829,15 @@ body.paused #pauseTint{opacity:1;}
 .sbq{font-family:'IBM Plex Mono',monospace;font-size:8px;opacity:.75;flex-shrink:0;}
 .sbt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
 .sblk.trab .sbt{font-weight:600;font-size:8.5px;letter-spacing:.02em;white-space:normal;}
+.hojebox{max-height:none!important;overflow:visible!important;}
+.hojebox .sdcols{grid-template-columns:118px minmax(0,1fr);gap:12px;}
+.hojebox .sdcols.semrot{grid-template-columns:1fr;}
+.hojebox .stask{font-size:11.5px;min-height:0;padding:0;}
+.hojebox .wev,.hojebox .wt{font-size:11.5px;}
+.htask{display:flex;align-items:center;gap:7px;padding:4px 0;}
+.htask .htt{display:flex;align-items:center;gap:6px;flex:1;min-width:0;cursor:pointer;}
+.htask .htt>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sblk.agora{outline:2px solid var(--acc);outline-offset:-1px;color:var(--txt);}
 .sobjs{margin-top:10px;padding-top:6px;border-top:1px solid var(--line);}
 .sobjh{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);margin-bottom:3px;}
 .sobj{display:flex;justify-content:space-between;gap:4px;font-size:9.5px;color:var(--soft);padding:2px 0;}
@@ -1018,17 +1027,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ HOME ============ -->
 <div class="view on" id="v-HOJE">
+  <div id="homeAntigo" hidden>
+   <div id="hAniv"></div><div id="hAg"></div><div id="hMetas"></div>
+      <div class="card hcard" data-old="urgente"><h5 style="display:flex;justify-content:space-between;align-items:center"><span><span class="boxgrip" title="arrastar para reorganizar">⠿</span>urgente</span><span style="display:flex;gap:6px"><button class="ico" id="urgMais" style="width:22px;height:22px;font-size:11px" title="Ver todas" onclick="toggleUrgTodas()"></button><button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></span></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
+  </div>
   <div class="home">
     <div class="hcol" data-col="0">
       <div id="hDanger" data-box="danger"></div>
-      <div class="card hcard mini" data-box="aniv"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>aniversários</h5><div id="hAniv"></div></div>
-      <div class="card hcard" data-box="agenda"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>agenda</h5><div id="hAg"></div></div>
-      <div class="card hcard" data-box="urgente"><h5 style="display:flex;justify-content:space-between;align-items:center"><span><span class="boxgrip" title="arrastar para reorganizar">⠿</span>urgente</span><span style="display:flex;gap:6px"><button class="ico" id="urgMais" style="width:22px;height:22px;font-size:11px" title="Ver todas" onclick="toggleUrgTodas()"></button><button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></span></h5><div id="hUrg"></div><div id="hUrgMarta"></div></div>
+      <div class="card hcard hojebox" data-box="hoje"><h5 style="display:flex;justify-content:space-between;align-items:center"><span><span class="boxgrip" title="arrastar para reorganizar">⠿</span><span id="hHojeTit">hoje</span></span><button class="ico" style="width:22px;height:22px;font-size:12px" title="Tarefa rápida para hoje" onclick="addTarefaRapida()">+</button></h5><div id="hHoje"></div></div>
       <div class="card hcard" data-box="espera"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>em espera</h5><div id="hEspera"></div></div>
       <div class="card hcard" data-box="emails"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>emails</h5><div id="hMail"></div></div>
     </div>
     <div class="hcol" data-col="1">
-      <div id="hMetas" data-box="objectivos"></div>
       <div class="card hcard" data-box="adjudicar"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>por adjudicar</h5><div id="hAdj"></div></div>
       <div class="card hcard" data-box="pessoais"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>rec · casa</h5><div id="hOutras"></div></div>
       <div id="hSoltas" data-box="soltas"></div>
@@ -1234,7 +1244,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/10 15:40</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/10 15:55</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -2497,6 +2507,8 @@ let boxDrag=null;
 function aplicarLayoutHome(){
  const L=D.layoutHome;
  if(!L)return;
+ const todos=Object.values(L).flat();
+ if(!todos.includes("hoje")){const c=L["0"]||(L["0"]=[]);const i=c.indexOf("danger");c.splice(i>=0?i+1:0,0,"hoje");}
  document.querySelectorAll(".home .hcol").forEach(col=>{
   const ordem=L[col.dataset.col];
   if(!ordem)return;
@@ -2733,6 +2745,7 @@ function rHome(){
   }));
   hd.querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
  }
+ rHojeBox();
  rRegHoje();
  // ideias soltas vindas da Drive
  const hs=$("hSoltas");
@@ -5415,6 +5428,92 @@ function diasUteis(off){
  while(out.length<4){d.setDate(d.getDate()+1);if(!isFolga(d))out.push(new Date(d));}
  return out;
 }
+// coluna da rotina de um dia (agenda semanal e caixa "hoje" da Home)
+function colRotinaHTML(iso,px,marcarAgora){
+ const l=[...rotinaDia(iso)].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
+ const dia=String(dowISO(iso));
+ if(!l.length)return "";
+ const nAgora=marcarAgora?(()=>{const n=new Date();return n.getHours()*60+n.getMinutes();})():-1;
+ // blocos de trabalho com altura proporcional à duração; o resto fica compacto
+ return `<div class="srot" data-rotdia="${dia}">`+l.map((it,i)=>{
+  const m=min(it.q);if(m===null)return "";
+  const nx=i<l.length-1?min(l[i+1].q):m+30;
+  const a=it.area&&AREAS_ROT[it.area];
+  const h=a?Math.max(26,Math.round((nx-m)*px)):19;
+  const idx=(D.rotinaSemanal&&D.rotinaSemanal[dia]||[]).indexOf(it);
+  const cont=a&&/cont\./i.test(it.t);
+  const agora=nAgora>=m&&nAgora<nx;
+  return `<div class="sblk${a?" trab":""}${cont?" cont":""}${agora?" agora":""}" data-rotedit="${dia}|${idx}" style="height:${h}px;${a?`--ac:${a.cor};`:""}" title="${esc(it.q+" · "+it.t+(it.n?" · "+it.n:""))}"><span class="sbq">${esc(it.q)}</span><span class="sbt">${esc(cont?it.t.replace(/\s*\(cont\.\)/i,""):it.t)}</span></div>`;
+ }).join("")+`</div>`;
+}
+const MESES_N=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+// objectivos do mês (mais os do ano inteiro), recolhidos atrás de uma linha
+function objsMesHTML(m,aberto,attr){
+ const l=(D.metasAnuais||[]).filter(x=>x.mes===m||x.mes===0);
+ if(!l.length)return "";
+ const lin=x=>{const cs=typeof catsDe==="function"?catsDe(x):[];return `<div class="sobj"><span>${esc(x.titulo)}</span><span class="metaicons">${cs.map(k=>iconeCat(k,9)).join("")}</span></div>`;};
+ return `<div class="sobjs"><div class="sobjh" ${attr}="1" style="cursor:pointer">${aberto?"▾":"▸"} objectivos · ${MESES_N[m-1]} <span style="opacity:.6">(${l.length})</span></div>${aberto?l.map(lin).join(""):""}</div>`;
+}
+// caixa "hoje" da Home: o mesmo que o primeiro dia da agenda semanal, com tarefas para marcar
+let homeObjAberto=false;
+function rHojeBox(){
+ const box=$("hHoje");if(!box)return;
+ const n=new Date(),iso=hoje();
+ const nomes=["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+ if($("hHojeTit"))$("hHojeTit").textContent=`hoje · ${nomes[n.getDay()]} ${n.getDate()}`;
+ const ev=(agenda&&agenda.eventos)||[],anv=(agenda&&agenda.aniversarios)||[];
+ const fechada=t=>["arquivada","concluída"].includes(t.estado);
+ const quem=t=>(t.responsavel||"Ricardo");
+ const dias=t=>t.prazo?Math.ceil((new Date(t.prazo)-n)/864e5):null;
+ const ordem=D.ordemUrgente||[];
+ const ord=(a,b)=>{const ia=ordem.indexOf(a.id),ib=ordem.indexOf(b.id);if(ia!==-1&&ib!==-1)return ia-ib;if(ia!==-1)return -1;if(ib!==-1)return 1;return (a.prazo||"9999").localeCompare(b.prazo||"9999");};
+ const linha=(t,mostrarPrazo)=>{
+  const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
+  const dl=dias(t);
+  const lbl=mostrarPrazo&&dl!==null?(dl<0?`${-dl}d atraso`:dl===0?"hoje":`${dl}d`):"";
+  return `<div class="htask"><button class="hchk" data-hj="${t.id}" aria-label="concluir"></button><span class="htt" ${pid?`data-op="${pid}"`:`data-tedit="${t.id}"`}>${pmark(t)}<span>${esc(t.titulo)}</span></span>${lbl?`<span class="hm${dl!==null&&dl<=2?" urg":""}">${lbl}</span>`:""}</div>`;
+ };
+ const anivs=anv.filter(a=>a.data===iso);
+ const evs=ev.filter(e=>e.data===iso).sort((a,b)=>(a.h||"").localeCompare(b.h||""));
+ const prs=(D.prontas||[]).filter(x=>x.data===iso&&!x.arquivada);
+ const deHoje=D.tarefas.filter(t=>!fechada(t)&&t.estado!=="em espera"&&quem(t)!=="Marta"&&(t.data===iso||t.prazo===iso)).sort(ord);
+ // prazos próximos (14 dias ou atrasados) que não estão agendados para hoje
+ const proximos=D.tarefas.filter(t=>{
+  if(fechada(t)||t.estado==="em espera"||quem(t)==="Marta"||deHoje.includes(t))return false;
+  const dl=dias(t);return dl!==null&&dl<=14;
+ }).sort((a,b)=>(a.prazo||"").localeCompare(b.prazo||""));
+ const marta=D.tarefas.filter(t=>{
+  if(fechada(t)||t.estado==="em espera"||quem(t)!=="Marta")return false;
+  const dl=dias(t);return (dl!==null&&dl<=14)||t.data===iso;
+ }).sort((a,b)=>(a.prazo||"9999").localeCompare(b.prazo||"9999"));
+ const grupos=[
+  anivs.map(a=>`<div class="wev sanv">🎂 ${esc(a.nome)}</div>`).join(""),
+  evs.map(e=>`<div class="wev">${evmark()} ${e.h?`<b>${esc(e.h)}</b> `:""}${esc(e.t||"")}${e.quem?` <span class="wm">${esc(e.quem)}</span>`:""}</div>`).join(""),
+  prs.map(x=>`<div class="wt wpr" data-prag="${x.id}" title="${esc(x.conta)}">${prmark()}<span>${esc(x.titulo)}</span></div>`).join(""),
+  deHoje.map(t=>linha(t,!!t.prazo&&t.prazo!==iso)).join("")
+ ].filter(Boolean);
+ let tarefas=grupos.join(`<div class="ssep"></div>`)||`<div class="hsub">nada para hoje</div>`;
+ if(proximos.length)tarefas+=`<div class="sobjs"><div class="sobjh">prazos próximos · ${proximos.length}</div>${proximos.map(t=>linha(t,true)).join("")}</div>`;
+ if(marta.length)tarefas+=`<div class="sobjs"><div class="sobjh">Marta · ${marta.length}</div>${marta.map(t=>linha(t,true)).join("")}</div>`;
+ tarefas+=objsMesHTML(n.getMonth()+1,homeObjAberto,"data-hobj");
+ const agOk=!!(agenda&&(agenda.eventos||agenda.aniversarios));
+ const diasAg=agenda&&agenda.atualizado?Math.floor((new Date(iso)-new Date(agenda.atualizado))/864e5):999;
+ if(!agOk)tarefas+=`<div class="hsub" style="margin-top:8px;opacity:.6">agenda por atualizar</div>`;
+ else if(diasAg>=4)tarefas+=`<div class="hsub" style="margin-top:8px;opacity:.6">agenda recolhida há ${diasAg} dias</div>`;
+ const rotina=colRotinaHTML(iso,0.5,true);
+ box.innerHTML=`<div class="sdcols${rotina?"":" semrot"}">${rotina}<div class="stask">${tarefas}</div></div>`;
+ box.querySelectorAll("[data-hj]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();const t=D.tarefas.find(x=>x.id===b.dataset.hj);if(!t)return;t.estado="concluída";await save();rHome();rAll();
+ }));
+ box.querySelectorAll("[data-op]").forEach(e=>e.addEventListener("click",()=>openP(e.dataset.op)));
+ box.querySelectorAll("[data-tedit]").forEach(e=>e.addEventListener("click",()=>{
+  const t=D.tarefas.find(x=>x.id===e.dataset.tedit);
+  if(t)pedir({titulo:"Editar tarefa",campos:[{tipo:"texto",nome:"nv",label:"título",valor:t.titulo}]}).then(async r=>{if(r&&r.nv&&r.nv.trim()){t.titulo=r.nv.trim();await save();rHome();}});
+ }));
+ box.querySelectorAll("[data-rotedit]").forEach(b=>b.onclick=()=>{const [d,i]=b.dataset.rotedit.split("|");editarBlocoRotina(d,+i);});
+ box.querySelectorAll("[data-hobj]").forEach(h=>h.onclick=()=>{homeObjAberto=!homeObjAberto;rHojeBox();});
+ box.querySelectorAll("[data-prag]").forEach(el=>el.addEventListener("click",()=>{const b=document.querySelector('.nav [data-v="REDES"]');if(b)b.click();}));
+}
 function rSemanal(){
  const w=$("semWrap");if(!w)return;
  const dias=diasUteis(semOff);
@@ -5436,30 +5535,11 @@ function rSemanal(){
   ].filter(Boolean);
   return grupos.join(`<div class="ssep"></div>`)||`<div class="hsub" style="opacity:.5;min-height:40px">—</div>`;
  };
- const colRotina=d=>{
-  const iso=isoLocal(d);
-  const l=[...rotinaDia(iso)].sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
-  const dia=String(dowISO(iso));
-  if(!l.length)return "";
-  // blocos de trabalho com altura proporcional à duração; o resto fica compacto
-  return `<div class="srot" data-rotdia="${dia}">`+l.map((it,i)=>{
-   const m=min(it.q);if(m===null)return "";
-   const nx=i<l.length-1?min(l[i+1].q):m+30;
-   const a=it.area&&AREAS_ROT[it.area];
-   const h=a?Math.max(26,Math.round((nx-m)*ROT_PX)):19;
-   const idx=(D.rotinaSemanal&&D.rotinaSemanal[dia]||[]).indexOf(it);
-   const cont=a&&/cont\./i.test(it.t);
-   return `<div class="sblk${a?" trab":""}${cont?" cont":""}" data-rotedit="${dia}|${idx}" style="height:${h}px;${a?`--ac:${a.cor};`:""}" title="${esc(it.q+" · "+it.t+(it.n?" · "+it.n:""))}"><span class="sbq">${esc(it.q)}</span><span class="sbt">${esc(cont?it.t.replace(/\s*\(cont\.\)/i,""):it.t)}</span></div>`;
-  }).join("")+`</div>`;
- };
+ const colRotina=d=>colRotinaHTML(isoLocal(d),ROT_PX);
  const hj=hoje();
  const fim=dias[3];
  const titulo=`${ini.getDate()} ${ini.toLocaleDateString("pt-PT",{month:"short"}).replace(".","")} – ${fim.getDate()} ${fim.toLocaleDateString("pt-PT",{month:"short"}).replace(".","")}`;
- // objectivos dos meses que a semana toca, mais os do ano inteiro
- const MESN=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
- // objectivos do mês de cada dia, mais os do ano inteiro, no fim da coluna das tarefas
- const lin=x=>{const cs=typeof catsDe==="function"?catsDe(x):[];return `<div class="sobj"><span>${esc(x.titulo)}</span><span class="metaicons">${cs.map(k=>iconeCat(k,9)).join("")}</span></div>`;};
- const objsMes=m=>{const l=(D.metasAnuais||[]).filter(x=>x.mes===m||x.mes===0);return l.length?`<div class="sobjs"><div class="sobjh" data-semobj="1" style="cursor:pointer">${semObjAberto?"▾":"▸"} objectivos · ${MESN[m-1]} <span style="opacity:.6">(${l.length})</span></div>${semObjAberto?l.map(lin).join(""):""}</div>`:"";};
+ const objsMes=m=>objsMesHTML(m,semObjAberto,"data-semobj");
  const nav=$("agNav");
  if(nav){
   nav.innerHTML=`<button class="agnb" data-semnav="-1" title="4 dias úteis antes">‹</button><span class="semtit"${semOff?` data-semnav="0" title="Voltar a hoje" style="cursor:pointer;color:var(--acc)"`:""}>${esc(titulo)}</span><button class="agnb" data-semnav="1" title="4 dias úteis depois">›</button>`;
@@ -5537,7 +5617,7 @@ async function editarBlocoRotina(dia,idx){
  if(!r)return;
  const nome=(r.t||"").trim(),q=(r.q||"").trim();
  if(!nome){
-  if(it){lista.splice(idx,1);await save();rSemanal();setSt("bloco apagado");}
+  if(it){lista.splice(idx,1);await save();rSemanal();rHojeBox();setSt("bloco apagado");}
   return;
  }
  if(!/^\d{1,2}:\d{2}$/.test(q)){setSt("hora inválida: usa HH:MM");return;}
@@ -5557,7 +5637,7 @@ async function editarBlocoRotina(dia,idx){
    l.sort((a,b)=>(min(a.q)??9999)-(min(b.q)??9999));
   });
  }
- await save();rSemanal();setSt(it?"bloco actualizado":"bloco acrescentado");
+ await save();rSemanal();rHojeBox();setSt(it?"bloco actualizado":"bloco acrescentado");
 }
 // ideias prontas: avião de divulgação, a violeta
 function prmark(){
