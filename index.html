@@ -799,26 +799,28 @@ body.paused #pauseTint{opacity:1;}
 .wt.late{color:var(--acc);}
 .wt .wm{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);display:block;}
 /* agenda semanal */
-.semtopo{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
-.semtit{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--txt);min-width:130px;text-align:center;}
-.semleg{margin-left:auto;display:flex;gap:12px;flex-wrap:wrap;}
-.semgrid{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:14px;align-items:start;}
-@media(max-width:900px){.semgrid{grid-template-columns:1fr;}}
-.semscroll{overflow-x:auto;padding-bottom:8px;}
-.semdias{display:grid;gap:8px;}
+.agbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:16px;}
+.agnav{display:inline-flex;align-items:center;gap:6px;}
+.agnb{border:none;cursor:pointer;background:var(--bg);color:var(--soft);font-size:11px;line-height:1;width:20px;height:20px;border-radius:6px;padding:0;box-shadow:2px 2px 5px var(--sh-d),-2px -2px 5px var(--sh-l);}
+.agnb:hover{color:var(--acc);}
+.semtit{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--txt);min-width:96px;text-align:center;}
+.agprox{justify-self:end;font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:lowercase;color:var(--soft);padding:4px 10px;border-radius:8px;border:1px dashed color-mix(in srgb,var(--soft) 55%,transparent);}
+.agprox b{color:var(--txt);font-weight:600;}
+.agprox.dragover{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 8%,var(--bg));}
+.semdias{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}
+@media(max-width:900px){.semdias{grid-template-columns:1fr;}}
 .sdia{border-radius:12px;padding:8px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);min-width:0;}
 .sdia.today{box-shadow:inset 0 0 0 2px var(--acc),inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
 .sdia.folga{background:color-mix(in srgb,var(--acc) 5%,var(--bg));}
 .sdh{display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);margin-bottom:6px;}
 .sdia.today .sdh{color:var(--acc);font-weight:700;}
 .sadd{width:20px;height:20px;font-size:11px;}
-.sdcols{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:6px;}
-.sdia.semrot .sdcols{grid-template-columns:1fr;}
+.sdcols{display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px;}
 .stask{min-height:120px;padding:6px 6px;border-radius:9px;font-size:10px;box-shadow:none;background:transparent;}
 .stask.dragover{box-shadow:inset 0 0 0 2px var(--acc2);}
 .ssep{border-top:1px solid var(--line);margin:5px 0;}
 .wev.sanv{border-left-color:#D99A3C;color:var(--txt);}
-.srot{display:flex;flex-direction:column;gap:2px;border-left:1px solid var(--line);padding-left:4px;}
+.srot{display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line);padding-right:4px;}
 .sblk{border-radius:5px;padding:2px 4px;font-size:8.5px;line-height:1.2;overflow:hidden;cursor:pointer;color:var(--soft);display:flex;gap:4px;align-items:flex-start;flex-shrink:0;}
 .sblk.cont{border-top-left-radius:0;border-top-right-radius:0;margin-top:-1px;}
 .sblk.cont .sbt{opacity:.55;font-weight:400;}
@@ -827,8 +829,10 @@ body.paused #pauseTint{opacity:1;}
 .sbq{font-family:'IBM Plex Mono',monospace;font-size:8px;opacity:.75;flex-shrink:0;}
 .sbt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
 .sblk.trab .sbt{font-weight:600;font-size:8.5px;letter-spacing:.02em;white-space:normal;}
-.sobjcol{padding:14px 14px;position:sticky;top:120px;}
-.sobj{display:flex;justify-content:space-between;gap:6px;font-size:11.5px;padding:5px 0;border-bottom:1px solid var(--line);}
+.sobjs{margin-top:10px;padding-top:6px;border-top:1px solid var(--line);}
+.sobjh{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--soft);margin-bottom:3px;}
+.sobj{display:flex;justify-content:space-between;gap:4px;font-size:9.5px;color:var(--soft);padding:2px 0;}
+.sobj .metaicons{flex-shrink:0;}
 .grow{display:grid;grid-template-columns:170px 1fr;gap:12px;align-items:center;margin-bottom:10px;}
 .grow .gl{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .gtrack{position:relative;height:14px;border-radius:7px;box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);}
@@ -1044,8 +1048,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 
 <!-- ============ AGENDA ============ -->
 <div class="view" id="v-AGENDA">
-  <div class="cond" style="margin-bottom:16px">
+  <div class="agbar">
    <span class="condbtns" id="agTabs"></span>
+   <span class="agnav" id="agNav"></span>
+   <span class="agprox" id="agProx" title="Arrasta uma tarefa para aqui para a passar para a próxima segunda-feira"></span>
   </div>
   <div id="semWrap"></div>
   <div class="week" id="wGrid" hidden></div>
@@ -1228,7 +1234,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/10 15:20</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/10 15:30</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -5407,7 +5413,7 @@ function inicioSemana(off){
 function rSemanal(){
  const w=$("semWrap");if(!w)return;
  const ini=inicioSemana(semOff);
- const dias=[...Array(8)].map((_,i)=>{const d=new Date(ini);d.setDate(ini.getDate()+i);return d;});
+ const dias=[...Array(5)].map((_,i)=>{const d=new Date(ini);d.setDate(ini.getDate()+i);return d;});
  const ev=(agenda&&agenda.eventos)||[],anv=(agenda&&agenda.aniversarios)||[];
  const nomes=["dom","seg","ter","qua","qui","sex","sáb"];
  const colTarefas=d=>{
@@ -5423,7 +5429,7 @@ function rSemanal(){
    prs.map(x=>`<div class="wt wpr" data-prag="${x.id}" title="${esc(x.conta)}">${prmark()}<span>${esc(x.titulo)}</span></div>`).join(""),
    ts.map(t=>taskChip(t,iso)).join("")+prazos.map(t=>taskChip(t,iso,true)).join("")
   ].filter(Boolean);
-  return grupos.join(`<div class="ssep"></div>`)||`<div class="hsub" style="opacity:.5">—</div>`;
+  return grupos.join(`<div class="ssep"></div>`)||`<div class="hsub" style="opacity:.5;min-height:40px">—</div>`;
  };
  const colRotina=d=>{
   const iso=isoLocal(d);
@@ -5442,38 +5448,28 @@ function rSemanal(){
   }).join("")+`</div>`;
  };
  const hj=hoje();
- const fim=dias[7];
+ const fim=dias[4];
  const titulo=`${ini.getDate()} ${ini.toLocaleDateString("pt-PT",{month:"short"}).replace(".","")} – ${fim.getDate()} ${fim.toLocaleDateString("pt-PT",{month:"short"}).replace(".","")}`;
  // objectivos dos meses que a semana toca, mais os do ano inteiro
  const MESN=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
- const meses=[...new Set(dias.map(d=>d.getMonth()+1))];
- const lin=x=>{const cs=typeof catsDe==="function"?catsDe(x):[];return `<div class="sobj"><span>${esc(x.titulo)}</span><span class="metaicons">${cs.map(k=>iconeCat(k,10)).join("")}</span></div>`;};
- const objs=meses.map(m=>{const l=(D.metasAnuais||[]).filter(x=>x.mes===m);return `<div class="hgrouph">${MESN[m-1]}</div>`+(l.map(lin).join("")||`<div class="hsub">sem objectivos</div>`);}).join("")+
-  (()=>{const l=(D.metasAnuais||[]).filter(x=>x.mes===0);return l.length?`<div class="hgrouph" style="margin-top:12px">o ano inteiro</div>`+l.map(lin).join(""):"";})();
- w.innerHTML=`<div class="semtopo">
-   <button class="ico" data-semnav="-1" title="Semana anterior">‹</button>
-   <span class="semtit">${esc(titulo)}</span>
-   <button class="ico" data-semnav="1" title="Semana seguinte">›</button>
-   ${semOff?`<button class="btn" data-semnav="0" style="font-size:10px;padding:6px 11px">esta semana</button>`:""}
-   <span class="semleg">${Object.values(AREAS_ROT).map(a=>`<span class="catleg"><i class="pdot" style="background:${a.cor}"></i>${a.n}</span>`).join("")}</span>
-  </div>
-  <div class="semgrid">
-   <div class="semscroll"><div class="semdias" style="grid-template-columns:${dias.map(d=>rotinaDia(isoLocal(d)).length?"minmax(205px,1.6fr)":"minmax(110px,.8fr)").join(" ")}">${dias.map(d=>{
-    const iso=isoLocal(d),folga=isFolga(d),semRot=!rotinaDia(iso).length;
-    return `<div class="sdia${iso===hj?" today":""}${folga?" folga":""}${semRot?" semrot":""}">
+ // objectivos do mês de cada dia, mais os do ano inteiro, no fim da coluna das tarefas
+ const lin=x=>{const cs=typeof catsDe==="function"?catsDe(x):[];return `<div class="sobj"><span>${esc(x.titulo)}</span><span class="metaicons">${cs.map(k=>iconeCat(k,9)).join("")}</span></div>`;};
+ const objsMes=m=>{const l=(D.metasAnuais||[]).filter(x=>x.mes===m||x.mes===0);return l.length?`<div class="sobjs"><div class="sobjh">objectivos · ${MESN[m-1]}</div>${l.map(lin).join("")}</div>`:"";};
+ const nav=$("agNav");
+ if(nav){
+  nav.innerHTML=`<button class="agnb" data-semnav="-1" title="Semana anterior">‹</button><span class="semtit"${semOff?` data-semnav="0" title="Voltar a esta semana" style="cursor:pointer;color:var(--acc)"`:""}>${esc(titulo)}</span><button class="agnb" data-semnav="1" title="Semana seguinte">›</button>`;
+  nav.querySelectorAll("[data-semnav]").forEach(b=>b.onclick=()=>{const v=+b.dataset.semnav;semOff=v===0?0:semOff+v;rSemanal();});
+ }
+ w.innerHTML=`<div class="semdias">${dias.map(d=>{
+    const iso=isoLocal(d),folga=isFolga(d);
+    return `<div class="sdia${iso===hj?" today":""}${folga?" folga":""}">
      <div class="sdh"><span>${nomes[d.getDay()]} ${d.getDate()}</span><button class="ico sadd" data-rotadd="${dowISO(iso)}" title="Novo bloco na rotina de ${nomes[d.getDay()]}">+</button></div>
-     <div class="sdcols"><div class="stask wcell" data-day="${iso}">${colTarefas(d)}</div>${colRotina(d)}</div>
-    </div>`;}).join("")}</div></div>
-   <aside class="sobjcol card"><h5 class="trkfl" style="margin-bottom:10px">objectivos</h5>${objs}</aside>
-  </div>
-  <div class="hsub" style="margin-top:8px">A rotina é igual todas as semanas: clica num bloco para editar ou apagar, "+" para acrescentar.</div>`;
- w.querySelectorAll("[data-semnav]").forEach(b=>b.onclick=()=>{const v=+b.dataset.semnav;semOff=v===0?0:semOff+v;rSemanal();});
+     <div class="sdcols">${colRotina(d)||"<div></div>"}<div class="stask wcell" data-day="${iso}">${colTarefas(d)}${objsMes(d.getMonth()+1)}</div></div>
+    </div>`;}).join("")}</div>`;
  w.querySelectorAll("[data-rotedit]").forEach(b=>b.onclick=()=>{const [d,i]=b.dataset.rotedit.split("|");editarBlocoRotina(d,+i);});
  w.querySelectorAll("[data-rotadd]").forEach(b=>b.onclick=()=>editarBlocoRotina(b.dataset.rotadd,-1));
  w.querySelectorAll("[data-prag]").forEach(el=>el.addEventListener("click",e=>{e.stopPropagation();const b=document.querySelector('.nav [data-v="REDES"]');if(b)b.click();}));
  bindTarefasSemana(w);
- // mostra o dia de hoje sem ter de andar com a barra
- const t=w.querySelector(".sdia.today");if(t&&!semOff){const sc=w.querySelector(".semscroll");const x=t.offsetLeft-sc.offsetLeft;if(x>sc.clientWidth-60)sc.scrollLeft=x-8;}
 }
 // arrastar e clicar nas tarefas (mesmo comportamento do mensal)
 function bindTarefasSemana(w){
@@ -5579,7 +5575,28 @@ function bindAgendaDnD(){
  });
 }
 let agMode="s",gSpan="m",mcY,mcM;
+function proximaSegunda(){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+(8-((d.getDay()+6)%7+1)));return d;}
+// caixa "próxima segunda": largar uma tarefa aqui agenda-a para a segunda-feira seguinte
+function rAgProx(){
+ const c=$("agProx");if(!c)return;
+ const d=proximaSegunda();
+ c.hidden=agModo==="anual";
+ c.innerHTML=`próxima segunda <b>${d.getDate()}/${d.getMonth()+1}</b>`;
+ if(c._ligada)return;c._ligada=true;
+ c.addEventListener("dragover",e=>{if(!dragTid)return;e.preventDefault();c.classList.add("dragover");});
+ c.addEventListener("dragleave",()=>c.classList.remove("dragover"));
+ c.addEventListener("drop",async e=>{
+  e.preventDefault();c.classList.remove("dragover");
+  if(!dragTid)return;
+  const t=D.tarefas.find(x=>x.id===dragTid);dragTid=null;
+  if(!t)return;
+  t.data=isoLocal(proximaSegunda());
+  await save();rAgendaVista();setSt("tarefa passada para "+t.data.split("-").reverse().slice(0,2).join("/"));
+ });
+}
 function rAgendaVista(){
+ rAgProx();
+ if($("agNav"))$("agNav").innerHTML="";
  $("wGrid").hidden=agModo!=="diario";
  $("anualWrap").hidden=agModo!=="anual";
  $("semWrap").hidden=agModo!=="semanal";
