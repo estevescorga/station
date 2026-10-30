@@ -807,7 +807,7 @@ body.paused #pauseTint{opacity:1;}
 .agprox{justify-self:end;font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:lowercase;color:var(--soft);padding:4px 10px;border-radius:8px;border:1px dashed color-mix(in srgb,var(--soft) 55%,transparent);}
 .agprox b{color:var(--txt);font-weight:600;}
 .agprox.dragover{border-color:var(--acc);color:var(--acc);background:color-mix(in srgb,var(--acc) 8%,var(--bg));}
-.semdias{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}
+.semdias{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
 @media(max-width:900px){.semdias{grid-template-columns:1fr;}}
 .sdia{border-radius:12px;padding:8px;box-shadow:inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);min-width:0;}
 .sdia.today{box-shadow:inset 0 0 0 2px var(--acc),inset 2px 2px 6px var(--sh-d),inset -2px -2px 6px var(--sh-l);}
@@ -815,7 +815,7 @@ body.paused #pauseTint{opacity:1;}
 .sdh{display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);margin-bottom:6px;}
 .sdia.today .sdh{color:var(--acc);font-weight:700;}
 .sadd{width:20px;height:20px;font-size:11px;}
-.sdcols{display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px;}
+.sdcols{display:grid;grid-template-columns:118px minmax(0,1fr);gap:8px;}
 .stask{min-height:120px;padding:6px 6px;border-radius:9px;font-size:10px;box-shadow:none;background:transparent;}
 .stask.dragover{box-shadow:inset 0 0 0 2px var(--acc2);}
 .ssep{border-top:1px solid var(--line);margin:5px 0;}
@@ -1234,7 +1234,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/10 15:30</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v30/10 15:40</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -5403,17 +5403,22 @@ function rSemana(){
  }));
 }
 /* ============ agenda semanal: segunda a segunda, tarefas + rotinas + objectivos ============ */
-let semOff=0;
-const ROT_PX=0.75; // pixels por minuto nos blocos de trabalho
-function inicioSemana(off){
+let semOff=0,semObjAberto=false;
+let ROT_PX=0.75; // pixels por minuto nos blocos de trabalho (ajusta-se à altura do ecrã)
+// 4 dias úteis: hoje (ou o próximo dia útil) e os 3 seguintes; semOff anda de 4 em 4 dias úteis
+function diasUteis(off){
  const d=new Date();d.setHours(12,0,0,0);
- d.setDate(d.getDate()-((d.getDay()+6)%7)+off*7);
- return d;
+ while(isFolga(d))d.setDate(d.getDate()+1);
+ let passo=off*4;
+ while(passo!==0){d.setDate(d.getDate()+(passo>0?1:-1));if(!isFolga(d))passo+=passo>0?-1:1;}
+ const out=[new Date(d)];
+ while(out.length<4){d.setDate(d.getDate()+1);if(!isFolga(d))out.push(new Date(d));}
+ return out;
 }
 function rSemanal(){
  const w=$("semWrap");if(!w)return;
- const ini=inicioSemana(semOff);
- const dias=[...Array(5)].map((_,i)=>{const d=new Date(ini);d.setDate(ini.getDate()+i);return d;});
+ const dias=diasUteis(semOff);
+ const ini=dias[0];
  const ev=(agenda&&agenda.eventos)||[],anv=(agenda&&agenda.aniversarios)||[];
  const nomes=["dom","seg","ter","qua","qui","sex","sáb"];
  const colTarefas=d=>{
@@ -5441,23 +5446,23 @@ function rSemanal(){
    const m=min(it.q);if(m===null)return "";
    const nx=i<l.length-1?min(l[i+1].q):m+30;
    const a=it.area&&AREAS_ROT[it.area];
-   const h=a?Math.max(26,Math.round((nx-m)*ROT_PX)):17;
+   const h=a?Math.max(26,Math.round((nx-m)*ROT_PX)):19;
    const idx=(D.rotinaSemanal&&D.rotinaSemanal[dia]||[]).indexOf(it);
    const cont=a&&/cont\./i.test(it.t);
    return `<div class="sblk${a?" trab":""}${cont?" cont":""}" data-rotedit="${dia}|${idx}" style="height:${h}px;${a?`--ac:${a.cor};`:""}" title="${esc(it.q+" · "+it.t+(it.n?" · "+it.n:""))}"><span class="sbq">${esc(it.q)}</span><span class="sbt">${esc(cont?it.t.replace(/\s*\(cont\.\)/i,""):it.t)}</span></div>`;
   }).join("")+`</div>`;
  };
  const hj=hoje();
- const fim=dias[4];
+ const fim=dias[3];
  const titulo=`${ini.getDate()} ${ini.toLocaleDateString("pt-PT",{month:"short"}).replace(".","")} – ${fim.getDate()} ${fim.toLocaleDateString("pt-PT",{month:"short"}).replace(".","")}`;
  // objectivos dos meses que a semana toca, mais os do ano inteiro
  const MESN=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
  // objectivos do mês de cada dia, mais os do ano inteiro, no fim da coluna das tarefas
  const lin=x=>{const cs=typeof catsDe==="function"?catsDe(x):[];return `<div class="sobj"><span>${esc(x.titulo)}</span><span class="metaicons">${cs.map(k=>iconeCat(k,9)).join("")}</span></div>`;};
- const objsMes=m=>{const l=(D.metasAnuais||[]).filter(x=>x.mes===m||x.mes===0);return l.length?`<div class="sobjs"><div class="sobjh">objectivos · ${MESN[m-1]}</div>${l.map(lin).join("")}</div>`:"";};
+ const objsMes=m=>{const l=(D.metasAnuais||[]).filter(x=>x.mes===m||x.mes===0);return l.length?`<div class="sobjs"><div class="sobjh" data-semobj="1" style="cursor:pointer">${semObjAberto?"▾":"▸"} objectivos · ${MESN[m-1]} <span style="opacity:.6">(${l.length})</span></div>${semObjAberto?l.map(lin).join(""):""}</div>`:"";};
  const nav=$("agNav");
  if(nav){
-  nav.innerHTML=`<button class="agnb" data-semnav="-1" title="Semana anterior">‹</button><span class="semtit"${semOff?` data-semnav="0" title="Voltar a esta semana" style="cursor:pointer;color:var(--acc)"`:""}>${esc(titulo)}</span><button class="agnb" data-semnav="1" title="Semana seguinte">›</button>`;
+  nav.innerHTML=`<button class="agnb" data-semnav="-1" title="4 dias úteis antes">‹</button><span class="semtit"${semOff?` data-semnav="0" title="Voltar a hoje" style="cursor:pointer;color:var(--acc)"`:""}>${esc(titulo)}</span><button class="agnb" data-semnav="1" title="4 dias úteis depois">›</button>`;
   nav.querySelectorAll("[data-semnav]").forEach(b=>b.onclick=()=>{const v=+b.dataset.semnav;semOff=v===0?0:semOff+v;rSemanal();});
  }
  w.innerHTML=`<div class="semdias">${dias.map(d=>{
@@ -5466,11 +5471,30 @@ function rSemanal(){
      <div class="sdh"><span>${nomes[d.getDay()]} ${d.getDate()}</span><button class="ico sadd" data-rotadd="${dowISO(iso)}" title="Novo bloco na rotina de ${nomes[d.getDay()]}">+</button></div>
      <div class="sdcols">${colRotina(d)||"<div></div>"}<div class="stask wcell" data-day="${iso}">${colTarefas(d)}${objsMes(d.getMonth()+1)}</div></div>
     </div>`;}).join("")}</div>`;
+ w.querySelectorAll("[data-semobj]").forEach(h=>h.onclick=()=>{semObjAberto=!semObjAberto;rSemanal();});
+ ajustarAlturaSemanal(w);
  w.querySelectorAll("[data-rotedit]").forEach(b=>b.onclick=()=>{const [d,i]=b.dataset.rotedit.split("|");editarBlocoRotina(d,+i);});
  w.querySelectorAll("[data-rotadd]").forEach(b=>b.onclick=()=>editarBlocoRotina(b.dataset.rotadd,-1));
  w.querySelectorAll("[data-prag]").forEach(el=>el.addEventListener("click",e=>{e.stopPropagation();const b=document.querySelector('.nav [data-v="REDES"]');if(b)b.click();}));
  bindTarefasSemana(w);
 }
+// estica os blocos de trabalho para a tabela ocupar a altura livre do ecrã
+function ajustarAlturaSemanal(w){
+ const g=w.querySelector(".semdias");if(!g||w.offsetParent===null)return;
+ const livre=window.innerHeight-g.getBoundingClientRect().top-90; // 90: espaço do cronómetro flutuante
+ let maxTrab=0,maxResto=0;
+ w.querySelectorAll(".srot").forEach(r=>{
+  let t=0,o=0;
+  r.querySelectorAll(".sblk").forEach(b=>{if(b.classList.contains("trab"))t+=b.offsetHeight/ROT_PX;else o+=b.offsetHeight+2;});
+  o+=r.querySelectorAll(".sblk.trab").length*2;
+  maxTrab=Math.max(maxTrab,t);maxResto=Math.max(maxResto,o);
+ });
+ const cab=40;
+ if(!maxTrab)return;
+ const px=Math.max(0.6,Math.min(2.2,(livre-cab-maxResto)/maxTrab));
+ if(Math.abs(px-ROT_PX)>0.03&&!ajustarAlturaSemanal.dentro){ROT_PX=px;ajustarAlturaSemanal.dentro=true;try{rSemanal();}finally{ajustarAlturaSemanal.dentro=false;}}
+}
+window.addEventListener("resize",()=>{clearTimeout(window._semRz);window._semRz=setTimeout(()=>{if(agModo==="semanal"&&$("semWrap")&&!$("semWrap").hidden)rSemanal();},200);});
 // arrastar e clicar nas tarefas (mesmo comportamento do mensal)
 function bindTarefasSemana(w){
  w.querySelectorAll(".wt[data-tid]").forEach(el=>{
