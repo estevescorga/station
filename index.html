@@ -220,6 +220,15 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .prcn{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);}
 .prci{font-size:9.5px;line-height:1.25;padding:2px 5px;border-radius:5px;background:color-mix(in srgb,var(--acc) 14%,var(--bg));color:var(--txt);cursor:grab;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .prci.ok{background:color-mix(in srgb,#3AAFA9 22%,var(--bg));}
+.prcd.rec{gap:2px;min-height:0;}
+.prslot{display:flex;flex-wrap:wrap;align-items:flex-start;gap:2px;min-height:15px;border-radius:4px;padding:1px 2px;border-left:2px solid var(--fc);}
+.prslot.over{background:color-mix(in srgb,var(--fc) 18%,transparent);}
+.prsl{font-family:'IBM Plex Mono',monospace;font-size:7px;color:var(--fc);width:22px;flex-shrink:0;line-height:13px;}
+.prslot .prci{flex:1;min-width:0;display:flex;gap:3px;align-items:center;background:color-mix(in srgb,var(--fc) 18%,var(--bg));}
+.prslot .prci span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
+.prci b{font-weight:400;font-size:8px;opacity:0;cursor:pointer;flex-shrink:0;}
+.prci:hover b{opacity:.7;}
+.prchk.on[style*="--fc"]{color:var(--fc);}
 .prcard.prflash{box-shadow:0 0 0 2px var(--acc),3px 3px 8px var(--sh-d);}
 .redessec{margin-top:30px;}
 .cadh .cadedit{width:22px;height:22px;font-size:10px;opacity:.55;}
@@ -1270,7 +1279,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v02/11 15:40</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v02/11 16:00</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -4195,7 +4204,15 @@ const CHECKS_PRONTAS=[
  {k:"yt",n:"youtube"},
  {k:"li",n:"linkedin"},
 ];
-let prArq={RIMA:false,REC:false}, prDrag=null;
+// REC: cada ideia pode sair em vários formatos, cada um com a sua data (x.pub[k])
+const FORMATOS_REC=[
+ {k:"yt",n:"youtube",c:"YT",cor:"#C74A3C"},
+ {k:"sh",n:"short",c:"SH",cor:"#D99A3C"},
+ {k:"rt",n:"reel + tiktok",c:"R+T",cor:"#9B7BC0"},
+ {k:"ip",n:"insta post",c:"IP",cor:"#3AAFA9"}
+];
+function syncDataREC(x){const ds=Object.values(x.pub||{}).filter(Boolean).sort();x.data=ds[0]||null;}
+let prArq={RIMA:false,REC:false}, prDrag=null, prDragF=null;
 const prCal={};
 function irParaPronta(id){
  const x=(D.prontas||[]).find(y=>y.id===id);
@@ -4212,9 +4229,13 @@ function rRedesSec(g){
  const ativas=minhas.filter(x=>!x.arquivada).sort((a,b)=>(a.ordem??999)-(b.ordem??999));
  const arq=minhas.filter(x=>x.arquivada);
  const st=prCal[g]||(prCal[g]=(()=>{const d=new Date();return {y:d.getFullYear(),m:d.getMonth()};})());
+ const REC=g==="REC";
+ const botoes=x=>REC
+  ? `<button class="prchk${x.pronto?" on":""}" data-prchk="${x.id}|pronto">conteúdo pronto</button>`+FORMATOS_REC.map(f=>{const on=!!(x.fmt&&x.fmt[f.k]);const d=x.pub&&x.pub[f.k];return `<button class="prchk${on?" on":""}" data-prfmt="${x.id}|${f.k}" style="${on?`--fc:${f.cor}`:""}">${f.n}${d?` · ${fmtDataCurta(d)}`:""}</button>`;}).join("")
+  : CHECKS_PRONTAS.map(c=>`<button class="prchk${x[c.k]?" on":""}" data-prchk="${x.id}|${c.k}">${c.n}</button>`).join("");
  const cartao=x=>`<div class="prcard card" draggable="true" data-pr="${x.id}">
    <div class="prtop">
-    ${dateChip("pr:"+x.id,x.data?fmtDataCurta(x.data):"data",x.data,"")}
+    ${REC?`<span class="hsub" style="margin:0">${Object.values(x.pub||{}).filter(Boolean).length?"marcada":"sem data"}</span>`:dateChip("pr:"+x.id,x.data?fmtDataCurta(x.data):"data",x.data,"")}
     <span style="display:flex;gap:4px;flex-shrink:0;align-items:center">
      <button class="ico" style="width:22px;height:22px;font-size:11px" data-prarq="${x.id}" title="${x.arquivada?"desarquivar":"arquivar"}">${x.arquivada?"↥":"⬇"}</button>
      <button class="ico" style="width:22px;height:22px;font-size:10px" data-prdel="${x.id}" title="apagar">✕</button>
@@ -4222,9 +4243,7 @@ function rRedesSec(g){
    </div>
    <div class="prtit" contenteditable data-prtit="${x.id}">${esc(x.titulo)}</div>
    <div class="prdesc" contenteditable data-prdesc="${x.id}">${esc(x.desc||"")}</div>
-   <div class="prchecks">
-    ${CHECKS_PRONTAS.map(c=>`<button class="prchk${x[c.k]?" on":""}" data-prchk="${x.id}|${c.k}">${c.n}</button>`).join("")}
-   </div>
+   <div class="prchecks">${botoes(x)}</div>
   </div>`;
  // calendário do mês
  const ini=new Date(st.y,st.m,1,12);const off=(ini.getDay()+6)%7;
@@ -4234,13 +4253,20 @@ function rRedesSec(g){
  for(let i=0;i<off;i++)cel+=`<div class="prcd vazio"></div>`;
  for(let d=1;d<=nDias;d++){
   const iso=`${st.y}-${String(st.m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-  const its=ativas.filter(x=>x.data===iso);
-  cel+=`<div class="prcd${iso===hoje()?" hoje":""}" data-prday="${iso}"><span class="prcn">${d}</span>${its.map(x=>`<div class="prci${x.pronto?" ok":""}" draggable="true" data-prci="${x.id}" title="${esc(x.titulo)}">${esc(x.titulo)}</div>`).join("")}</div>`;
+  if(REC){
+   cel+=`<div class="prcd rec${iso===hoje()?" hoje":""}"><span class="prcn">${d}</span>${FORMATOS_REC.map(f=>{
+    const its=ativas.filter(x=>x.pub&&x.pub[f.k]===iso);
+    return `<div class="prslot" data-prday="${iso}" data-prf="${f.k}" style="--fc:${f.cor}"><span class="prsl">${f.c}</span>${its.map(x=>`<div class="prci${x.pronto?" ok":""}" draggable="true" data-prci="${x.id}" data-prcf="${f.k}" title="${esc(f.n+": "+x.titulo)}"><span>${esc(x.titulo)}</span><b data-prunset="${x.id}|${f.k}" title="tirar do calendário">✕</b></div>`).join("")}</div>`;
+   }).join("")}</div>`;
+  }else{
+   const its=ativas.filter(x=>x.data===iso);
+   cel+=`<div class="prcd${iso===hoje()?" hoje":""}" data-prday="${iso}"><span class="prcn">${d}</span>${its.map(x=>`<div class="prci${x.pronto?" ok":""}" draggable="true" data-prci="${x.id}" title="${esc(x.titulo)}">${esc(x.titulo)}</div>`).join("")}</div>`;
+  }
  }
- const semData=ativas.filter(x=>!x.data).length;
+ const semData=ativas.filter(x=>REC?!Object.values(x.pub||{}).some(Boolean):!x.data).length;
  box.innerHTML=`<h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Ideias prontas · ${NOME_GRUPO[g]}<button class="ico" style="width:28px;height:28px" title="Nova ideia pronta" data-pradd="${g}">＋</button></h2>
   <div class="prcal card">
-   <div class="prcalh"><button class="agnb" data-prnav="-1">‹</button><span class="semtit">${MES[st.m]} ${st.y}</span><button class="agnb" data-prnav="1">›</button><span class="hsub" style="margin:0 0 0 auto">arrasta as ideias para um dia · ${semData} sem data</span></div>
+   <div class="prcalh"><button class="agnb" data-prnav="-1">‹</button><span class="semtit">${MES[st.m]} ${st.y}</span><button class="agnb" data-prnav="1">›</button><span class="hsub" style="margin:0 0 0 auto">${REC?"arrasta as ideias para o formato de um dia":"arrasta as ideias para um dia"} · ${semData} sem data</span></div>
    <div class="prcgrid">${["seg","ter","qua","qui","sex","sáb","dom"].map(n=>`<div class="prcw">${n}</div>`).join("")}${cel}</div>
   </div>
   <div class="prsec" data-prsec="${g}"><div class="prgrid">${ativas.map(cartao).join("")||`<div class="hsub" style="padding:4px 2px">sem ideias prontas, usa o ＋</div>`}</div></div>
@@ -4268,14 +4294,24 @@ function rRedesSec(g){
  box.querySelectorAll("[data-prarq]").forEach(b=>b.addEventListener("click",async()=>{
   const x=D.prontas.find(y=>y.id===b.dataset.prarq);if(x){x.arquivada=!x.arquivada;await save();rRedesSec(g);}
  }));
+ box.querySelectorAll("[data-prfmt]").forEach(b=>b.addEventListener("click",async()=>{
+  const [id,k]=b.dataset.prfmt.split("|");const x=D.prontas.find(y=>y.id===id);if(!x)return;
+  x.fmt=x.fmt||{};x.fmt[k]=!x.fmt[k];
+  if(!x.fmt[k]&&x.pub){delete x.pub[k];syncDataREC(x);}
+  await save();rRedesSec(g);
+ }));
+ box.querySelectorAll("[data-prunset]").forEach(b=>b.addEventListener("click",async e=>{
+  e.stopPropagation();const [id,k]=b.dataset.prunset.split("|");const x=D.prontas.find(y=>y.id===id);
+  if(x&&x.pub){delete x.pub[k];syncDataREC(x);await save();rRedesSec(g);}
+ }));
  box.querySelectorAll("[data-prdel]").forEach(b=>b.addEventListener("click",()=>{
   const x=D.prontas.find(y=>y.id===b.dataset.prdel);
   confirmar("Apagar ideia?",x?x.titulo:"",async()=>{D.prontas=D.prontas.filter(y=>y.id!==b.dataset.prdel);await save();rRedesSec(g);});
  }));
  box.querySelectorAll("[data-prci]").forEach(el=>{
   el.onclick=()=>{const c=box.querySelector(`[data-pr="${el.dataset.prci}"]`);if(c){c.scrollIntoView({behavior:"smooth",block:"center"});c.classList.add("prflash");setTimeout(()=>c.classList.remove("prflash"),1600);}};
-  el.ondragstart=e=>{prDrag=el.dataset.prci;e.dataTransfer.effectAllowed="move";try{e.dataTransfer.setData("text/plain",prDrag);}catch(x){}};
-  el.ondragend=()=>{prDrag=null;};
+  el.ondragstart=e=>{prDrag=el.dataset.prci;prDragF=el.dataset.prcf||null;e.stopPropagation();e.dataTransfer.effectAllowed="move";try{e.dataTransfer.setData("text/plain",prDrag);}catch(x){}};
+  el.ondragend=()=>{prDrag=null;prDragF=null;};
  });
  // cartões: reordenar dentro da lista
  box.querySelectorAll(".prsec [data-pr]").forEach(c=>{
@@ -4303,8 +4339,14 @@ function rRedesSec(g){
   d.ondragleave=e=>{if(!d.contains(e.relatedTarget))d.classList.remove("over");};
   d.ondrop=async e=>{
    if(!prDrag)return;e.preventDefault();d.classList.remove("over");
-   const x=D.prontas.find(y=>y.id===prDrag);prDrag=null;
-   if(x){x.data=d.dataset.prday;await save();rRedesSec(g);setSt("publicação marcada para "+d.dataset.prday.split("-").reverse().slice(0,2).join("/"));}
+   const x=D.prontas.find(y=>y.id===prDrag);const deF=prDragF;prDrag=null;prDragF=null;
+   if(!x)return;
+   if(REC){
+    const k=d.dataset.prf;x.pub=x.pub||{};x.fmt=x.fmt||{};
+    if(deF&&deF!==k){delete x.pub[deF];x.fmt[deF]=false;}
+    x.pub[k]=d.dataset.prday;x.fmt[k]=true;syncDataREC(x);
+   }else x.data=d.dataset.prday;
+   await save();rRedesSec(g);setSt("publicação marcada para "+d.dataset.prday.split("-").reverse().slice(0,2).join("/"));
   };
  });
 }
