@@ -205,6 +205,23 @@ button.metadot{border:none;cursor:pointer;padding:0;}
 .dltxt{font-family:'IBM Plex Mono',monospace;font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--soft);}
 .cadgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px;}
 .cadh .cadacts{display:flex;gap:4px;}
+.cadh[draggable="true"]{cursor:grab;}
+.cadcol.dragging{opacity:.4;}
+.cadcol.cadover{outline:2px dashed var(--acc2);outline-offset:4px;border-radius:12px;}
+.cadbtn.notamark{box-shadow:0 -3px 0 0 var(--acc2),3px 3px 7px var(--sh-d),-3px -3px 7px var(--sh-l);}
+.prcal{padding:14px 16px;margin-bottom:16px;}
+.prcalh{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.prcgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;}
+.prcw{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:var(--soft);text-align:center;padding-bottom:2px;}
+.prcd{min-height:54px;border-radius:8px;padding:4px 5px;box-shadow:inset 2px 2px 5px var(--sh-d),inset -2px -2px 5px var(--sh-l);display:flex;flex-direction:column;gap:3px;min-width:0;}
+.prcd.vazio{box-shadow:none;}
+.prcd.hoje{box-shadow:inset 0 0 0 2px var(--acc),inset 2px 2px 5px var(--sh-d);}
+.prcd.over{box-shadow:inset 0 0 0 2px var(--acc2);}
+.prcn{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);}
+.prci{font-size:9.5px;line-height:1.25;padding:2px 5px;border-radius:5px;background:color-mix(in srgb,var(--acc) 14%,var(--bg));color:var(--txt);cursor:grab;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.prci.ok{background:color-mix(in srgb,#3AAFA9 22%,var(--bg));}
+.prcard.prflash{box-shadow:0 0 0 2px var(--acc),3px 3px 8px var(--sh-d);}
+.redessec{margin-top:30px;}
 .cadh .cadedit{width:22px;height:22px;font-size:10px;opacity:.55;}
 .cadh .cadedit:hover{opacity:1;}
 .pnota{min-height:140px;max-height:420px;overflow:auto;padding:14px;border-radius:14px;box-shadow:inset 3px 3px 8px var(--sh-d),inset -3px -3px 8px var(--sh-l);}
@@ -1016,9 +1033,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <button data-v="HOJE" class="on">Home</button>
   <button data-v="AGENDA">Agenda</button>
   <button data-v="RIMA" class="navsec ns-cli">Clientes</button>
-  <button data-v="COMERCIAL" class="navsec ns-int">Interno</button>
+  <button data-v="COMERCIAL" class="navsec ns-int">Rima</button>
   <button data-v="REC" class="navsec ns-rec">Rec</button>
-  <button data-v="REDES">Redes</button>
   <button data-v="TAREFAS">Tarefas</button>
   <button data-v="GESTAO">Gestão</button>
   <button data-v="REGISTOS">Registos</button>
@@ -1148,6 +1164,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <h2 class="sec">Prioridade baixa</h2>
   <div class="pgrid pzone" id="pGridBaixa" data-pri="1"></div>
   <div id="arqWrap" style="margin-top:10px"></div>
+  <div id="redesREC" class="redessec" hidden></div>
   </div>
  </div>
 </div>
@@ -1253,7 +1270,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v02/11 12:50</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v02/11 15:40</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -1315,6 +1332,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="card" style="padding:10px 0" id="pTreino"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Frases motivacionais<button class="ico" style="width:28px;height:28px" title="Adicionar frase" onclick="addFrase()">＋</button></h2>
   <div class="card" style="padding:10px 0" id="pFrases"></div>
+  <h2 class="sec">Contas · redes sociais</h2>
+  <div class="pgrid" id="rdContas"></div>
+  <h2 class="sec">Reaproveitamento de conteúdo</h2>
+  <div class="card" style="padding:10px 0" id="rdPrin"></div>
 </div>
 
 <div class="view" id="v-COMERCIAL">
@@ -1322,7 +1343,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <aside class="pqcol" id="pqColInt"></aside>
   <div class="catmain">
   <div id="cmFixos"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Projectos internos<button class="ico" style="width:28px;height:28px" title="Novo projecto interno" onclick="novoProjComercial()">＋</button></h2>
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Projectos RIMA<button class="ico" style="width:28px;height:28px" title="Novo projecto interno" onclick="novoProjComercial()">＋</button></h2>
   <h2 class="sec">Prioridade alta</h2>
   <div class="pgrid pzone" id="cmGridAlta" data-cpri="3"></div>
   <h2 class="sec">Prioridade média</h2>
@@ -1336,20 +1357,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
   <div class="card" style="padding:10px 0" id="eideias"></div>
   <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Princípios<button class="ico" style="width:28px;height:28px" title="Novo princípio" onclick="addPrincipio()">＋</button></h2>
   <div class="card" style="padding:10px 0" id="eprin"></div>
+  <div id="redesRIMA" class="redessec"></div>
 </div>
 
-<!-- ============ REDES ============ -->
-<div class="view" id="v-REDES">
-  <div id="rdContexto" style="margin-bottom:18px"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Ideias prontas<button class="ico" style="width:28px;height:28px" title="Nova ideia pronta" onclick="addPronta()">＋</button></h2>
-  <div id="prontasWrap" style="margin-bottom:26px"></div>
-  <h2 class="sec">Contas</h2>
-  <div class="pgrid" id="rdContas"></div>
-  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Banco de ideias<button class="ico" style="width:28px;height:28px" title="Nova ideia" onclick="addIdeiaRD()">＋</button></h2>
-  <div class="card" style="padding:10px 0" id="rdIdeias"></div>
-  <h2 class="sec">Reaproveitamento</h2>
-  <div class="card" style="padding:10px 0" id="rdPrin"></div>
-</div>
 
 <div class="view" id="v-TAREFAS">
   <div class="tgrid">
@@ -1365,7 +1375,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div id="inboxList"></div>
     </div>
     <div class="filters">
-      <select id="fCat"><option value="">todas categorias</option><option value="RIMA">CLIENTES</option><option value="COMERCIAL">INTERNO</option><option value="REC">REC</option><option value="CASA">CASA</option></select>
+      <select id="fCat"><option value="">todas categorias</option><option value="RIMA">CLIENTES</option><option value="COMERCIAL">RIMA</option><option value="REC">REC</option><option value="CASA">CASA</option></select>
       <select id="fProj"><option value="">todos projectos</option></select>
       <select id="fEst"><option value="">ativas</option><option value="ativa">ativa</option><option>em espera</option><option>concluída</option><option value="*">todas</option></select>
       <select id="fOrd"><option value="data">ordenar: data</option><option value="manual">ordenar: manual</option></select>
@@ -1376,7 +1386,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
    <div class="cal card" id="calBox"></div>
   </div>
   <div class="addrow">
-    <select id="nCat"><option value="RIMA">CLIENTES</option><option value="COMERCIAL">INTERNO</option><option value="REC">REC</option><option value="CASA">CASA</option></select>
+    <select id="nCat"><option value="RIMA">CLIENTES</option><option value="COMERCIAL">RIMA</option><option value="REC">REC</option><option value="CASA">CASA</option></select>
     <input id="nProj" placeholder="projecto" style="min-width:110px" />
     <input id="nTit" class="g2" placeholder="nova tarefa" />
     <input id="nData" type="date" />
@@ -2594,7 +2604,7 @@ function rHome(){
   }
   if(prox)html+=`<div class="cgroup" style="margin-top:12px"><div class="cgrouph acc" id="agProxAcc"><span class="accarr">${agProxOpen?"▾":"▸"}</span>próximos dias</div><div class="cgbody" style="display:${agProxOpen?"block":"none"}">${prox}</div></div>`;
   const prHoje=(D.prontas||[]).filter(x=>x.data===hoje()&&!x.arquivada);
-  if(prHoje.length)html=prHoje.map(x=>`<div class="hitem">${prmark()}<span>${esc(x.titulo)}</span><span class="hm">${esc(x.conta.replace("RICARDO ESTEVES CORGA","REC"))}</span></div>`).join("")+html;
+  if(prHoje.length)html=prHoje.map(x=>`<div class="hitem">${prmark()}<span>${esc(x.titulo)}</span><span class="hm">${esc((x.conta||""))}</span></div>`).join("")+html;
   if(diasAg>=4)html+=`<div class="hsub" style="margin-top:10px;opacity:.6">recolhida há ${diasAg} dias</div>`;
   $("hAg").innerHTML=html;
   const pa=$("agProxAcc");if(pa)pa.onclick=()=>{agProxOpen=!agProxOpen;rHome();};
@@ -2837,7 +2847,7 @@ function rCat(){
     ${btnEspera(p)}
     <div class="pname">${esc(p.nome)}</div>
     <div class="tags">
-     ${p.cliente?'<span class="chip hot">cliente</span>':'<span class="chip">interno</span>'}
+     ${p.cliente?'<span class="chip hot">cliente</span>':'<span class="chip">rima</span>'}
      ${p.marca?`<span class="chip">${p.marca}</span>`:""}
      <span class="chip">${st}</span>
     </div>
@@ -2861,7 +2871,7 @@ function rCat(){
     body.insertAdjacentHTML("beforeend",`<div class="pcard card" data-pc="${p.id}" style="opacity:.7">
      <div class="pname">${esc(p.nome)}</div>
      <div class="tags">
-      ${p.cliente?'<span class="chip hot">cliente</span>':'<span class="chip">interno</span>'}
+      ${p.cliente?'<span class="chip hot">cliente</span>':'<span class="chip">rima</span>'}
       ${p.marca?`<span class="chip">${p.marca}</span>`:""}
       <span class="chip">${esc(p.estado)}</span>
      </div>
@@ -3040,7 +3050,7 @@ function rInbox(){
 const AREAS_ROT={
  GESTAO:{n:"GESTÃO INTERNA",cor:"#3AAFA9"},
  CLIENTES:{n:"CLIENTES",cor:"#C74A3C"},
- INTERNO:{n:"INTERNO",cor:"#6B8FB0"},
+ INTERNO:{n:"RIMA",cor:"#6B8FB0"},
  REC:{n:"REC",cor:"#9B7BC0"}
 };
 const RE_TRAB=/^(Bloco de trabalho|Bloco comercial|Voltar ao estúdio)/i;
@@ -3811,7 +3821,7 @@ function rProjComerciais(){
 }
 let cmDragId=null;
 async function novoProjComercial(){
- const r=await pedir({titulo:"Novo projecto interno",campos:[{tipo:"texto",nome:"nome",label:"nome do projecto"}]});
+ const r=await pedir({titulo:"Novo projecto RIMA",campos:[{tipo:"texto",nome:"nome",label:"nome do projecto"}]});
  if(!r||!r.nome||!r.nome.trim())return;
  const CORES=["#C74A3C","#3AAFA9","#7FA88B","#C77B3C","#6B92E5","#A87CA8","#94A83C"];
  D.projectos.push({id:"cm"+Date.now(),categoria:"COMERCIAL",nome:r.nome.trim(),estado:"em curso",
@@ -4096,6 +4106,7 @@ async function novoProjectoLocal(){
 /* ============ pessoal (secção @) ============ */
 let pDragIdx=null;
 function rPessoal(){
+ try{rRedes();}catch(e){}
  const P=D.pessoal;if(!P)return;
  const lista=(arr,boxId,key)=>{
   const box=$(boxId);
@@ -4150,17 +4161,7 @@ async function addPessoal(key){
 /* ============ redes sociais ============ */
 const CONTAS_COR={"RIMA studio":"#0E7C72","RIMA lab":"#C74A3C","Ricardo Esteves Corga":"#8AA86A"};
 function rRedes(){
- const R=D.redes;if(!R)return;
- // contexto: a mesma oportunidade calculada na Estratégia, visível também aqui
- const op=oportunidadeAgora();
- if(op){
-  const h=new Date();h.setHours(0,0,0,0);
-  const faltam=diffDias(h,op.tipo==="ativo"?op.evento:op.inicio);
-  $("rdContexto").innerHTML=`<div class="card fcard2 opnow${op.tipo==="futuro"?" soon":""}" style="padding:14px 18px">
-    <div class="pname">🎯 ${op.tipo==="ativo"?"Oportunidade ativa":"A preparar"}: ${esc(op.nome)}</div>
-    <div class="fcorpo" style="margin-top:6px">${esc(op.nota)}${op.tipo==="futuro"?` Janela de comunicação abre em ${faltam} dia${faltam===1?"":"s"} (${op.inicio.toLocaleDateString("pt-PT")}).`:""}</div>
-   </div>`;
- }else $("rdContexto").innerHTML="";
+ const R=D.redes;if(!R||!$("rdContas"))return;
  $("rdContas").innerHTML=R.contas.map(c=>`<div class="pcard card" style="cursor:default">
    <div class="pname" contenteditable data-rc="nome" data-cid="${c.id}">${esc(c.nome)}</div>
    <div class="accbar" style="background:${CONTAS_COR[c.nome]||"var(--acc)"}"></div>
@@ -4172,31 +4173,21 @@ function rRedes(){
  $("rdContas").querySelectorAll("[data-rc]").forEach(el=>el.addEventListener("blur",async()=>{
   const c=R.contas.find(x=>x.id===el.dataset.cid);if(c)c[el.dataset.rc]=el.innerText.trim();await save();
  }));
- $("rdIdeias").innerHTML=R.ideias.map(i=>`<div class="irow" data-iid2="${i.id}">
-   <i class="pdot" style="background:${CONTAS_COR[i.conta]||"var(--soft)"};margin-top:5px"></i>
-   <div style="flex:1;min-width:0">
-    <select class="pin" data-if="conta" data-iid2="${i.id}" style="font-size:9px;margin-bottom:3px">${["RIMA studio","RIMA lab","Ricardo Esteves Corga"].map(n=>`<option ${i.conta===n?"selected":""}>${n}</option>`).join("")}</select>
-    <div class="ititulo" contenteditable data-if="titulo" data-iid2="${i.id}">${esc(i.titulo)}</div>
-    <div class="icorpo" contenteditable data-if="nota" data-iid2="${i.id}">${esc(i.nota)}</div>
-   </div>
-   <button class="ico fdel" data-ridel="${i.id}" title="Apagar">✕</button>
-  </div>`).join("")||`<div class="empty">sem ideias — usa o ＋</div>`;
- $("rdIdeias").querySelectorAll("[data-if]").forEach(el=>{
-  const ev=el.tagName==="SELECT"?"change":"blur";
-  el.addEventListener(ev,async()=>{
-   const i=R.ideias.find(x=>x.id===el.dataset.iid2);if(!i)return;
-   i[el.dataset.if]=el.tagName==="SELECT"?el.value:el.innerText.trim();
-   await save();
-  });
- });
- $("rdIdeias").querySelectorAll("[data-ridel]").forEach(b=>b.addEventListener("click",async()=>{
-  R.ideias=R.ideias.filter(x=>x.id!==b.dataset.ridel);await save();rRedes();
- }));
  $("rdPrin").innerHTML=R.principios.map((p,i)=>`<div class="irow"><span class="idot" style="color:var(--acc)">${i+1}</span><div class="icorpo" style="font-size:12.5px" contenteditable data-rp="${i}">${esc(p)}</div></div>`).join("");
  $("rdPrin").querySelectorAll("[data-rp]").forEach(el=>el.addEventListener("blur",async()=>{R.principios[+el.dataset.rp]=el.innerText.trim();await save();}));
 }
-/* ============ ideias prontas para publicar ============ */
-const CONTAS_PRONTAS=["RIMA LAB","RIMA STUDIO","RICARDO ESTEVES CORGA"];
+/* ============ ideias prontas para publicar: por secção (RIMA / REC) com calendário mensal ============ */
+const GRUPO_PR=c=>/RICARDO|^REC$/i.test(c||"")?"REC":"RIMA";
+const NOME_GRUPO={RIMA:"RIMA",REC:"REC"};
+// uma vez: RIMA lab + RIMA studio passam a RIMA; Ricardo Esteves Corga passa a REC
+function migrarRedes(){
+ if(!D||D._migRedes1)return false;
+ (D.prontas||[]).forEach(x=>{x.conta=GRUPO_PR(x.conta);});
+ ((D.redes&&D.redes.ideias)||[]).forEach(i=>{i.conta=GRUPO_PR(i.conta);});
+ // a rotina semanal também deixa de dizer INTERNO
+ Object.values(D.rotinaSemanal||{}).forEach(l=>(l||[]).forEach(it=>{if(it.area==="INTERNO"&&/^INTERNO/.test(it.t||""))it.t=it.t.replace(/^INTERNO/,"RIMA");}));
+ D._migRedes1=true;return true;
+}
 const CHECKS_PRONTAS=[
  {k:"pronto",n:"conteúdo pronto"},
  {k:"aprovado",n:"aprovado"},
@@ -4204,11 +4195,23 @@ const CHECKS_PRONTAS=[
  {k:"yt",n:"youtube"},
  {k:"li",n:"linkedin"},
 ];
-let prontasArqAberto=false, prDrag=null;
-function rProntas(){
- const box=$("prontasWrap");if(!box)return;
+let prArq={RIMA:false,REC:false}, prDrag=null;
+const prCal={};
+function irParaPronta(id){
+ const x=(D.prontas||[]).find(y=>y.id===id);
+ const g=x?GRUPO_PR(x.conta):"RIMA";
+ const b=document.querySelector(`.nav [data-v="${g==="REC"?"REC":"COMERCIAL"}"]`);if(b)b.click();
+ setTimeout(()=>{const el=document.querySelector(`[data-pr="${id}"]`);if(el){el.scrollIntoView({behavior:"smooth",block:"center"});el.classList.add("prflash");setTimeout(()=>el.classList.remove("prflash"),1600);}},120);
+}
+function rProntas(){rRedesSec("RIMA");rRedesSec("REC");}
+function rRedesSec(g){
+ const box=$("redes"+g);if(!box||!D)return;
+ if(g==="REC"){box.hidden=cat!=="REC";if(box.hidden)return;}
  D.prontas=D.prontas||[];
- const arq=D.prontas.filter(x=>x.arquivada);
+ const minhas=D.prontas.filter(x=>GRUPO_PR(x.conta)===g);
+ const ativas=minhas.filter(x=>!x.arquivada).sort((a,b)=>(a.ordem??999)-(b.ordem??999));
+ const arq=minhas.filter(x=>x.arquivada);
+ const st=prCal[g]||(prCal[g]=(()=>{const d=new Date();return {y:d.getFullYear(),m:d.getMonth()};})());
  const cartao=x=>`<div class="prcard card" draggable="true" data-pr="${x.id}">
    <div class="prtop">
     ${dateChip("pr:"+x.id,x.data?fmtDataCurta(x.data):"data",x.data,"")}
@@ -4223,90 +4226,115 @@ function rProntas(){
     ${CHECKS_PRONTAS.map(c=>`<button class="prchk${x[c.k]?" on":""}" data-prchk="${x.id}|${c.k}">${c.n}</button>`).join("")}
    </div>
   </div>`;
- let html="";
- CONTAS_PRONTAS.forEach(c=>{
-  const arr=D.prontas.filter(x=>x.conta===c&&!x.arquivada).sort((a,b)=>(a.ordem??999)-(b.ordem??999));
-  html+=`<div class="prsec" data-prsec="${c}">
-    <div class="cadh" style="margin:14px 0 8px">${c} · ${arr.length}</div>
-    <div class="prgrid">${arr.map(cartao).join("")||`<div class="hsub" style="padding:4px 2px">arrasta ideias para aqui</div>`}</div>
-   </div>`;
- });
- if(arq.length){
-  html+=`<div class="cgroup" style="margin-top:16px"><div class="cgrouph acc" id="prArqAcc"><span class="accarr">${prontasArqAberto?"▾":"▸"}</span>arquivadas · ${arq.length}</div>
-   <div class="cgbody prgrid" style="display:${prontasArqAberto?"grid":"none"};padding:10px 0">${prontasArqAberto?arq.map(cartao).join(""):""}</div></div>`;
+ // calendário do mês
+ const ini=new Date(st.y,st.m,1,12);const off=(ini.getDay()+6)%7;
+ const nDias=new Date(st.y,st.m+1,0).getDate();
+ const MES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+ let cel="";
+ for(let i=0;i<off;i++)cel+=`<div class="prcd vazio"></div>`;
+ for(let d=1;d<=nDias;d++){
+  const iso=`${st.y}-${String(st.m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  const its=ativas.filter(x=>x.data===iso);
+  cel+=`<div class="prcd${iso===hoje()?" hoje":""}" data-prday="${iso}"><span class="prcn">${d}</span>${its.map(x=>`<div class="prci${x.pronto?" ok":""}" draggable="true" data-prci="${x.id}" title="${esc(x.titulo)}">${esc(x.titulo)}</div>`).join("")}</div>`;
  }
- box.innerHTML=html;
- const grava=async()=>{await save();};
+ const semData=ativas.filter(x=>!x.data).length;
+ box.innerHTML=`<h2 class="sec" style="display:flex;justify-content:space-between;align-items:center">Ideias prontas · ${NOME_GRUPO[g]}<button class="ico" style="width:28px;height:28px" title="Nova ideia pronta" data-pradd="${g}">＋</button></h2>
+  <div class="prcal card">
+   <div class="prcalh"><button class="agnb" data-prnav="-1">‹</button><span class="semtit">${MES[st.m]} ${st.y}</span><button class="agnb" data-prnav="1">›</button><span class="hsub" style="margin:0 0 0 auto">arrasta as ideias para um dia · ${semData} sem data</span></div>
+   <div class="prcgrid">${["seg","ter","qua","qui","sex","sáb","dom"].map(n=>`<div class="prcw">${n}</div>`).join("")}${cel}</div>
+  </div>
+  <div class="prsec" data-prsec="${g}"><div class="prgrid">${ativas.map(cartao).join("")||`<div class="hsub" style="padding:4px 2px">sem ideias prontas, usa o ＋</div>`}</div></div>
+  ${arq.length?`<div class="cgroup" style="margin-top:16px"><div class="cgrouph acc" data-prarqacc="${g}"><span class="accarr">${prArq[g]?"▾":"▸"}</span>arquivadas · ${arq.length}</div>
+   <div class="cgbody prgrid" style="display:${prArq[g]?"grid":"none"};padding:10px 0">${prArq[g]?arq.map(cartao).join(""):""}</div></div>`:""}
+  <h2 class="sec" style="display:flex;justify-content:space-between;align-items:center;margin-top:26px">Banco de ideias para redes<button class="ico" style="width:28px;height:28px" title="Nova ideia" data-riadd="${g}">＋</button></h2>
+  <div class="card" style="padding:10px 0" data-rdideias="${g}"></div>`;
+ rIdeiasRedes(g,box.querySelector(`[data-rdideias="${g}"]`));
+ box.querySelector("[data-pradd]").onclick=()=>addPronta(g);
+ box.querySelector("[data-riadd]").onclick=()=>addIdeiaRD(g);
+ box.querySelectorAll("[data-prnav]").forEach(b=>b.onclick=()=>{st.m+=+b.dataset.prnav;if(st.m<0){st.m=11;st.y--;}if(st.m>11){st.m=0;st.y++;}rRedesSec(g);});
+ const ac=box.querySelector("[data-prarqacc]");if(ac)ac.onclick=()=>{prArq[g]=!prArq[g];rRedesSec(g);};
  box.querySelectorAll("[data-prtit]").forEach(el=>el.addEventListener("blur",async()=>{
-  const x=D.prontas.find(y=>y.id===el.dataset.prtit);
-  const t=el.innerText.trim();
-  if(x&&t&&t!==x.titulo){x.titulo=t;await grava();}
+  const x=D.prontas.find(y=>y.id===el.dataset.prtit);const t=el.innerText.trim();
+  if(x&&t&&t!==x.titulo){x.titulo=t;await save();}
  }));
  box.querySelectorAll("[data-prdesc]").forEach(el=>el.addEventListener("blur",async()=>{
-  const x=D.prontas.find(y=>y.id===el.dataset.prdesc);
-  if(x){x.desc=el.innerText.trim();await grava();}
+  const x=D.prontas.find(y=>y.id===el.dataset.prdesc);if(x){x.desc=el.innerText.trim();await save();}
  }));
  bindDatePickers(box);
  box.querySelectorAll("[data-prchk]").forEach(b=>b.addEventListener("click",async()=>{
-  const [id,k]=b.dataset.prchk.split("|");
-  const x=D.prontas.find(y=>y.id===id);
-  if(x){x[k]=!x[k];await save();rProntas();}
+  const [id,k]=b.dataset.prchk.split("|");const x=D.prontas.find(y=>y.id===id);
+  if(x){x[k]=!x[k];await save();rRedesSec(g);}
  }));
  box.querySelectorAll("[data-prarq]").forEach(b=>b.addEventListener("click",async()=>{
-  const x=D.prontas.find(y=>y.id===b.dataset.prarq);
-  if(x){x.arquivada=!x.arquivada;await save();rProntas();}
+  const x=D.prontas.find(y=>y.id===b.dataset.prarq);if(x){x.arquivada=!x.arquivada;await save();rRedesSec(g);}
  }));
  box.querySelectorAll("[data-prdel]").forEach(b=>b.addEventListener("click",()=>{
   const x=D.prontas.find(y=>y.id===b.dataset.prdel);
-  confirmar("Apagar ideia?",x?x.titulo:"",async()=>{
-   D.prontas=D.prontas.filter(y=>y.id!==b.dataset.prdel);
-   await save();rProntas();
-  });
+  confirmar("Apagar ideia?",x?x.titulo:"",async()=>{D.prontas=D.prontas.filter(y=>y.id!==b.dataset.prdel);await save();rRedesSec(g);});
  }));
- const acc=$("prArqAcc");
- if(acc)acc.addEventListener("click",()=>{prontasArqAberto=!prontasArqAberto;rProntas();});
- // arrastar: reordenar e mudar de conta
- box.querySelectorAll("[data-pr]").forEach(c=>{
-  c.ondragstart=e=>{prDrag=c.dataset.pr;c.classList.add("dragging");e.dataTransfer.effectAllowed="move";};
-  c.ondragend=()=>{c.classList.remove("dragging");prDrag=null;
-   box.querySelectorAll(".prsec.over").forEach(s=>s.classList.remove("over"));};
+ box.querySelectorAll("[data-prci]").forEach(el=>{
+  el.onclick=()=>{const c=box.querySelector(`[data-pr="${el.dataset.prci}"]`);if(c){c.scrollIntoView({behavior:"smooth",block:"center"});c.classList.add("prflash");setTimeout(()=>c.classList.remove("prflash"),1600);}};
+  el.ondragstart=e=>{prDrag=el.dataset.prci;e.dataTransfer.effectAllowed="move";try{e.dataTransfer.setData("text/plain",prDrag);}catch(x){}};
+  el.ondragend=()=>{prDrag=null;};
+ });
+ // cartões: reordenar dentro da lista
+ box.querySelectorAll(".prsec [data-pr]").forEach(c=>{
+  c.ondragstart=e=>{prDrag=c.dataset.pr;c.classList.add("dragging");e.dataTransfer.effectAllowed="move";try{e.dataTransfer.setData("text/plain",prDrag);}catch(x){}};
+  c.ondragend=()=>{c.classList.remove("dragging");prDrag=null;};
   c.ondragover=e=>{
    if(!prDrag||prDrag===c.dataset.pr)return;
+   const el=box.querySelector(".prsec .dragging");if(!el)return;
    e.preventDefault();
    const r=c.getBoundingClientRect();
-   const depois=e.clientX>r.left+r.width/2;
-   const el=box.querySelector(".dragging");
-   if(el)c.parentNode.insertBefore(el,depois?c.nextSibling:c);
+   c.parentNode.insertBefore(el,e.clientX>r.left+r.width/2?c.nextSibling:c);
   };
  });
- box.querySelectorAll("[data-prsec]").forEach(s=>{
-  s.ondragover=e=>{if(prDrag){e.preventDefault();s.classList.add("over");}};
-  s.ondragleave=()=>s.classList.remove("over");
-  s.ondrop=async e=>{
-   if(!prDrag)return;
-   e.preventDefault();s.classList.remove("over");
-   const x=D.prontas.find(y=>y.id===prDrag);
-   if(x)x.conta=s.dataset.prsec;
-   // gravar a ordem visível
-   const ids=[...s.querySelectorAll("[data-pr]")].map(n=>n.dataset.pr);
-   ids.forEach((id,i)=>{const y=D.prontas.find(z=>z.id===id);if(y)y.ordem=i;});
-   prDrag=null;await save();rProntas();
+ const sec=box.querySelector(".prsec");
+ sec.ondragover=e=>{if(prDrag)e.preventDefault();};
+ sec.ondrop=async e=>{
+  if(!prDrag)return;e.preventDefault();
+  const ids=[...sec.querySelectorAll("[data-pr]")].map(n=>n.dataset.pr);
+  ids.forEach((id,i)=>{const y=D.prontas.find(z=>z.id===id);if(y)y.ordem=i;});
+  prDrag=null;await save();rRedesSec(g);
+ };
+ // dias do calendário: largar marca a data
+ box.querySelectorAll("[data-prday]").forEach(d=>{
+  d.ondragover=e=>{if(!prDrag)return;e.preventDefault();d.classList.add("over");};
+  d.ondragleave=e=>{if(!d.contains(e.relatedTarget))d.classList.remove("over");};
+  d.ondrop=async e=>{
+   if(!prDrag)return;e.preventDefault();d.classList.remove("over");
+   const x=D.prontas.find(y=>y.id===prDrag);prDrag=null;
+   if(x){x.data=d.dataset.prday;await save();rRedesSec(g);setSt("publicação marcada para "+d.dataset.prday.split("-").reverse().slice(0,2).join("/"));}
   };
  });
 }
-async function addPronta(){
- const r=await pedir({titulo:"Nova ideia pronta",campos:[
-  {tipo:"texto",nome:"t",label:"título"},
-  {tipo:"escolha",nome:"c",label:"conta",valor:CONTAS_PRONTAS[0],opcoes:CONTAS_PRONTAS.map(c=>({v:c,txt:c}))}
- ]});
+function rIdeiasRedes(g,box){
+ const R=D.redes;if(!R||!box)return;
+ const L=(R.ideias||[]).filter(i=>GRUPO_PR(i.conta)===g);
+ box.innerHTML=L.map(i=>`<div class="irow">
+   <div style="flex:1;min-width:0">
+    <div class="ititulo" contenteditable data-if="titulo" data-iid2="${i.id}">${esc(i.titulo)}</div>
+    <div class="icorpo" contenteditable data-if="nota" data-iid2="${i.id}">${esc(i.nota||"")}</div>
+   </div>
+   <button class="ico fdel" data-ridel="${i.id}" title="Apagar">✕</button>
+  </div>`).join("")||`<div class="empty">sem ideias, usa o ＋</div>`;
+ box.querySelectorAll("[data-if]").forEach(el=>el.addEventListener("blur",async()=>{
+  const i=R.ideias.find(x=>x.id===el.dataset.iid2);if(!i)return;i[el.dataset.if]=el.innerText.trim();await save();
+ }));
+ box.querySelectorAll("[data-ridel]").forEach(b=>b.addEventListener("click",async()=>{
+  R.ideias=R.ideias.filter(x=>x.id!==b.dataset.ridel);await save();rRedesSec(g);
+ }));
+}
+async function addPronta(g){
+ const r=await pedir({titulo:"Nova ideia pronta · "+NOME_GRUPO[g||"RIMA"],campos:[{tipo:"texto",nome:"t",label:"título"}]});
  if(!r||!r.t||!r.t.trim())return;
  D.prontas=D.prontas||[];
- D.prontas.unshift({id:"pr"+Date.now(),titulo:r.t.trim(),desc:"",conta:r.c,data:null,ordem:0,arquivada:false});
- await save();rProntas();
+ D.prontas.unshift({id:"pr"+Date.now(),titulo:r.t.trim(),desc:"",conta:g||"RIMA",data:null,ordem:0,arquivada:false});
+ await save();rRedesSec(g||"RIMA");
 }
-function addIdeiaRD(){
- D.redes.ideias.unshift({id:"ri"+Date.now(),conta:"RIMA lab",titulo:"Nova ideia",nota:""});
- save().then(rRedes);
+function addIdeiaRD(g){
+ D.redes.ideias.unshift({id:"ri"+Date.now(),conta:g||"RIMA",titulo:"Nova ideia",nota:""});
+ save().then(()=>rRedesSec(g||"RIMA"));
 }
 
 /* ============ preçário serviços ============ */
@@ -4766,7 +4794,7 @@ const MARCAS={
  REC:'<path d="M20.9 3.1a2.1 2.1 0 0 0-3 0l-1.7 1.7 3 3 1.7-1.7a2.1 2.1 0 0 0 0-3ZM14.8 6.2 3 18v3h3L17.8 9.2Z"/>'
 };
 // nomes das secções como aparecem no ecrã (a chave interna continua igual)
-const CAT_NOME={RIMA:"CLIENTES",COMERCIAL:"INTERNO",REC:"REC",CASA:"CASA"};
+const CAT_NOME={RIMA:"CLIENTES",COMERCIAL:"RIMA",REC:"REC",CASA:"CASA"};
 const catNome=c=>CAT_NOME[c]||c;
 function pmark(t){
  const cor=pcor(t);
@@ -5396,7 +5424,7 @@ function rSemana(){
  bindAgendaDnD();
  g.querySelectorAll("[data-prag]").forEach(el=>el.addEventListener("click",e=>{
   e.stopPropagation();
-  const b=document.querySelector('.nav [data-v="REDES"]');if(b)b.click();
+  irParaPronta(el.dataset.prag);
  }));
 }
 /* ============ agenda semanal: segunda a segunda, tarefas + rotinas + objectivos ============ */
@@ -5496,7 +5524,7 @@ function rHojeBox(){
  }));
  box.querySelectorAll("[data-rotedit]").forEach(b=>b.onclick=()=>{const [d,i]=b.dataset.rotedit.split("|");editarBlocoRotina(d,+i);});
  box.querySelectorAll("[data-hobj]").forEach(h=>h.onclick=()=>{homeObjAberto=!homeObjAberto;rHojeBox();});
- box.querySelectorAll("[data-prag]").forEach(el=>el.addEventListener("click",()=>{const b=document.querySelector('.nav [data-v="REDES"]');if(b)b.click();}));
+ box.querySelectorAll("[data-prag]").forEach(el=>el.addEventListener("click",()=>{irParaPronta(el.dataset.prag);}));
 }
 function rSemanal(){
  const w=$("semWrap");if(!w)return;
@@ -5539,7 +5567,7 @@ function rSemanal(){
  ajustarAlturaSemanal(w);
  w.querySelectorAll("[data-rotedit]").forEach(b=>b.onclick=()=>{const [d,i]=b.dataset.rotedit.split("|");editarBlocoRotina(d,+i);});
  w.querySelectorAll("[data-rotadd]").forEach(b=>b.onclick=()=>editarBlocoRotina(b.dataset.rotadd,-1));
- w.querySelectorAll("[data-prag]").forEach(el=>el.addEventListener("click",e=>{e.stopPropagation();const b=document.querySelector('.nav [data-v="REDES"]');if(b)b.click();}));
+ w.querySelectorAll("[data-prag]").forEach(el=>el.addEventListener("click",e=>{e.stopPropagation();irParaPronta(el.dataset.prag);}));
  bindTarefasSemana(w);
 }
 // estica os blocos de trabalho para a tabela ocupar a altura livre do ecrã
@@ -6037,10 +6065,26 @@ function acharNota(id){for(const ch of chavesCad()){const n=(D[ch]||[]).find(x=>
 function rCadernos(){
  const g=$("cadGrid");if(!g)return;
  g.innerHTML=cadernos().map(c=>`<div class="cadcol">
-   <div class="cadh"><span>${esc(c.nome)}</span><span class="cadacts"><button class="ico cadedit" title="Editar secção" data-cadedit="${c.chave}">✎</button><button class="ico" style="width:22px;height:22px;font-size:12px" title="Nova nota" data-cadadd="${c.chave}">+</button></span></div>
+   <div class="cadh" draggable="true" data-cadmove="${c.chave}" title="arrastar para mudar a ordem"><span>⠿ ${esc(c.nome)}</span><span class="cadacts"><button class="ico cadedit" title="Editar secção" data-cadedit="${c.chave}">✎</button><button class="ico" style="width:22px;height:22px;font-size:12px" title="Nova nota" data-cadadd="${c.chave}">+</button></span></div>
    <div class="cadlista" id="cad_${c.chave}"></div>
   </div>`).join("");
  g.querySelectorAll("[data-cadedit]").forEach(b=>b.onclick=()=>editarSeccao(b.dataset.cadedit));
+ // arrastar o cabeçalho de uma secção para outra posição
+ let cadDrag=null;
+ g.querySelectorAll("[data-cadmove]").forEach(h=>{
+  h.ondragstart=e=>{cadDrag=h.dataset.cadmove;arrasto=null;e.dataTransfer.effectAllowed="move";try{e.dataTransfer.setData("text/plain",cadDrag);}catch(x){}h.closest(".cadcol").classList.add("dragging");};
+  h.ondragend=()=>{cadDrag=null;g.querySelectorAll(".cadcol").forEach(c=>c.classList.remove("dragging","cadover"));};
+  const col=h.closest(".cadcol");
+  col.addEventListener("dragover",e=>{if(!cadDrag||cadDrag===h.dataset.cadmove)return;e.preventDefault();col.classList.add("cadover");});
+  col.addEventListener("dragleave",e=>{if(!col.contains(e.relatedTarget))col.classList.remove("cadover");});
+  col.addEventListener("drop",async e=>{
+   if(!cadDrag)return;e.preventDefault();e.stopPropagation();
+   const L=cadernos();const de=L.findIndex(c=>c.chave===cadDrag),para=L.findIndex(c=>c.chave===h.dataset.cadmove);
+   cadDrag=null;if(de<0||para<0||de===para)return;
+   const [c]=L.splice(de,1);L.splice(para,0,c);
+   await save();rCadernos();setSt("ordem das secções actualizada");
+  });
+ });
  g.querySelectorAll("[data-cadadd]").forEach(b=>b.onclick=()=>addNota(b.dataset.cadadd));
  chavesCad().forEach(rCaderno);
 }
@@ -6203,7 +6247,7 @@ function rDocsProjectos(){
 //  documento → caderno: passa a nota desse caderno
 let arrasto=null; // {tipo:"nota"|"doc", ch, id}
 function bindArrastoNotas(){
- const limpar=()=>document.querySelectorAll(".dropzona.over").forEach(z=>z.classList.remove("over"));
+ const limpar=()=>document.querySelectorAll(".dropzona.over,.notamark").forEach(z=>z.classList.remove("over","notamark"));
  document.querySelectorAll("#v-NOTASRIMA .notadrag, #v-NOTASRIMA .docdrag").forEach(b=>{
   b.ondragstart=e=>{
    arrasto=b.dataset.doc2?{tipo:"doc",id:b.dataset.doc2}:{tipo:"nota",ch:b.dataset.nch,id:b.dataset.nid};
@@ -6214,7 +6258,7 @@ function bindArrastoNotas(){
  });
  const aceita=z=>{
   if(!arrasto)return false;
-  if(z.dataset.zcad)return !(arrasto.tipo==="nota"&&arrasto.ch===z.dataset.zcad);
+  if(z.dataset.zcad)return true;
   if(z.dataset.zproj){
    if(arrasto.tipo==="doc"){const d=docs.find(x=>x.id===arrasto.id);return !!d&&d.projecto!==z.dataset.zproj;}
    return true;
@@ -6222,23 +6266,35 @@ function bindArrastoNotas(){
   return false;
  };
  document.querySelectorAll("#v-NOTASRIMA [data-zcad], #v-NOTASRIMA [data-zproj]").forEach(z=>{
-  z.ondragover=e=>{if(!aceita(z))return;e.preventDefault();z.classList.add("over");};
+  z.ondragover=e=>{
+   if(!aceita(z))return;e.preventDefault();z.classList.add("over");
+   z.querySelectorAll(".notamark").forEach(n=>n.classList.remove("notamark"));
+   const alvo=e.target.closest&&e.target.closest("[data-nid]");
+   if(alvo&&z.contains(alvo)&&alvo.dataset.nid!==(arrasto&&arrasto.id))alvo.classList.add("notamark");
+  };
   z.ondragleave=e=>{if(!z.contains(e.relatedTarget))z.classList.remove("over");};
   z.ondrop=async e=>{
    if(!aceita(z))return;
    e.preventDefault();limpar();
    const a=arrasto;arrasto=null;
-   await largarArrasto(a,z.dataset.zcad||null,z.dataset.zproj||null);
+   const alvo=e.target.closest&&e.target.closest("[data-nid]");
+   z.querySelectorAll(".notamark").forEach(n=>n.classList.remove("notamark"));
+   await largarArrasto(a,z.dataset.zcad||null,z.dataset.zproj||null,alvo&&z.contains(alvo)?alvo.dataset.nid:null);
   };
  });
 }
-async function largarArrasto(a,cad,projNome){
+async function largarArrasto(a,cad,projNome,antesDe){
  if(a.tipo==="nota"){
   const org=D[a.ch]||[];const i=org.findIndex(x=>x.id===a.id);if(i<0)return;
   if(cad){
+   if(antesDe===a.id)return;
    const [n]=org.splice(i,1);
-   (D[cad]=D[cad]||[]).unshift(n);
-   await save();rCaderno(a.ch);rCaderno(cad);setSt("nota movida");
+   const dest=(D[cad]=D[cad]||[]);
+   const j=antesDe?dest.findIndex(x=>x.id===antesDe):-1;
+   if(j>=0)dest.splice(j,0,n);else dest.push(n);
+   // os atalhos dos projectos guardam a secção: actualizar
+   (D.projectos||[]).forEach(p=>(p.atalhos||[]).forEach(t=>{if(t.id===n.id)t.ch=cad;}));
+   await save();rCaderno(a.ch);if(cad!==a.ch)rCaderno(cad);setSt(cad===a.ch?"ordem actualizada":"nota movida");
   }else if(projNome){
    const pj=(D.projectos||[]).find(p=>p.nome===projNome);if(!pj)return;
    const [n]=org.splice(i,1);
@@ -6463,7 +6519,7 @@ $("nav").addEventListener("click",e=>{
  document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
  if(["RIMA","REC","CASA"].includes(v)){
   cat=v;document.body.dataset.theme=v==="RIMA"?"HOJE":v;
-  $("v-CAT").classList.add("on");rCat();
+  $("v-CAT").classList.add("on");rCat();rProntas();
  }else{
   cat=null;document.body.dataset.theme=v==="COMERCIAL"?"COMERCIAL":"HOJE";
   $("v-"+v).classList.add("on");
@@ -6472,12 +6528,11 @@ $("nav").addEventListener("click",e=>{
   if(v==="GESTAO"){rCom();rDesp();}
   if(v==="REGISTOS")rConta();
   if(v==="SERVICOS"){rPrec();rServicos();rPrecos();}
-  if(v==="COMERCIAL")rEstrategia();
-  if(v==="REDES"){rRedes();rProntas();}
+  if(v==="COMERCIAL"){rEstrategia();rProntas();}
   if(v==="TRACKER")rTracker();
  }
 });
-function rAll(){try{actualizarHeadH();}catch(e){}if($("v-REDES")&&$("v-REDES").classList.contains("on")&&typeof rProntas==="function")rProntas();aplicarDark();rTimerBar();rSemaforo();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
+function rAll(){try{actualizarHeadH();}catch(e){}try{rProntas();}catch(e){}aplicarDark();rTimerBar();rSemaforo();rHoje();rHome();if(cat)rCat();if(mP)renderP();if($("v-TAREFAS").classList.contains("on")){rInbox();rGlobalTasks();rCal();}if($("v-AGENDA").classList.contains("on"))rAgenda();if($("v-GESTAO").classList.contains("on")){rCom();rDesp();}if($("v-REGISTOS").classList.contains("on"))rConta();tick();}
 let _booted=false;
 async function boot(){
  if(_booted)return;_booted=true;
@@ -6487,6 +6542,7 @@ async function boot(){
  try{if(migrouREC){migrouREC=false;await save();}}catch(e){}
  try{if(migrarRotinaSemanal())await save();}catch(e){}
  try{if(await migrarDocsProjectos())await save();}catch(e){console.error(e);}
+ try{if(migrarRedes())await save();}catch(e){console.error(e);}
  rAll();aCada(15000,tick);
 }
 // A entrada passa a validar a chave real contra o Worker, não no browser.
