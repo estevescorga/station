@@ -948,6 +948,11 @@ body.paused #pauseTint{opacity:1;}
 .trow.done{opacity:.4;}
 .trow.done .tt{text-decoration:line-through;}
 .trow.espera{opacity:.65;}
+.pesp{opacity:.42;}
+.pesp:hover{opacity:.8;}
+.tproj{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin-right:6px;}
+.htask .tproj{font-size:8.5px;}
+.wproj{display:block;font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);line-height:1.2;}
 .trow.espera .tt{font-style:italic;}
 .trow .sub2{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--soft);display:block;margin-top:2px;letter-spacing:.05em;text-transform:uppercase;}
 .trow .meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--soft);text-align:right;}
@@ -1289,7 +1294,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v03/11 10:55</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v10/11 10:05</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -4977,6 +4982,10 @@ function rTimerBar(){
 }
 aCada(1000,()=>{if(D&&D.timer)rTimerBar();});
 aCada(5000,()=>{if(D)rSemaforo();});
+// nome do projecto antes da tarefa; tarefas de projectos em espera ficam esbatidas
+const projGenerico=t=>!t.projecto||t.projecto==="Inbox";
+function projEspera(t){const p=(D.projectos||[]).find(x=>x.nome===t.projecto);return !!(p&&p.estado==="em espera");}
+function tagProj(t,cls){return projGenerico(t)?"":`<span class="${cls||"tproj"}">${esc(t.projecto)}</span>`;}
 function rTaskList(el,list,editavel){
  el.innerHTML="";
  if(!list.length){el.innerHTML=`<div class="empty">sem tarefas</div>`;return;}
@@ -4985,9 +4994,10 @@ function rTaskList(el,list,editavel){
   const urg=dl!==null&&dl<=2&&t.estado!=="concluída";
   const px=dl===null?"":dl<=2?"px1":dl<=7?"px2":"";
   const generica=!t.projecto||t.projecto==="Inbox";
-  el.insertAdjacentHTML("beforeend",`<div class="trow ${t.estado==="concluída"?"done":""} ${t.estado==="em espera"?"espera":""}" draggable="true" data-drag="${t.id}">
+  const dentroProj=!!el.closest("#pOvl");
+  el.insertAdjacentHTML("beforeend",`<div class="trow ${t.estado==="concluída"?"done":""} ${t.estado==="em espera"?"espera":""}${projEspera(t)?" pesp":""}" draggable="true" data-drag="${t.id}">
    <button class="chk${t.estado==="concluída"?" c":""}" data-a="tg" data-id="${t.id}" aria-label="concluir"></button>
-   <span style="display:flex;align-items:baseline;min-width:0;cursor:pointer" data-op="${(D.projectos.find(x=>x.nome===t.projecto)||{}).id||""}">${pmark(t)}<span style="min-width:0"><span class="tt${editavel?" tedit":""}"${editavel?` contenteditable data-ttedit="${t.id}"`:""}>${esc(t.titulo)}</span>${urg?' <span class="meta urg">⚠</span>':""}${t.responsavel&&t.responsavel!=="Ricardo"?` <span class="chip hot" style="display:inline">${esc(t.responsavel)}</span>`:""}<span class="sub2">${t.categoria} · ${esc(t.projecto)}</span></span></span>
+   <span style="display:flex;align-items:baseline;min-width:0;cursor:pointer" data-op="${(D.projectos.find(x=>x.nome===t.projecto)||{}).id||""}">${pmark(t)}<span style="min-width:0">${dentroProj?"":tagProj(t)}<span class="tt${editavel?" tedit":""}"${editavel?` contenteditable data-ttedit="${t.id}"`:""}>${esc(t.titulo)}</span>${urg?' <span class="meta urg">⚠</span>':""}${t.responsavel&&t.responsavel!=="Ricardo"?` <span class="chip hot" style="display:inline">${esc(t.responsavel)}</span>`:""}<span class="sub2">${esc(catNome(t.categoria))}${projEspera(t)?" · projecto em espera":""}</span></span></span>
    <span class="tctrl">
     ${(()=>{const ht=horasTarefa(t);return `<input class="tcell tempot" data-httid="${t.id}" data-htold="${ht}" value="${ht>0?fmtH(ht):""}" placeholder="—" title="tempo registado nesta tarefa · edita para ajustar" />`;})()}
     ${dateChip("t:"+t.id+":data",t.data?fmtDataCurta(t.data):"dia",t.data,"")}
@@ -5590,7 +5600,7 @@ function rHojeBox(){
   const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
   const dl=dias(t);
   const lbl=mostrarPrazo&&dl!==null?(dl<0?`${-dl}d atraso`:dl===0?"hoje":`${dl}d`):"";
-  return `<div class="htask"><button class="hchk" data-hj="${t.id}" aria-label="concluir"></button><span class="htt" ${pid?`data-op="${pid}"`:`data-tedit="${t.id}"`}>${pmark(t)}<span>${esc(t.titulo)}</span></span>${lbl?`<span class="hm${dl!==null&&dl<=2?" urg":""}">${lbl}</span>`:""}</div>`;
+  return `<div class="htask${projEspera(t)?" pesp":""}"><button class="hchk" data-hj="${t.id}" aria-label="concluir"></button><span class="htt" ${pid?`data-op="${pid}"`:`data-tedit="${t.id}"`}>${pmark(t)}<span>${tagProj(t)}${esc(t.titulo)}</span></span>${lbl?`<span class="hm${dl!==null&&dl<=2?" urg":""}">${lbl}</span>`:""}</div>`;
  };
  const anivs=anv.filter(a=>a.data===iso);
  const evs=ev.filter(e=>e.data===iso).sort((a,b)=>(a.h||"").localeCompare(b.h||""));
@@ -5765,7 +5775,7 @@ function prmark(){
 function taskChip(t,iso,isPrazo){
  const pid=(D.projectos.find(x=>x.nome===t.projecto)||{}).id||"";
  const late=t.prazo&&t.prazo<hoje();
- return `<div class="wt${late?" late":""}${isPrazo?" prazo":""}" draggable="true" data-tid="${t.id}" data-pid="${pid}">${pmark(t)}<span>${esc(t.titulo)}${isPrazo?' <span class="wm">prazo</span>':""}</span></div>`;
+  return `<div class="wt${late?" late":""}${isPrazo?" prazo":""}${projEspera(t)?" pesp":""}" draggable="true" data-tid="${t.id}" data-pid="${pid}">${pmark(t)}<span>${tagProj(t,"wproj")}${esc(t.titulo)}${isPrazo?' <span class="wm">prazo</span>':""}</span></div>`;
 }
 let dragTid=null;
 function bindAgendaDnD(){
