@@ -1294,7 +1294,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v13/11 10:30</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v17/11 15:05</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -3290,7 +3290,7 @@ function rTempo(){
   const b=baldeDe(k),pj=(D.projectos||[]).find(p=>p.nome===k);
   let eur="";
   if(b==="clientes"&&pj){
-   const reg=(D.conta||[]).find(r=>contaProjId(r)===pj.id);
+   const reg=registoDoProjecto(pj);
    const valor=reg?(+reg[6]||0):(+pj.orcamento||0);
    const HP=horasProjecto(k),hTot=HP.total;
    if(valor>0&&hTot>0){
@@ -3504,6 +3504,14 @@ function rPrec(){
 /* ============ contabilidade ============ */
 function contaRej(r){ return (r[8]||"")==="REJEITADO"; }
 function contaProjId(r){ return (r[14]&&r[14]!=="none")?r[14]:null; }
+// registo de um projecto: o que o projecto indica (p.registo), senão o mais recente ligado a ele
+function registoDoProjecto(p){
+ if(!p)return null;
+ const C=D.conta||[];
+ if(p.registo){const r=C.find(x=>x[0]===p.registo);if(r)return r;}
+ const lig=C.filter(r=>contaProjId(r)===p.id);
+ return lig.length?lig[lig.length-1]:null;
+}
 function contaFeito(r){ return (r[8]||"")==="FEITO"; }
 function temPagamento(r){ return !!(r[12] || (r[10] && r[11])); }
 function contaNull(r){ return !!r[13] && contaFeito(r); } // só sai para null se FEITO
@@ -4800,7 +4808,7 @@ async function addGasto(){
 function renderBudget(p){
  const box=$("mBudget");if(!box)return;
  // orçamento: se há registo ligado, o valor vem de lá (fonte única)
- const reg=(D.conta||[]).find(r=>contaProjId(r)===p.id);
+ const reg=registoDoProjecto(p);
  const orcLink=reg?(+reg[6]||0):null;
  if(orcLink!==null&&p.orcamento!==orcLink){p.orcamento=orcLink;save();}
  const orc=p.orcamento;
