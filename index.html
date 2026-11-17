@@ -949,6 +949,9 @@ body.paused #pauseTint{opacity:1;}
 .trow.done .tt{text-decoration:line-through;}
 .trow.espera{opacity:.65;}
 .pesp{opacity:.42;}
+.tnum{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--soft);opacity:.7;min-width:16px;margin-right:4px;flex-shrink:0;}
+#mTasks .trow{cursor:grab;}
+#mTasks .trow.dragging{opacity:.35;}
 .pesp:hover{opacity:.8;}
 .tproj{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin-right:6px;}
 .htask .tproj,.dangbox .tproj{font-size:8.5px;}
@@ -1294,7 +1297,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v17/11 15:05</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v17/11 15:40</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -4736,10 +4739,24 @@ function renderP(){
  rDocs();
 }
 let mTaskAcc={ativa:true,"em espera":true,"concluída":false,arquivada:false};
+let mtDrag=null;
+function numerarTarefasProj(body){
+ body.querySelectorAll(".trow[data-drag]").forEach((r,i)=>{
+  let n=r.querySelector(".tnum");
+  if(!n){n=document.createElement("span");n.className="tnum";const c=r.querySelector("[data-op]")||r;c.insertBefore(n,c.firstChild);}
+  n.textContent=i+1;
+ });
+}
 function rMTasksGrouped(p){
  const box=$("mTasks");if(!box)return;
  const all=D.tarefas.filter(t=>t.categoria===p.categoria&&t.projecto===p.nome);
- const byDate=(a,b)=>(a.data||a.prazo||"9999").localeCompare(b.data||b.prazo||"9999");
+ // ordem manual (t.ordemP) primeiro; as que ainda não têm ordem seguem por data
+ const byDate=(a,b)=>{
+  const oa=typeof a.ordemP==="number",ob=typeof b.ordemP==="number";
+  if(oa&&ob)return a.ordemP-b.ordemP;
+  if(oa)return -1;if(ob)return 1;
+  return (a.data||a.prazo||"9999").localeCompare(b.data||b.prazo||"9999");
+ };
  const ORDEM=["ativa","em espera","concluída","arquivada"];
  box.innerHTML=ORDEM.map(est=>{
   const arr=all.filter(t=>t.estado===est).sort(byDate);
@@ -4749,7 +4766,29 @@ function rMTasksGrouped(p){
  }).join("")||`<div class="empty">sem tarefas</div>`;
  ORDEM.forEach(est=>{
   const body=box.querySelector(`[data-mtb="${est}"]`);
-  if(body)rTaskList(body,all.filter(t=>t.estado===est).sort(byDate),true);
+  if(!body)return;
+  rTaskList(body,all.filter(t=>t.estado===est).sort(byDate),true);
+  numerarTarefasProj(body);
+  // arrastar para mudar a ordem; a posição passa a ser o número fixo da tarefa
+  body.querySelectorAll(".trow[data-drag]").forEach(row=>{
+   row.addEventListener("dragstart",()=>{mtDrag=row.dataset.drag;row.classList.add("dragging");});
+   row.addEventListener("dragend",()=>{row.classList.remove("dragging");mtDrag=null;});
+   row.addEventListener("dragover",e=>{
+    if(!mtDrag||mtDrag===row.dataset.drag)return;
+    const el=body.querySelector(`.trow[data-drag="${mtDrag}"]`);if(!el)return;
+    e.preventDefault();
+    const r=row.getBoundingClientRect();
+    body.insertBefore(el,e.clientY>r.top+r.height/2?row.nextSibling:row);
+    numerarTarefasProj(body);
+   });
+  });
+  body.addEventListener("dragover",e=>{if(mtDrag&&body.querySelector(`.trow[data-drag="${mtDrag}"]`))e.preventDefault();});
+  body.addEventListener("drop",async e=>{
+   if(!mtDrag||!body.querySelector(`.trow[data-drag="${mtDrag}"]`))return;
+   e.preventDefault();e.stopPropagation();mtDrag=null;
+   [...body.querySelectorAll(".trow[data-drag]")].forEach((r,i)=>{const t=D.tarefas.find(x=>x.id===r.dataset.drag);if(t)t.ordemP=i+1;});
+   await save();rMTasksGrouped(p);
+  });
  });
  box.querySelectorAll("[data-mtg]").forEach(h=>h.addEventListener("click",()=>{
   mTaskAcc[h.dataset.mtg]=!mTaskAcc[h.dataset.mtg];rMTasksGrouped(p);
