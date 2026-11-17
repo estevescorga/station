@@ -873,6 +873,10 @@ body.paused #pauseTint{opacity:1;}
 .gpt{flex:1;min-width:0;font-size:12.5px;line-height:1.4;cursor:text;outline:none;}
 .gpt:focus{box-shadow:inset 0 -1px 0 var(--acc2);}
 .gpx{width:20px;height:20px;font-size:9px;opacity:0;flex-shrink:0;}
+.ncnome{font-weight:600;}
+.ncnota{font-size:11.5px;color:var(--soft);margin-top:2px;min-height:14px;}
+.ncnota:empty:before{content:attr(data-ph);opacity:.5;}
+.ncdata{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--soft);flex-shrink:0;padding-top:3px;}
 .gprow:hover .gpx{opacity:.6;}
 .hojebox .sdcols{grid-template-columns:118px minmax(0,1fr);gap:12px;}
 .hojebox .sdcols.semrot{grid-template-columns:1fr;}
@@ -1094,6 +1098,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
       <div class="card hcard" data-box="pessoais"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>rec · casa</h5><div id="hOutras"></div></div>
       <div id="hSoltas" data-box="soltas"></div>
       <div class="card hcard gpbox" data-box="prioridades"><h5 style="display:flex;justify-content:space-between;align-items:center"><span><span class="boxgrip" title="arrastar para reorganizar">⠿</span>grandes prioridades</span><button class="ico" style="width:22px;height:22px;font-size:12px" title="Nova prioridade" onclick="addGrandePrioridade()">+</button></h5><div id="hGP"></div></div>
+      <div class="card hcard gpbox" data-box="contactos"><h5 style="display:flex;justify-content:space-between;align-items:center"><span><span class="boxgrip" title="arrastar para reorganizar">⠿</span>novos contactos</span><button class="ico" style="width:22px;height:22px;font-size:12px" title="Novo contacto" onclick="addNovoContacto()">+</button></h5><div id="hNC"></div></div>
       <div class="card hcard" data-box="registo"><h5><span class="boxgrip" title="arrastar para reorganizar">⠿</span>registo de hoje</h5><div id="hReg"></div></div>
     </div>
     <div class="hcol" data-col="2">
@@ -1297,7 +1302,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,.ditem:focus-visib
 <div class="ovl" id="nOvl">
  <div class="modal card" style="max-width:620px">
   <div class="mhead">
-   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v17/11 15:40</span></h3>
+   <h3>Notas · melhorias da Station <span id="buildId" class="buildtag">v17/11 16:20</span></h3>
    <button class="ico" style="width:30px;height:30px;font-size:13px" onclick="closeNotas()" title="Fechar">✕</button>
   </div>
   <div class="hsub" style="margin-bottom:10px">Escreve aqui o que quiseres mudar. Grava sozinho. Depois copia para o chat.</div>
@@ -2531,6 +2536,7 @@ function aplicarLayoutHome(){
  const todos=Object.values(L).flat();
  if(!todos.includes("hoje")){const c=L["0"]||(L["0"]=[]);const i=c.indexOf("danger");c.splice(i>=0?i+1:0,0,"hoje");}
  if(!todos.includes("prioridades")){const c=L["1"]||(L["1"]=[]);c.unshift("prioridades");}
+ if(!todos.includes("contactos")){const k=Object.keys(L).find(k=>L[k].includes("prioridades"))||"1";const c=L[k];const i=c.indexOf("prioridades");c.splice(i>=0?i+1:0,0,"contactos");}
  document.querySelectorAll(".home .hcol").forEach(col=>{
   const ordem=L[col.dataset.col];
   if(!ordem)return;
@@ -2769,6 +2775,7 @@ function rHome(){
  }
  rHojeBox();
  rGrandesPrioridades();
+ rNovosContactos();
  rRegHoje();
  // ideias soltas vindas da Drive
  const hs=$("hSoltas");
@@ -5618,6 +5625,60 @@ function rGrandesPrioridades(){
    gpDrag=null;await save();rGrandesPrioridades();
   };
  });
+}
+// novos contactos: pessoas/empresas com possível negócio, a trabalhar
+let ncDrag=null;
+function rNovosContactos(){
+ const box=$("hNC");if(!box||!D)return;
+ const L=D.novosContactos=D.novosContactos||[];
+ if(box.contains(document.activeElement)&&document.activeElement.isContentEditable)return;
+ box.innerHTML=L.map(x=>`<div class="gprow ncrow" draggable="true" data-nc="${x.id}">
+   <div style="flex:1;min-width:0">
+    <div class="gpt ncnome" contenteditable data-ncf="nome" data-ncid="${x.id}">${esc(x.nome)}</div>
+    <div class="gpt ncnota" contenteditable data-ncf="nota" data-ncid="${x.id}" data-ph="o que pode dar, próximo passo…">${esc(x.nota||"")}</div>
+   </div>
+   <span class="ncdata">${x.data?fmtDataCurta(x.data):""}</span>
+   <button class="ico gpx" data-ncx="${x.id}" title="Tirar da lista">✕</button>
+  </div>`).join("")||`<div class="hsub">sem contactos novos, usa o +</div>`;
+ box.querySelectorAll("[data-ncf]").forEach(el=>{
+  el.onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();el.blur();}};
+  el.onblur=async()=>{
+   const x=L.find(y=>y.id===el.dataset.ncid);if(!x)return;
+   const v=el.innerText.trim(),f=el.dataset.ncf;
+   if(f==="nome"&&!v){el.innerText=x.nome;return;}
+   if((x[f]||"")!==v){x[f]=v;await save();}
+  };
+ });
+ box.querySelectorAll("[data-ncx]").forEach(b=>b.onclick=()=>{
+  const x=L.find(y=>y.id===b.dataset.ncx);if(!x)return;
+  confirmar("Tirar contacto da lista?",x.nome,async()=>{L.splice(L.indexOf(x),1);await save();rNovosContactos();});
+ });
+ box.querySelectorAll("[data-nc]").forEach(row=>{
+  row.ondragstart=e=>{if(document.activeElement&&row.contains(document.activeElement)){e.preventDefault();return;}ncDrag=row.dataset.nc;row.classList.add("dragging");e.stopPropagation();try{e.dataTransfer.setData("text/plain",ncDrag);}catch(x){}};
+  row.ondragend=()=>{row.classList.remove("dragging");ncDrag=null;};
+  row.ondragover=e=>{
+   if(!ncDrag||ncDrag===row.dataset.nc)return;
+   e.preventDefault();e.stopPropagation();
+   const r=row.getBoundingClientRect();const el=box.querySelector(".ncrow.dragging");
+   if(el)row.parentNode.insertBefore(el,e.clientY>r.top+r.height/2?row.nextSibling:row);
+  };
+  row.ondrop=async e=>{
+   if(!ncDrag)return;e.preventDefault();e.stopPropagation();
+   const ordem=[...box.querySelectorAll("[data-nc]")].map(n=>n.dataset.nc);
+   D.novosContactos=ordem.map(id=>L.find(y=>y.id===id)).filter(Boolean);
+   ncDrag=null;await save();rNovosContactos();
+  };
+ });
+}
+async function addNovoContacto(){
+ const r=await pedir({titulo:"Novo contacto",campos:[
+  {tipo:"texto",nome:"nome",label:"nome / empresa"},
+  {tipo:"texto",nome:"nota",label:"possível negócio ou próximo passo (opcional)"}
+ ]});
+ if(!r||!r.nome||!r.nome.trim())return;
+ D.novosContactos=D.novosContactos||[];
+ D.novosContactos.unshift({id:"nc"+Date.now(),nome:r.nome.trim(),nota:(r.nota||"").trim(),data:hoje()});
+ await save();rNovosContactos();
 }
 async function addGrandePrioridade(){
  const r=await pedir({titulo:"Nova grande prioridade",campos:[
